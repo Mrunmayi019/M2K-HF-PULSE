@@ -1,0 +1,90 @@
+# Reference statistics for synthetic data generation.
+#
+# Every value here must have a matching row in docs/data_provenance.md. Values marked
+# `status: seeded_from_planning_doc` are the concrete example figures already quoted in the
+# project's planning doc; they are usable but not yet cross-checked against full paper text.
+# Values marked `status: assumed_default` are standard adult-population defaults used only to
+# keep the generator runnable end-to-end — replace with cited figures before treating outputs
+# as anything more than a structural placeholder dataset.
+#
+# TODO: extract remaining values from full text of Sinha et al., Ohte et al., Bhosale et al.,
+# the 2 Kaggle datasets, and the wearable HRV/sleep dataset (see docs/data_provenance.md).
+
+age:
+  mean: 61.49
+  sd: 13.88
+  min: 18
+  max: 95
+  source: sinha_2024
+  status: seeded_from_planning_doc
+
+sex_ratio:
+  male: 0.55
+  female: 0.45
+  source: null
+  status: assumed_default
+
+height_cm:
+  male: {mean: 175.0, sd: 7.0}
+  female: {mean: 161.5, sd: 6.5}
+  source: null
+  status: assumed_default
+
+weight_kg:
+  male: {mean: 85.0, sd: 15.0}
+  female: {mean: 72.0, sd: 14.0}
+  source: null
+  status: assumed_default
+
+ejection_fraction:
+  hfref:
+    mean: 30
+    range: [15, 40]
+    source: sinha_2024
+    status: seeded_from_planning_doc
+  hfpef:
+    mean: 55
+    range: [50, 65]
+    source: null
+    status: assumed_default
+  healthy:
+    mean: 62
+    range: [55, 70]
+    source: null
+    status: assumed_default
+
+nt_probnp_cutoff_pg_ml:
+  under_50: 450
+  50_to_75: 900
+  over_75: 1800
+  source: bhosale_2024
+  status: seeded_from_planning_doc
+
+bnp_stage_b_threshold_pg_ml:
+  value: 35
+  source: aha_acc_hfsa_2022
+  status: seeded_from_planning_doc
+
+nyha_mets:
+  I: {min: 7, max: null}
+  II: {min: 5, max: 7}
+  III: {min: 2, max: 5}
+  IV: {min: 0, max: 2}
+  source: nyha_classification
+  status: seeded_from_planning_doc
+
+scenario_types:
+  - stable
+  - fluid_overload
+  - cardiac_stress
+  - deconditioning
+  - acute_deterioration
+
+wearable_baseline:
+  resting_hr_bpm: {mean: 70, sd: 8}
+  spo2_pct: {mean: 97, sd: 1.2}
+  sleep_hours: {mean: 7.0, sd: 1.0}
+  steps_per_day: {mean: 6000, sd: 2000}
+  hrv_rmssd_ms: {mean: 35, sd: 12}
+  source: null
+  status: assumed_default
