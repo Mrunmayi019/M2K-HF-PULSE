@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+scenarios/generated*.json
+scenarios/generated*.log
+scenarios/generated*.csv
+data/raw/
+*.env
