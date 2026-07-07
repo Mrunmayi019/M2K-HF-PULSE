@@ -1,57 +1,87 @@
 # Reference statistics for synthetic data generation.
 #
-# Every value here must have a matching row in docs/data_provenance.md. Values marked
-# `status: seeded_from_planning_doc` are the concrete example figures already quoted in the
-# project's planning doc; they are usable but not yet cross-checked against full paper text.
-# Values marked `status: assumed_default` are standard adult-population defaults used only to
-# keep the generator runnable end-to-end — replace with cited figures before treating outputs
-# as anything more than a structural placeholder dataset.
+# Every value here must have a matching row in docs/data_provenance.md. Status legend:
+#   derived_from_dataset   -- computed directly from a real dataset in data/raw/ via
+#                             src/data_synthesis/reference_extraction.py (reproducible, cited)
+#   seeded_from_planning_doc -- concrete example figures already quoted in the project's
+#                             planning doc; usable but not cross-checked against full paper text
+#   assumed_default         -- standard adult-population defaults used only to keep the
+#                             generator runnable end-to-end; replace before treating outputs as
+#                             more than a structural placeholder
 #
-# TODO: extract remaining values from full text of Sinha et al., Ohte et al., Bhosale et al.,
-# the 2 Kaggle datasets, and the wearable HRV/sleep dataset (see docs/data_provenance.md).
+# Real sources now available (see docs/data_provenance.md for full writeup):
+#   mimic_bigquery_extract    -- 11,837 real MIMIC-IV HF admissions (9,293 patients), via BigQuery
+#   andrewmvd_kaggle          -- Chicco & Jurman 2020, n=299, the only source here with EF
+#   fedesoriano_kaggle        -- n=918 general CVD risk cohort, NOT HF-specific -- cross-check only
+#
+# Still TODO: height/weight/BMI (no source here has anthropometrics), BNP/NT-proBNP distributions
+# (no source here measures BNP at all -- nt_probnp_cutoff_pg_ml below remains the planning doc's
+# seeded example), full text of Ohte et al. and Sinha et al. beyond what the planning doc quoted.
 
 age:
-  mean: 61.49
-  sd: 13.88
+  mean: 68.72
+  sd: 13.73
   min: 18
-  max: 95
-  source: sinha_2024
-  status: seeded_from_planning_doc
+  max: 95  # MIMIC caps at 91 due to de-identification age-shifting; allow headroom above that cap
+  source: mimic_bigquery_extract
+  cross_check: {source: sinha_2024, mean: 61.49, sd: 13.88, note: "sinha_2024's general HF cohort skews younger than MIMIC's acute inpatient admissions -- expected, different population"}
+  status: derived_from_dataset
 
 sex_ratio:
-  male: 0.55
-  female: 0.45
-  source: null
-  status: assumed_default
+  male: 0.563
+  female: 0.437
+  source: mimic_bigquery_extract
+  cross_check: {source: andrewmvd_kaggle, male: 0.649}
+  status: derived_from_dataset
 
 height_cm:
   male: {mean: 175.0, sd: 7.0}
   female: {mean: 161.5, sd: 6.5}
   source: null
-  status: assumed_default
+  status: assumed_default  # TODO: no source in data/raw/ has anthropometrics yet
 
 weight_kg:
   male: {mean: 85.0, sd: 15.0}
   female: {mean: 72.0, sd: 14.0}
   source: null
-  status: assumed_default
+  status: assumed_default  # TODO: no source in data/raw/ has anthropometrics yet
 
 ejection_fraction:
   hfref:
-    mean: 30
-    range: [15, 40]
-    source: sinha_2024
-    status: seeded_from_planning_doc
+    mean: 32.3
+    sd: 6.8
+    range: [14, 40]
+    n: 219
+    source: andrewmvd_kaggle
+    status: derived_from_dataset
   hfpef:
-    mean: 55
-    range: [50, 65]
-    source: null
-    status: assumed_default
+    mean: 56.9
+    sd: 6.01
+    range: [50, 80]
+    n: 60
+    source: andrewmvd_kaggle
+    status: derived_from_dataset
   healthy:
     mean: 62
     range: [55, 70]
     source: null
-    status: assumed_default
+    status: assumed_default  # andrewmvd is all-HF-patients -- no true healthy-control EF source yet
+
+# Real lab values from the same sources, not yet consumed by generate_patients.py -- kept here so
+# Phase 2's EF/BNP -> severity mapping has real renal-function figures ready when it's built.
+labs:
+  serum_creatinine_mg_dl:
+    mean: 1.82
+    sd: 1.58
+    source: mimic_bigquery_extract
+    cross_check: {source: andrewmvd_kaggle, mean: 1.39, sd: 1.03}
+    status: derived_from_dataset
+  serum_sodium_meq_l:
+    mean: 138.44
+    sd: 4.24
+    source: mimic_bigquery_extract
+    cross_check: {source: andrewmvd_kaggle, mean: 136.63, sd: 4.41}
+    status: derived_from_dataset
 
 nt_probnp_cutoff_pg_ml:
   under_50: 450
@@ -80,6 +110,12 @@ scenario_types:
   - deconditioning
   - acute_deterioration
 
+# Deliberately NOT replaced with MIMIC's mean_hr (84.75, sd 15.06) or fedesoriano's RestingBP
+# (132.4, sd 18.5): both are measurements of acutely-ill inpatients / a coronary-clinic cohort,
+# not an at-home stable/mildly-symptomatic wearable user -- using them here would make every
+# synthetic patient look tachycardic at baseline. They ARE a useful sanity ceiling though: our
+# acute_deterioration scenario's resting_hr_bpm delta (see generate_wearable_trends.py) should
+# push a patient's HR up toward, not wildly past, MIMIC's real decompensated-inpatient range.
 wearable_baseline:
   resting_hr_bpm: {mean: 70, sd: 8}
   spo2_pct: {mean: 97, sd: 1.2}
@@ -88,3 +124,4 @@ wearable_baseline:
   hrv_rmssd_ms: {mean: 35, sd: 12}
   source: null
   status: assumed_default
+  decompensated_hr_reference: {mean: 84.75, sd: 15.06, source: mimic_bigquery_extract, note: "sanity ceiling, not a sampling parameter"}
