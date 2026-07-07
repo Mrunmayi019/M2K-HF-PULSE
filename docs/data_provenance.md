@@ -16,6 +16,7 @@ from those statistics is what actually ships in the repo (see CLAUDE.md "Locked 
 | `mimic_bigquery_extract` | Real MIMIC-IV HF admissions: age, gender, mean HR/SBP/DBP, creatinine, sodium, aggregated per admission | PhysioNet-credentialed, queried via Google BigQuery (`physionet-data` project); pre-extracted CSV supplied by user | 11,837 admissions / 9,293 unique patients | `data/raw/mimic/hf_patient_features_clean.csv` (gitignored) |
 | `andrewmvd_kaggle` | Chicco & Jurman (2020) heart failure clinical records — the canonical, most-cited HF Kaggle dataset (184k+ downloads, CC BY 4.0). Only source we have with ejection fraction. | Kaggle API (`andrewmvd/heart-failure-clinical-data`) | 299 patients | `data/raw/kaggle/andrewmvd_clinical/` (gitignored) |
 | `fedesoriano_kaggle` | General cardiovascular risk dataset (combined Cleveland/Hungarian/Switzerland/VA + Statlog cohorts). **Not HF-specific** — used only as a general age/BP/HR cross-check, never for EF/BNP. | Kaggle API (`fedesoriano/heart-failure-prediction`) | 918 patients | `data/raw/kaggle/fedesoriano_prediction/` (gitignored) |
+| `nhanes_kaggle` | Official CDC NHANES survey (`demographic.csv` joined with `examination.csv` on SEQN, filtered to adults ≥18 with valid height+weight). **Not HF-specific** — general US population — but the only source we have with any anthropometrics at all. | Kaggle API (`cdc/national-health-and-nutrition-examination-survey`, files `demographic.csv` + `examination.csv` only) | 5,847 adults (2,791 male / 3,056 female) | `data/raw/kaggle/cdc_nhanes/` (gitignored) |
 
 All aggregate stats below are computed reproducibly by `src/data_synthesis/reference_extraction.py`
 — rerun it any time to regenerate this table's numbers from the raw files (MIMIC itself isn't
@@ -49,7 +50,10 @@ wearable training source for now.
 | Serum creatinine | mean 1.82 mg/dL, SD 1.58 | `mimic_bigquery_extract` | MIMIC-IV via BigQuery | derived from real dataset (cross-check: `andrewmvd_kaggle` mean 1.39, SD 1.03) |
 | Serum sodium | mean 138.4 mEq/L, SD 4.2 | `mimic_bigquery_extract` | MIMIC-IV via BigQuery | derived from real dataset (cross-check: `andrewmvd_kaggle` mean 136.6, SD 4.4) |
 | Resting HR / RestingBP (general population cross-check only) | HR mean 84.75 (inpatient, MIMIC) / BP mean 132.4 (fedesoriano) | `mimic_bigquery_extract`, `fedesoriano_kaggle` | — | derived, but **not used as wearable_baseline** — see note below |
-| Height/weight/BMI distributions by sex | — | — | — | TODO — none of the 3 acquired datasets have anthropometrics |
+| Height (male) | mean 174.3 cm, SD 7.8, n=2,791 | `nhanes_kaggle` | CDC NHANES | derived from real dataset |
+| Height (female) | mean 160.5 cm, SD 7.1, n=3,056 | `nhanes_kaggle` | CDC NHANES | derived from real dataset |
+| Weight (male) | mean 86.4 kg, SD 21.3 | `nhanes_kaggle` | CDC NHANES | derived from real dataset — note the wide SD reflects real US adult obesity prevalence, appropriate for an HF-risk cohort |
+| Weight (female) | mean 76.0 kg, SD 21.8 | `nhanes_kaggle` | CDC NHANES | derived from real dataset, same note as above |
 | NT-proBNP diagnostic cutoff, age < 50 | > 450 pg/mL | `bhosale_2024` | Bhosale et al. | seeded from planning doc example |
 | NT-proBNP diagnostic cutoff, age 50–75 | > 900 pg/mL | `bhosale_2024` | Bhosale et al. | seeded from planning doc example |
 | NT-proBNP diagnostic cutoff, age > 75 | > 1800 pg/mL | `bhosale_2024` | Bhosale et al. | seeded from planning doc example |

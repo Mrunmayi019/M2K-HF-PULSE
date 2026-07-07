@@ -13,10 +13,12 @@
 #   mimic_bigquery_extract    -- 11,837 real MIMIC-IV HF admissions (9,293 patients), via BigQuery
 #   andrewmvd_kaggle          -- Chicco & Jurman 2020, n=299, the only source here with EF
 #   fedesoriano_kaggle        -- n=918 general CVD risk cohort, NOT HF-specific -- cross-check only
+#   nhanes_kaggle             -- official CDC NHANES survey, n=5847 adults, general US population,
+#                                not HF-specific -- only source here with height/weight/BMI
 #
-# Still TODO: height/weight/BMI (no source here has anthropometrics), BNP/NT-proBNP distributions
-# (no source here measures BNP at all -- nt_probnp_cutoff_pg_ml below remains the planning doc's
-# seeded example), full text of Ohte et al. and Sinha et al. beyond what the planning doc quoted.
+# Still TODO: BNP/NT-proBNP distributions (no source here measures BNP at all --
+# nt_probnp_cutoff_pg_ml below remains the planning doc's seeded example), full text of Ohte et al.
+# and Sinha et al. beyond what the planning doc quoted.
 
 age:
   mean: 68.72
@@ -35,16 +37,17 @@ sex_ratio:
   status: derived_from_dataset
 
 height_cm:
-  male: {mean: 175.0, sd: 7.0}
-  female: {mean: 161.5, sd: 6.5}
-  source: null
-  status: assumed_default  # TODO: no source in data/raw/ has anthropometrics yet
+  male: {mean: 174.32, sd: 7.77, n: 2791}
+  female: {mean: 160.46, sd: 7.13, n: 3056}
+  source: nhanes_kaggle
+  status: derived_from_dataset
 
 weight_kg:
-  male: {mean: 85.0, sd: 15.0}
-  female: {mean: 72.0, sd: 14.0}
-  source: null
-  status: assumed_default  # TODO: no source in data/raw/ has anthropometrics yet
+  male: {mean: 86.43, sd: 21.3, n: 2791}
+  female: {mean: 75.99, sd: 21.78, n: 3056}
+  source: nhanes_kaggle
+  status: derived_from_dataset
+  note: "real-population SD is much wider than a healthy-only default would suggest -- reflects actual US adult obesity prevalence, appropriate for an HF-risk cohort"
 
 ejection_fraction:
   hfref:

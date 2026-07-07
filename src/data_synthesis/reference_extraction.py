@@ -11,6 +11,10 @@ Sources (all gitignored under data/raw/ -- never committed, per data use terms):
   - data/raw/kaggle/fedesoriano_prediction/heart.csv
       General cardiovascular risk dataset (n=918, combined Cleveland/Hungarian/Switzerland/VA +
       Statlog). Not HF-specific -- used only for general age/BP/HR cross-check, not EF/BNP.
+  - data/raw/kaggle/cdc_nhanes/{demographic,examination}.csv
+      Official CDC NHANES survey (demographic.csv has RIAGENDR/RIDAGEYR, examination.csv has
+      BMXWT/BMXHT/BMXBMI). General US adult population, not HF-specific -- used only for
+      height/weight/BMI by sex, since no other acquired source has anthropometrics at all.
 
 Rejected: data/raw/kaggle/aadarshvelu_clinical/ (n=5000) -- checked and found to be a resampled/
 augmented version of the same small underlying pool as andrewmvd (only 203 unique platelet
@@ -32,6 +36,8 @@ RAW = REPO_ROOT / "data" / "raw"
 MIMIC_PATH = RAW / "mimic" / "hf_patient_features_clean.csv"
 ANDREWMVD_PATH = RAW / "kaggle" / "andrewmvd_clinical" / "heart_failure_clinical_records_dataset.csv"
 FEDESORIANO_PATH = RAW / "kaggle" / "fedesoriano_prediction" / "heart.csv"
+NHANES_DEMO_PATH = RAW / "kaggle" / "cdc_nhanes" / "demographic.csv"
+NHANES_EXAM_PATH = RAW / "kaggle" / "cdc_nhanes" / "examination.csv"
 
 
 def _describe(series: pd.Series) -> dict:
@@ -79,6 +85,24 @@ def extract_fedesoriano_stats() -> dict:
     }
 
 
+def extract_nhanes_stats() -> dict:
+    demo = pd.read_csv(NHANES_DEMO_PATH, usecols=["SEQN", "RIAGENDR", "RIDAGEYR"])
+    exam = pd.read_csv(NHANES_EXAM_PATH, usecols=["SEQN", "BMXWT", "BMXHT", "BMXBMI"])
+    df = demo.merge(exam, on="SEQN", how="inner")
+    adults = df[(df["RIDAGEYR"] >= 18) & df["BMXWT"].notna() & df["BMXHT"].notna()]
+
+    out = {"n_adults": len(adults)}
+    for sex_code, label in [(1, "male"), (2, "female")]:
+        g = adults[adults["RIAGENDR"] == sex_code]
+        out[label] = {
+            "n": len(g),
+            "height_cm": _describe(g["BMXHT"]),
+            "weight_kg": _describe(g["BMXWT"]),
+            "bmi": _describe(g["BMXBMI"]),
+        }
+    return out
+
+
 if __name__ == "__main__":
     import json
 
@@ -91,5 +115,7 @@ if __name__ == "__main__":
         report["andrewmvd_kaggle"] = extract_andrewmvd_stats()
     if FEDESORIANO_PATH.exists():
         report["fedesoriano_kaggle"] = extract_fedesoriano_stats()
+    if NHANES_DEMO_PATH.exists() and NHANES_EXAM_PATH.exists():
+        report["nhanes_kaggle"] = extract_nhanes_stats()
 
     print(json.dumps(report, indent=2))
