@@ -32,11 +32,14 @@ Wearable / clinical report input
   ML Model 1 (scenario classifier)      — Phase 3
          │  (scenario_type, severity)
          ▼
-  src/patient_builder/                  — Phase 2, not yet created
-         │  (patient.json, scenario.json — personalized via EF/BNP, not raw wearable numbers)
+  src/patient_builder/                  — Phase 2, BUILT
+         │  (patient.json, scenario.json — personalized via EF/severity through Pulse Actions/
+         │   Conditions, not raw wearable numbers; see methodology.md §4 for the real Pulse
+         │   mechanisms discovered -- CardiovascularMechanicsModification, not a direct EF input)
          ▼
-  src/pulse_runner/                     — Phase 2, not yet created
-         │  (Pulse simulation output CSV, with crash/timeout handling)
+  src/pulse_runner/                     — Phase 2, BUILT
+         │  (Pulse simulation output CSV, with crash/timeout/log-scan detection -- validated by
+         │   actually catching a real IrreversibleState collapse during Phase 2 tuning)
          ▼
   src/analytics/ (package)              — Phase 5, not yet created
          │  (NYHA/stage classification, deterioration rate, forward projection)
@@ -50,19 +53,15 @@ Wearable / clinical report input
   frontend/ dashboard                    — Phase 7, not yet created
 ```
 
-## Known naming collisions to resolve when those phases start
+## Known naming collisions
 
 The target architecture reuses names already taken by prototype files at the top level of `src/`:
 
-| Target (future) | Existing (prototype, keep as-is for now) |
-|---|---|
-| `src/pulse_runner/runner.py` | `src/run.py` |
-| `src/patient_builder/patient_file.py` + `scenario_file.py` | `src/generator.py` |
-| `src/analytics/` (package: `staging.py`, `deterioration_rate.py`, `projection.py`, `simulation_features.py`) | `src/analytics.py` (single file) |
-
-Decision on how to resolve each (rename prototype file vs. fold logic into the new package) is
-deferred to whichever phase actually builds that piece — flagging here now so it isn't a surprise.
-Per CLAUDE.md, any of these three target directories require a plan check before code is written.
+| Target | Existing (prototype, kept as-is) | Status |
+|---|---|---|
+| `src/pulse_runner/runner.py` | `src/run.py` | **Resolved (Phase 2):** both exist side by side. `run.py` still backs the working Streamlit/Flask prototype unchanged; `runner.py` is the target-path version with timeout + crash/log/completeness detection, used by `scripts/validate_phase2.py` and going forward. |
+| `src/patient_builder/patient_file.py` + `scenario_file.py` | `src/generator.py` | **Resolved (Phase 2):** same pattern — `generator.py` untouched, new modules target the locked 5-scenario taxonomy instead of the prototype's ad hoc condition names. |
+| `src/analytics/` (package: `staging.py`, `deterioration_rate.py`, `projection.py`, `simulation_features.py`) | `src/analytics.py` (single file) | Still pending — Phase 5, needs a plan check per CLAUDE.md when it starts. |
 
 ## Tech stack
 
