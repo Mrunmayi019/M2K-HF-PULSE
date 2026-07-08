@@ -1,0 +1,14 @@
+Phase 5 -- secondary/experimental XGBoost risk scorer, cross-validation report
+===========================================================================
+SECONDARY/EXPERIMENTAL ONLY -- see models/model_card.md for why this is not the
+primary risk scorer (src/analytics/risk_score.py is primary, per CLAUDE.md).
+
+Dataset: data/simulation_runs/features_dataset.csv, n=117
+Scenario counts: deconditioning=30, fluid_overload=30, stable=30, cardiac_stress=15, acute_deterioration=12
+
+5-fold stratified (by scenario_type) cross-validation, no held-out test split
+(n=117 is too small to spare a reliable holdout -- see model_card.md):
+  MAE: 0.0893 +/- 0.0204
+  R^2: 0.8283 +/- 0.0913
+  per-fold MAE: [0.0647, 0.0899, 0.1075, 0.1159, 0.0685]
+  per-fold R^2: [0.8961, 0.8665, 0.6897, 0.7553, 0.9337]

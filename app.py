@@ -2,7 +2,7 @@ from flask import Flask, request, render_template_string
 from src.rules import detect_condition
 from src.generator import create_scenario
 from src.run import run_pulse
-from src.analytics import analyze
+from src.legacy_analytics import analyze
 
 import pandas as pd
 import os

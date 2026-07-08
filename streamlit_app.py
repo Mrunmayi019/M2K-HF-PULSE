@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 
-from src.analytics import analyze
+from src.legacy_analytics import analyze
 from src.generator import create_scenario
 from src.rules import detect_condition
 from src.run import run_pulse

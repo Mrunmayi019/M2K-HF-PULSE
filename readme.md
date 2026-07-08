@@ -12,9 +12,11 @@ hospital visit.
 This repo currently contains two things side by side:
 
 1. **A working prototype** (`app.py`, `streamlit_app.py`, `src/rules.py`, `src/generator.py`,
-   `src/run.py`, `src/analytics.py`) — a Streamlit/Flask dashboard that takes live patient vitals,
-   runs one Pulse simulation, and prints a clinical risk summary. This is the original demo and is
-   left untouched as the target architecture is built out alongside it.
+   `src/run.py`, `src/legacy_analytics.py`) — a Streamlit/Flask dashboard that takes live patient
+   vitals, runs one Pulse simulation, and prints a clinical risk summary. This is the original demo
+   and its logic is left untouched as the target architecture is built out alongside it (the
+   analytics module was renamed from `src/analytics.py` in Phase 5 purely to free up the
+   `src/analytics/` package name — no behavior change).
 2. **The target architecture**, built out in phases (see `docs/methodology.md` for full detail on
    each):
    - **Phase 0/1 (done):** repo scaffold + a correlated synthetic patient generator and wearable
@@ -34,8 +36,14 @@ This repo currently contains two things side by side:
      with per-run features (HR rise, MAP drop, CO drop%, compensation/instability flags) extracted
      into `data/simulation_runs/features_dataset.csv` for Phase 5's risk scorer. See
      `docs/methodology.md` §5 for full composition and results.
-   - **Phase 5 onward (not started):** risk scoring model, analytics package (NYHA staging,
-     deterioration rate, projection), FastAPI backend, frontend dashboard. See
+   - **Phase 5 (done):** risk scoring & clinical logic (`src/analytics/`, `src/ml_models/`) — a
+     primary hand-tuned, clinically-cited weighted risk score (`risk_score.py`); a
+     secondary/experimental XGBoost regressor (`train_risk_scorer.py`, explicitly not primary —
+     see `models/model_card.md` for why); rule-based NYHA staging (`staging.py`); a wearable-trend
+     deterioration rate calculator (`deterioration_rate.py`); and forward projection via
+     incremental Pulse re-simulation (`projection.py`). See `docs/methodology.md` §6 for the full
+     scoring formula, citations, and a known limitation found during validation.
+   - **Phase 6 onward (not started):** FastAPI backend + database, frontend dashboard. See
      `docs/architecture.md` for the full target pipeline diagram.
 
 ## Quick Start
@@ -60,7 +68,7 @@ python3 /workspace/app.py                     # simpler Flask fallback, port 500
 pip install -r requirements.txt
 python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv (n=2000)
 python3 -m src.data_synthesis.generate_wearable_trends  # writes data/synthetic/wearable_trends.csv
-pytest tests/ -v                                        # 71 tests, no Docker required
+pytest tests/ -v                                        # 114 tests, no Docker required
 ```
 
 ### Train the Phase 3 scenario classifier (no Docker needed)
@@ -71,6 +79,19 @@ python3 -m src.scenario_classifier.train
 # models/confusion_matrix.png, models/feature_importances.png, models/phase3_eval_report.txt
 ```
 
+### Compute risk scores + train the Phase 5 secondary XGBoost model (no Docker needed)
+
+The primary risk score (`src/analytics/risk_score.py`) is a pure function — call
+`compute_risk_score(hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag)` directly
+on any row from `data/simulation_runs/features_dataset.csv`, no training required. The
+secondary/experimental XGBoost comparison model does need training:
+
+```bash
+python3 -m src.ml_models.train_risk_scorer
+# writes models/risk_scorer_xgb.joblib, models/phase5_xgb_cv_report.txt
+# see models/model_card.md for why this is secondary, not primary
+```
+
 ### Run a Pulse simulation with the new patient_builder/pulse_runner pipeline
 
 Requires Docker (see `docs/methodology.md` §4 for the Pulse-specific gotchas this handles):
@@ -79,6 +100,21 @@ Requires Docker (see `docs/methodology.md` §4 for the Pulse-specific gotchas th
 docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
   pip3 install -q pandas pyyaml
   python3 -m scripts.validate_phase2
+"
+```
+
+### Verify the Phase 5 forward projection (Docker required, calls Pulse repeatedly)
+
+```bash
+docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
+  pip3 install -q pandas pyyaml
+  python3 -c \"
+import pandas as pd
+from src.analytics.projection import project_physiology
+patients = pd.read_csv('data/synthetic/patients.csv')
+patient = patients.iloc[0].to_dict()
+print(project_physiology(patient, patient['scenario_type'], float(patient['severity']), deterioration_rate_per_day=0.03))
+\"
 "
 ```
 
@@ -104,26 +140,31 @@ docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c
 app.py, streamlit_app.py          # prototype frontends (untouched)
 src/
   rules.py, generator.py,
-  run.py, analytics.py            # prototype pipeline (untouched)
+  run.py, legacy_analytics.py     # prototype pipeline (untouched, analytics.py renamed in Phase 5
+                                   #   to free up the src/analytics/ package name below)
   data_synthesis/                 # Phase 1: synthetic patients + wearable trends
   patient_builder/                # Phase 2: Pulse patient/scenario JSON construction
   pulse_runner/                   # Phase 2: Pulse execution + crash detection
                                    #   + Phase 4: batch_runner.py (parallelized batch execution)
   scenario_classifier/            # Phase 3: feature engineering + scenario/severity models
-  simulation_features.py          # Phase 4: per-run feature extraction (see architecture.md's
-                                   #   naming-collision note for why this isn't in a package yet)
+  analytics/                      # Phase 4: simulation_features.py (per-run feature extraction)
+                                   #   + Phase 5: risk_score.py (primary), staging.py,
+                                   #   deterioration_rate.py, projection.py
+  ml_models/                      # Phase 5: train_risk_scorer.py (secondary/experimental XGBoost)
 data/
   synthetic/                      # generated patients.csv / wearable_trends.csv
   simulation_runs/                # Phase 4: features_dataset.csv / failed_runs.csv / checkpoint.csv
   raw/, reference/                # real source data (gitignored, never committed)
 models/                           # trained model artifacts + eval plots (gitignored, never committed)
+                                   #   model_card.md documents both Model 1 and Model 2, incl.
+                                   #   the Phase 5 secondary model's limitations
 docs/
   architecture.md                 # current + target system diagrams
   methodology.md                  # why each decision was made, what was validated
   data_provenance.md              # every clinical number, traced to its source
 scripts/
   validate_phase2.py              # runs all 5 scenario types through Pulse
-tests/                            # 71 tests, no Docker required
+tests/                            # 114 tests, no Docker required
 ```
 
 ## Data Sources
@@ -145,6 +186,7 @@ datasets and aggregate statistics are committed.
 - **`docs/architecture.md`** — system diagrams (current prototype + target pipeline)
 - **`docs/methodology.md`** — the "why" behind each phase, validation results, honest limitations
 - **`docs/data_provenance.md`** — every clinical threshold/statistic, traced to a source
+- **`models/model_card.md`** — both trained models' training data, performance, and limitations
 
 ## Contributors
 

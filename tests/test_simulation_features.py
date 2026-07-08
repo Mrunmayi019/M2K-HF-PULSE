@@ -1,4 +1,5 @@
-"""Validation tests for the Phase 4 per-run feature extraction (src/simulation_features.py).
+"""Validation tests for the Phase 4 per-run feature extraction
+(src/analytics/simulation_features.py).
 
 Pure-Python, no Docker/Pulse required -- operates on hand-built DataFrames shaped like a real
 run_pulse() output.
@@ -8,7 +9,7 @@ Run from repo root: pytest tests/test_simulation_features.py -v
 import pandas as pd
 import pytest
 
-from src.simulation_features import (
+from src.analytics.simulation_features import (
     COMPENSATION_STROKE_VOLUME_RATIO,
     INSTABILITY_MAP_THRESHOLD_MMHG,
     analyze_simulation,

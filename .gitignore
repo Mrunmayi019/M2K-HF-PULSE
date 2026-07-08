@@ -6,6 +6,7 @@ scenarios/*.log
 scenarios/*.csv
 scenarios/batch/
 scenarios/batch_pilot/
+scenarios/projection/
 data/raw/
 *.env
 models/*.joblib

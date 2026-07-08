@@ -108,10 +108,12 @@ series alone — are cleanly separated here (1–3 misclassifications out of ~60
 Pulse-output-only comparison in Phase 2.
 
 **Phase 4 (batch simulation dataset, done).** `src/pulse_runner/batch_runner.py` runs a stratified
-sample of synthetic patients through Pulse in parallel and `src/simulation_features.py` extracts a
+sample of synthetic patients through Pulse in parallel and `src/analytics/simulation_features.py` extracts a
 fixed feature set from each run — see §5 continuation below and §7 for full results.
 
-Phase 5 (risk scorer) is not started.
+**Phase 5 (risk scoring & clinical logic, done).** See §6 for the full weighted-score design,
+citations, and XGBoost comparison; `models/model_card.md` for both trained models' documented
+limitations.
 
 ### Phase 4 — Batch Simulation Dataset
 
@@ -130,7 +132,7 @@ sequential would be ~4.5 hours. Each result is checkpointed to
 already made — added after the very first full-batch attempt ran with no incremental write and
 would have lost everything had it been killed early.
 
-**Feature extraction** (`src/simulation_features.py`, per run): `hr_start/end/rise`,
+**Feature extraction** (`src/analytics/simulation_features.py`, per run): `hr_start/end/rise`,
 `map_start/end/drop`, `co_start/end/drop_pct`, `stroke_volume_start/end`, `compensation_flag`
 (1 if stroke volume held ≥95% of its starting value through the run), and `instability_flag`
 (1 if `map_end < 65` mmHg, a standard critical-care hypoperfusion threshold — see
@@ -171,8 +173,83 @@ this binary flag.
 
 ## 6. Risk Scoring Logic, With Clinical Citations
 
-TODO — Phase 5. Primary model is the hand-tuned interpretable weighted score (locked decision);
-XGBoost on the Pulse batch dataset is secondary/experimental only.
+Per the locked decision in CLAUDE.md, the primary risk scorer is a hand-tuned, interpretable
+weighted score (`src/analytics/risk_score.py`); a secondary/experimental XGBoost regressor
+(`src/ml_models/train_risk_scorer.py`) exists only as a comparison point, trained on the same
+117-row Phase 4 dataset. Both consume the same 5 features:
+`hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag`.
+
+### 6.1 Primary — hand-tuned weighted score
+
+Each input is normalized to 0-1 against a clinically-anchored full scale, then combined by a
+hand-set weighted sum (weights sum to 1). Every anchor and weight is in
+`docs/data_provenance.md`'s Reference Table and the module's own docstring/comments — summary:
+
+| Component | Anchor | Citation |
+|---|---|---|
+| `hr_rise` (weight 0.15) | NEWS2 heart-rate scoring bands, applied to `hr_rise + assumed 70bpm baseline` | Royal College of Physicians, NEWS2, 2017 |
+| `map_drop` (weight 0.20) | Full scale = healthy baseline (~92.5mmHg, this project's own Phase 2 validation) minus the MAP<65 instability threshold | Surviving Sepsis Campaign; Vincent & De Backer, NEJM 2013 |
+| `co_drop_pct` (weight 0.20) | 30% decline = full scale (negative values, i.e. CO *rising*, clamp to zero risk) | Nohria et al., JAMA 2002; SCAI 2019 Cardiogenic Shock Stage consensus |
+| `compensation_flag` (weight 0.15) | Binary — failed compensation (flag=0) contributes full weight | Frank-Starling mechanism failure, textbook hallmark of systolic dysfunction |
+| `instability_flag` (weight 0.30, highest) | Binary — reuses the MAP<65 citation directly | same as `map_drop` |
+
+`risk_bucket` thresholds (`LOW`<0.35, `MODERATE`<0.65, `HIGH`≥0.65) are an engineering choice
+(roughly a tertile split), not a clinical citation — documented as such in the code.
+
+**Validation against all 117 rows of `features_dataset.csv`:** the *pooled* correlation of
+`risk_score` with `severity` is near zero (−0.06) — but this is a Simpson's-paradox-style
+confound, not evidence the score is broken: different scenario types have very different baseline
+risk regardless of severity, so pooling across them washes out the real relationship. Within each
+scenario type: `acute_deterioration` 0.70, `cardiac_stress` 0.30, `deconditioning` 0.21 — all
+positive as expected. `stable` is −0.19 (expected: severity is capped <0.15 by design, so this is
+noise around a floor, not a real trend). Bucket distribution by scenario: `stable`,
+`deconditioning` are 100% `LOW` (deconditioning is the mildest scenario by design — no `Exercise`
+action, see §4 — so this is correct, not a bug); `cardiac_stress` is 80% `MODERATE`/20% `HIGH`
+(0 `LOW`); `acute_deterioration` spans all three buckets with a majority `HIGH`.
+
+**`fluid_overload` is a known blind spot of this formula, found during validation and worth being
+explicit about:** all 30 successful `fluid_overload` runs score `LOW` regardless of severity
+(0.003 to 0.99), with `risk_score` showing zero variance (undefined correlation with severity).
+Inspecting the raw features explains why: `fluid_overload`'s danger is encoded as a *shifted
+baseline* (MAP starts already congested at ~77-79mmHg instead of ~90-95mmHg, per §4/§7's own
+Phase 2 table — `77→77`) rather than as further *acute* deterioration during the 10-minute
+simulated window, since `fluid_overload` has no `Exercise` action. `hr_rise`/`map_drop` stay near
+zero (nothing changes *during* the run) and `co_drop_pct` is consistently negative (CO actually
+rises ~11-14%, matching Phase 2's original single-patient finding), and 78mmHg is well above the
+65mmHg `instability_flag` threshold. **The formula, exactly as specified (5 within-run-delta
+features), is structurally blind to a chronically-shifted-but-acutely-stable presentation like
+this** — it only sees change *during* one simulated encounter, not a baseline state that's already
+abnormal going in. This is a real scope limitation of the current feature set, not an
+implementation bug; see §8.
+
+### 6.2 Secondary/experimental — XGBoost
+
+See `models/model_card.md` for the full writeup (training data, CV protocol, and — most
+importantly — why n=117 with real class imbalance means this is a comparison signal only, never
+the primary output). Headline numbers: 5-fold stratified CV, MAE 0.089 ± 0.020, R² 0.828 ± 0.091.
+
+### 6.3 Rule-based clinical logic (`src/analytics/`)
+
+- **`staging.py`** — rule-based NYHA classifier. AHA/ACC 2022 Stage B structural/biomarker
+  criteria (LVEF≤40% or age-adjusted NT-proBNP above cutoff, both already in
+  `data_provenance.md`/`reference_stats.yaml`) gate whether a patient has any structural basis for
+  symptoms; the simulated exertion response (`risk_score`/`instability_flag`) then places a
+  structurally-at-risk patient in NYHA I-IV, reusing `risk_score.py`'s own `LOW`/`MODERATE`/`HIGH`
+  boundaries rather than a second set of thresholds.
+- **`deterioration_rate.py`** — per-vital slopes over the 21-day wearable window (reuses
+  `src/scenario_classifier/features.py`'s `np.polyfit` slope technique), normalized to
+  population-SD-equivalents/day using `reference_stats.yaml`'s existing `wearable_baseline` SDs,
+  combined with a sign convention matching `generate_wearable_trends.py`'s own
+  `SCENARIO_SIGNAL_DELTAS` definition of "worsening" per vital. `days_to_next_stage()` converts
+  this composite rate to a risk-score-equivalent daily rate via one explicit, named constant
+  (`SD_RATE_TO_RISK_SCORE_PER_DAY = 0.05`) — flagged in `data_provenance.md` as an
+  `assumed_default` engineering calibration, not a clinical citation, since no literature source
+  exists for this specific conversion.
+- **`projection.py`** — `project_severity()` linearly extrapolates severity forward using that
+  same rate (clamped 0-1); `project_physiology()` re-runs the full Phase 2/4 pipeline
+  (`patient_builder` → `run_pulse()` → `simulation_features` → `risk_score`) at each projected
+  severity for 7/14/30-day horizons. Manually verified once inside Docker on patient `P0000`
+  (`acute_deterioration`, starting severity 0.207) — see §7.
 
 ## 7. Validation Approach and Results
 
@@ -192,6 +269,29 @@ validated in two stages: a 10-patient pilot (10/10 succeeded, ~110s/run individu
 confirming the pipeline end-to-end before committing to the full run), then the full 150-patient
 batch (117/150 succeeded — see §5 for the failure breakdown and why it's scenario/severity-specific
 rather than a pipeline bug).
+
+**Phase 5** (risk scoring & clinical logic): `tests/test_risk_score.py` (12 checks: monotonicity
+per component, boundary cases, weights sum to 1), `tests/test_train_risk_scorer.py` (7 checks: CV
+pipeline wiring, determinism, the exact documented class-imbalance counts), `tests/test_staging.py`
+(7 checks: structural gate, all 4 NYHA classes reachable, age-adjusted cutoff, instability
+override), `tests/test_deterioration_rate.py` (10 checks: slope sign conventions per vital,
+stable/worsening/improving direction, days-to-next-stage edge cases), `tests/test_projection.py`
+(7 checks: `project_severity()` clamping and linear extrapolation — pure math, no Docker). Plus
+the 117-row `risk_score` validation in §6.1.
+
+`project_physiology()` (the one piece of Phase 5 that needs Docker) was manually verified once on
+patient `P0000` (`acute_deterioration`, starting severity 0.207, `deterioration_rate_per_day=0.03`
+worsening trend) — 3 re-simulations at the 7/14/30-day projected severities (0.417/0.627/1.0,
+clamped) all ran successfully, confirming the re-simulation pipeline (`patient_builder` →
+`run_pulse()` → `simulation_features` → `risk_score`) is wired correctly end to end. `risk_bucket`
+is `HIGH` at all three horizons, but `risk_score` itself is roughly flat (0.767 → 0.738 → 0.731)
+rather than climbing further with the increasing projected severity — `hr_rise` saturates at 90
+(162bpm) from the 7-day horizon onward, so the `instability_flag`/`hr_rise` components are already
+at their component maximum by then; only `map_drop`'s smaller marginal contribution shifts
+slightly across horizons. This is an emergent property of how `acute_deterioration`'s Pulse
+mechanics respond to severity in this range (similar to other emergent, not hand-tuned, findings
+in §4/§7) — the takeaway from this single verification run is that the pipeline executes
+correctly, not a claim about risk trending strictly upward with severity at the high end.
 
 **Phase 2** (Pulse integration): all 5 locked scenario types were run once each at severity ~0.5,
 using real patients from `data/synthetic/patients.csv`, inside the actual Pulse Docker container

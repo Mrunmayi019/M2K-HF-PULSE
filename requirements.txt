@@ -4,3 +4,4 @@ pyyaml
 pytest
 scikit-learn
 matplotlib
+xgboost

@@ -21,7 +21,7 @@ import pandas as pd
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S, build_scenario_file
 from src.pulse_runner.runner import PulseExecutionError, run_pulse
-from src.simulation_features import analyze_simulation
+from src.analytics.simulation_features import analyze_simulation
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_DIR = pathlib.Path("/workspace/scenarios/batch")

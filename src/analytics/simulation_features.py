@@ -4,15 +4,6 @@ Turns one `run_pulse()` output DataFrame into a fixed set of summary features + 
 build the batch simulation dataset (`src/pulse_runner/batch_runner.py`) that Phase 5's risk scorer
 trains on.
 
-Note on placement: this logically belongs in a `src/analytics/` package alongside Phase 5's
-`staging.py`/`deterioration_rate.py`/`projection.py` (see docs/architecture.md's target diagram),
-but a package directory literally named `analytics` cannot coexist with the existing
-`src/analytics.py` prototype module -- `app.py`/`streamlit_app.py` both do
-`from src.analytics import analyze` and would break. That collision is explicitly flagged in
-architecture.md as unresolved, deferred to whichever phase builds the rest of the package (Phase
-5). Kept as a flat module here for now; move into `src/analytics/simulation_features.py` once that
-collision is resolved.
-
 Never uses `OxygenSaturation` -- it reads a flat 0.0 in every run on this machine (see
 docs/methodology.md sections 4 and 8), so it carries no signal.
 """

@@ -15,13 +15,15 @@ Patient vitals (HR, SpO2, BP, RR, Age)
   src/run.py           → run_pulse()         → /workspace/scenarios/generatedResults.csv
          │
          ▼
-  src/analytics.py    → analyze()           → {features, stage, risk, score, driver, forecast}
+  src/legacy_analytics.py → analyze()       → {features, stage, risk, score, driver, forecast}
 ```
 
 Two frontends (`streamlit_app.py`, `app.py`) share this pipeline. Runs only inside the Kitware
 Pulse Docker container. See CLAUDE.md for full module responsibilities, hardcoded paths, and known
 gotchas (Pulse crash detection not yet implemented in `run.py`; condition names here are a
-prototyping shortcut, not the locked 5-scenario taxonomy).
+prototyping shortcut, not the locked 5-scenario taxonomy). `src/analytics.py` was renamed to
+`src/legacy_analytics.py` in Phase 5 to free up `src/analytics/` for the target-path package —
+no logic changes, see "Known naming collisions" below.
 
 ## Target state (per project planning doc roadmap, Phase 0–9)
 
@@ -44,15 +46,23 @@ Wearable / clinical report input
          │   actually catching a real IrreversibleState collapse during Phase 2 tuning;
          │   batch_runner.py parallelizes this across a stratified sample of synthetic patients)
          ▼
-  src/simulation_features.py            — Phase 4, BUILT
+  src/analytics/simulation_features.py  — Phase 4, BUILT
          │  (per-run feature extraction: HR rise, MAP drop, CO drop%, compensation/instability
-         │   flags -- feeds data/simulation_runs/features_dataset.csv, Phase 5's XGBoost input)
+         │   flags -- feeds data/simulation_runs/features_dataset.csv, Phase 5's model input)
          ▼
-  src/analytics/ (package)              — Phase 5, not yet created
-         │  (NYHA/stage classification, deterioration rate, forward projection)
-         ▼
-  ML Model 2 (risk scorer, hand-tuned primary + XGBoost secondary) — Phase 5
+  src/analytics/risk_score.py           — Phase 5, BUILT (primary risk scorer)
+         │  (hand-tuned, clinically-cited weighted score -- LOW/MODERATE/HIGH; see
+         │   methodology.md §6 for every component's citation and the fluid_overload blind spot
+         │   found during validation)
          │
+         │  src/ml_models/train_risk_scorer.py — Phase 5, BUILT (secondary/experimental)
+         │  (XGBoost regressor on the same features, 5-fold CV given n=117 -- see
+         │   models/model_card.md for why this is not the primary path)
+         ▼
+  src/analytics/staging.py              — Phase 5, BUILT (rule-based NYHA classification)
+  src/analytics/deterioration_rate.py   — Phase 5, BUILT (slope-based rate, days-to-next-stage)
+  src/analytics/projection.py           — Phase 5, BUILT (incremental severity re-simulation,
+         │                                 7/14/30-day horizons, reuses patient_builder/pulse_runner)
          ▼
   src/api/ (FastAPI) + database          — Phase 6, not yet created
          │
@@ -68,7 +78,7 @@ The target architecture reuses names already taken by prototype files at the top
 |---|---|---|
 | `src/pulse_runner/runner.py` | `src/run.py` | **Resolved (Phase 2):** both exist side by side. `run.py` still backs the working Streamlit/Flask prototype unchanged; `runner.py` is the target-path version with timeout + crash/log/completeness detection, used by `scripts/validate_phase2.py` and going forward. |
 | `src/patient_builder/patient_file.py` + `scenario_file.py` | `src/generator.py` | **Resolved (Phase 2):** same pattern — `generator.py` untouched, new modules target the locked 5-scenario taxonomy instead of the prototype's ad hoc condition names. |
-| `src/analytics/` (package: `staging.py`, `deterioration_rate.py`, `projection.py`, `simulation_features.py`) | `src/analytics.py` (single file) | **Still unresolved.** Phase 4 needed `simulation_features.py` first, but a package directory literally named `analytics` cannot coexist with `src/analytics.py` — `app.py`/`streamlit_app.py` both do `from src.analytics import analyze` and would break. Placed at `src/simulation_features.py` (flat module, no package) instead; move into `src/analytics/simulation_features.py` once Phase 5 resolves this collision (likely by relocating/renaming the prototype file). |
+| `src/analytics/` (package: `staging.py`, `deterioration_rate.py`, `projection.py`, `simulation_features.py`, `risk_score.py`) | `src/analytics.py` (single file) | **Resolved (Phase 5):** the prototype file was renamed to `src/legacy_analytics.py` (no logic changes — `app.py`/`streamlit_app.py` each updated one import line: `from src.legacy_analytics import analyze`). `src/analytics/` is now the real target-path package; `simulation_features.py` moved in from its temporary Phase 4 location. |
 
 ## Tech stack
 
