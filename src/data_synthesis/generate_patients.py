@@ -149,7 +149,9 @@ def generate_patients(n: int = 500, seed: int = 42) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    patients = generate_patients()
+    # n=2000 (not the function default of 500): Phase 3's 70/15/15 patient-level split needs
+    # enough per-scenario samples in the 15% test fold for 5-class evaluation to mean anything.
+    patients = generate_patients(n=2000)
     DEFAULT_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     patients.to_csv(DEFAULT_OUTPUT_PATH, index=False)
     print(f"Wrote {len(patients)} patients to {DEFAULT_OUTPUT_PATH}")

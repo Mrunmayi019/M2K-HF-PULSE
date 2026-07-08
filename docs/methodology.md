@@ -15,7 +15,7 @@ readmission problem, monitoring gap between clinic visits).
 See `docs/data_provenance.md` for the full parameter-level table. Summary:
 - Clinical baselines: synthetic, derived from cited papers + Kaggle datasets (never real patient data)
 - Wearable trends: synthetic, 3 modes — `stable`, `deteriorating`, `recovering`
-- Simulation dataset: self-generated via Pulse batch runs (Phase 4, not yet started)
+- Simulation dataset: self-generated via Pulse batch runs (Phase 4, done — see §5 and §7)
 
 ## 3. Personalization Tier Design and Justification
 
@@ -67,7 +67,107 @@ compiled source inside the Docker image rather than assuming from the planning d
 
 ## 5. ML Model Design, Training, Evaluation
 
-TODO — Phase 3 (scenario classifier) and Phase 5 (risk scorer), not started.
+**Phase 3 (scenario classifier, done).** Two `RandomForest` models
+(`src/scenario_classifier/train.py`) share one feature matrix built by
+`src/scenario_classifier/features.py`:
+
+- `RandomForestClassifier` → `scenario_type` (5-class: `stable`, `fluid_overload`,
+  `cardiac_stress`, `deconditioning`, `acute_deterioration`).
+- `RandomForestRegressor` → `severity` (continuous, 0–1).
+
+**Features** (one row per patient, 30 columns total): the clinical snapshot from
+`patients.csv` (`age`, `sex`, `bmi`, `ejection_fraction_pct`, `nt_probnp_pg_ml`, `nyha_class` as
+an ordinal), plus per-vital wearable-trend aggregates from the 21-day window in
+`wearable_trends.csv` — first-7-day mean, last-7-day mean, delta, and linear slope, for each of
+`resting_hr_bpm, spo2_pct, weight_kg, steps_per_day, sleep_hours, hrv_rmssd_ms`. This mirrors the
+real deployment input (a clinical report + a rolling wearable window), not raw simulation
+internals.
+
+**Leakage guard:** `wearable_trends.csv`'s `trend_mode` column is derived directly from the
+label and is dropped before feature construction; `scenario_type` is obviously excluded too.
+`severity` is a *target*, not a feature — it legitimately drives the wearable deltas and clinical
+values during data synthesis (see Phase 1, `generate_patients.py`/`generate_wearable_trends.py`),
+so the model is learning to infer it from those measurable downstream effects, not being handed it
+directly.
+
+**Split:** patient-level, stratified 70/15/15 train/val/test on `n=2000` patients
+(`split_patients()` in `train.py`), so all 5 classes are represented in every fold — an
+unstratified 15% slice risks near-empty classes for 5-way evaluation. Random Forest hyperparameters
+were left at defaults (`n_estimators=300`, no depth cap) — no tuning harness was built, since the
+task didn't call for one.
+
+**Results (held-out test set, 300 patients):** 92.3% scenario accuracy (macro F1 0.92), severity
+MAE 0.048 / RMSE 0.063. Full classification report and confusion matrix are written to
+`models/phase3_eval_report.txt` on every training run (small text file, committed as evidence;
+the `.joblib` model weights and `.png` plots alongside it are gitignored and regenerated with
+`python3 -m src.scenario_classifier.train`). Notably, `cardiac_stress` (HFpEF-profile, preserved
+EF) and `acute_deterioration` (HFrEF-profile, low EF) — the pair Phase 2's Pulse validation (§4,
+`cardiac_stress` vs `acute_deterioration` table) found hardest to distinguish from HR/MAP time
+series alone — are cleanly separated here (1–3 misclassifications out of ~60 each way), because
+`ejection_fraction_pct` is directly available as an input feature to this model, unlike the
+Pulse-output-only comparison in Phase 2.
+
+**Phase 4 (batch simulation dataset, done).** `src/pulse_runner/batch_runner.py` runs a stratified
+sample of synthetic patients through Pulse in parallel and `src/simulation_features.py` extracts a
+fixed feature set from each run — see §5 continuation below and §7 for full results.
+
+Phase 5 (risk scorer) is not started.
+
+### Phase 4 — Batch Simulation Dataset
+
+**Composition:** unlike the original roadmap's fixed 5×10×3 severity grid, this pulls a stratified
+sample directly from the existing `data/synthetic/patients.csv` population (30 patients per
+scenario type = 150 total, `sample_patients()` in `batch_runner.py`) — that population already
+carries real, clinically-correlated per-patient severity/EF/BNP as ground truth and already spans
+the full severity range within each scenario type, so no separate grid logic was needed.
+
+**Execution:** each patient's `patient.json`/`scenario.json` (Phase 2's `patient_builder/`,
+unchanged) is run through `run_pulse()` (Phase 2's `pulse_runner/runner.py`, unchanged, including
+its crash detection) via a `ProcessPoolExecutor` with 4 parallel workers — required, not optional:
+individual run latency is ~110s under this machine's arm64→amd64 Docker emulation (§4), so 150 runs
+sequential would be ~4.5 hours. Each result is checkpointed to
+`data/simulation_runs/checkpoint.csv` as it completes, so an interrupted run doesn't lose progress
+already made — added after the very first full-batch attempt ran with no incremental write and
+would have lost everything had it been killed early.
+
+**Feature extraction** (`src/simulation_features.py`, per run): `hr_start/end/rise`,
+`map_start/end/drop`, `co_start/end/drop_pct`, `stroke_volume_start/end`, `compensation_flag`
+(1 if stroke volume held ≥95% of its starting value through the run), and `instability_flag`
+(1 if `map_end < 65` mmHg, a standard critical-care hypoperfusion threshold — see
+`docs/data_provenance.md`). `OxygenSaturation` is never used (§4, §8).
+
+**Result: 117/150 runs succeeded** (`data/simulation_runs/features_dataset.csv`), 33 failed
+(`data/simulation_runs/failed_runs.csv`) — but the failures are not evenly distributed:
+
+| Scenario | Success rate | Failure mode |
+|---|---|---|
+| `stable`, `deconditioning`, `fluid_overload` | 30/30 (100%) | — |
+| `cardiac_stress` | 15/30 (50%) | crashes/timeouts above severity ≈0.45 |
+| `acute_deterioration` | 12/30 (40%) | crashes/timeouts above severity ≈0.6–0.85 |
+
+This lines up exactly with a finding already flagged in Phase 2 (§4): `cardiac_stress` and
+`acute_deterioration` are the only two scenarios that add an `Exercise` action on top of the
+EF-driven `CardiovascularMechanicsModification` multipliers, and exercise intensity above ~0.5 was
+already known to destabilize the engine. At scale, across the full severity range, that
+instability shows up as a real, reproducible crash/timeout rate rather than the one-off collapse
+seen with a single hand-picked patient in Phase 2 validation. **Practical consequence:** the
+training dataset's coverage of `cardiac_stress`/`acute_deterioration` is effectively capped at
+low-to-moderate severities — high-severity examples of these two scenarios are underrepresented,
+which Phase 5 needs to account for (e.g. by not expecting reliable severity regression at the
+extreme end for these two types specifically).
+
+**Feature sanity check** (within each scenario type, correlation of `severity` with `hr_rise`):
+`fluid_overload` 0.81, `acute_deterioration` 0.82, `cardiac_stress` 0.63 — all strongly positive,
+as expected. `deconditioning` is −0.67 (negative), which is *also* expected: deconditioning has no
+`Exercise`/`HeartRateMultiplier` action by design (§4, "no acute exertion event"), so its HR
+response is driven only by mild resistance/compliance modifiers, not a severity-scaled tachycardia
+push. `compensation_flag` is near-universal (1) for `stable`/`fluid_overload`/`deconditioning` but
+0.0 for `cardiac_stress` and 0.33 for `acute_deterioration` in the successful runs — worth noting
+this flag is stricter than it might look: even the successful (lower-severity, better-EF)
+`cardiac_stress` runs show real stroke-volume decline (>5%) under HR-driven stress, a genuine
+diastolic-filling-time effect, not a bug — the continuous `stroke_volume_start`/`stroke_volume_end`
+columns are still in the dataset for Phase 5 to use directly if a graded signal is preferred over
+this binary flag.
 
 ## 6. Risk Scoring Logic, With Clinical Citations
 
@@ -78,6 +178,20 @@ XGBoost on the Pulse batch dataset is secondary/experimental only.
 
 **Phase 1** (data synthesis): see `tests/test_data_synthesis.py` (15 checks: schema, clinical
 correlation direction, trend shapes).
+
+**Phase 3** (scenario classifier): see `tests/test_scenario_classifier.py` (11 checks: feature
+schema/leakage, stratified split integrity, end-to-end train/eval sanity bounds) plus the
+held-out-set results in §5 above.
+
+**Phase 4** (batch simulation dataset): see `tests/test_simulation_features.py` (11 checks:
+column-matching robustness, every feature/flag's both states, `OxygenSaturation` never used) and
+`tests/test_batch_runner.py` (5 checks: stratified sampling correctness, determinism, no
+duplicates). The actual Docker execution itself — `_run_one()`/`run_batch()` — can only be
+exercised inside the Pulse container, same as Phase 2's `scripts/validate_phase2.py`; it was
+validated in two stages: a 10-patient pilot (10/10 succeeded, ~110s/run individual latency,
+confirming the pipeline end-to-end before committing to the full run), then the full 150-patient
+batch (117/150 succeeded — see §5 for the failure breakdown and why it's scenario/severity-specific
+rather than a pipeline bug).
 
 **Phase 2** (Pulse integration): all 5 locked scenario types were run once each at severity ~0.5,
 using real patients from `data/synthetic/patients.csv`, inside the actual Pulse Docker container
@@ -116,31 +230,19 @@ detection path actually works, not just that it was written.
   isn't literally theirs.
 - `OxygenSaturation` output is currently unreliable (reads 0.0) for reasons not yet fully isolated —
   see §4. Downstream analytics should not depend on this column until resolved.
-- Small simulation dataset planned for the risk scorer (Phase 4, not yet run).
+- Small simulation dataset for the risk scorer: 117 rows, not the targeted 150 — 33 of 150 batch
+  runs failed, concentrated almost entirely in `cardiac_stress` (50% failure) and
+  `acute_deterioration` (60% failure) above roughly severity 0.45–0.6, because those are the only
+  two scenarios that add an `Exercise` action, and exercise intensity above ~0.5 destabilizes the
+  Pulse engine (§4, §5). Phase 5's secondary model should not be expected to generalize well to
+  high-severity `cardiac_stress`/`acute_deterioration` cases as a result — this population is
+  thin in the training data by construction, not by sampling bad luck.
 - No medication-effect modeling in Pulse scenarios.
 - Simulations run under `arm64`→`amd64` Docker emulation on this development machine; each
-  simulated scenario takes ~2 minutes wall-clock (vs. Pulse's own ~30s reported internally),
-  which will matter for Phase 4's planned 150+ batch runs.
-
-## 5. ML Model Design, Training, Evaluation
-
-TODO — Phase 3 (scenario classifier) and Phase 5 (risk scorer), not started.
-
-## 6. Risk Scoring Logic, With Clinical Citations
-
-TODO — Phase 5. Primary model is the hand-tuned interpretable weighted score (locked decision);
-XGBoost on the Pulse batch dataset is secondary/experimental only.
-
-## 7. Validation Approach and Results
-
-TODO. Phase 1 data-synthesis validation lives in `tests/test_data_synthesis.py` for now — this
-section will summarize those results once the full dataset is generated.
-
-## 8. Limitations
-
-TODO — write honestly at the end, per CLAUDE.md conventions. Known ones already flagged in the
-planning doc: no real clinical validation, wearable sensor error not modeled, small simulation
-dataset for the risk scorer, no medication-effect modeling in Pulse scenarios.
+  simulated scenario takes ~110s-2 minutes wall-clock (vs. Pulse's own ~30s reported internally) —
+  confirmed at both single-run scale (Phase 2) and across the full Phase 4 150-run batch, where it
+  meant ~4 parallel workers were needed to keep total wall-clock to roughly 90 minutes rather than
+  ~4.5 hours sequential.
 
 ## 9. Future Work
 

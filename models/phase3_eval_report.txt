@@ -1,0 +1,36 @@
+Phase 3 -- ML Model 1 (scenario classifier + severity regressor) evaluation
+======================================================================
+Train/val/test sizes: 1400/300/300
+
+-- Validation set --
+Scenario accuracy: 0.910
+Severity MAE: 0.048  RMSE: 0.063
+
+-- Test set --
+Scenario accuracy: 0.923
+                     precision    recall  f1-score   support
+
+             stable       0.91      0.97      0.94        60
+     fluid_overload       0.95      0.90      0.92        59
+     cardiac_stress       0.96      0.92      0.94        60
+     deconditioning       0.90      0.90      0.90        62
+acute_deterioration       0.90      0.93      0.92        59
+
+           accuracy                           0.92       300
+          macro avg       0.92      0.92      0.92       300
+       weighted avg       0.92      0.92      0.92       300
+
+Severity MAE: 0.048  RMSE: 0.063
+Severity MAE by scenario_type:
+  acute_deterioration: 0.049
+  cardiac_stress: 0.048
+  deconditioning: 0.054
+  fluid_overload: 0.054
+  stable: 0.035
+
+Confusion matrix (rows=actual, cols=predicted), order = stable, fluid_overload, cardiac_stress, deconditioning, acute_deterioration
+[[58  0  0  2  0]
+ [ 0 53  0  1  5]
+ [ 2  0 55  3  0]
+ [ 4  0  1 56  1]
+ [ 0  3  1  0 55]]

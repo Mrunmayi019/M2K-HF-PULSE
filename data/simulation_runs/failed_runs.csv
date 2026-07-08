@@ -1,0 +1,64 @@
+patient_id,scenario_type,severity,ejection_fraction_pct,status,hr_start,hr_end,hr_rise,map_start,map_end,map_drop,co_start,co_end,co_drop_pct,stroke_volume_start,stroke_volume_end,compensation_flag,instability_flag,error,scenario_path
+P0217,acute_deterioration,0.37,33.5,failed,,,,,,,,,,,,,,PulseScenarioDriver timed out after 180s on /workspace/scenarios/batch/scenario_P0217.json,/workspace/scenarios/batch/scenario_P0217.json
+P0960,acute_deterioration,0.778,24.1,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0960.json
+stderr: ",/workspace/scenarios/batch/scenario_P0960.json
+P1780,acute_deterioration,0.894,17.5,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1780.json
+stderr: ",/workspace/scenarios/batch/scenario_P1780.json
+P0740,acute_deterioration,0.819,18.0,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0740.json
+stderr: ",/workspace/scenarios/batch/scenario_P0740.json
+P0550,acute_deterioration,0.703,27.4,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0550.json
+stderr: ",/workspace/scenarios/batch/scenario_P0550.json
+P0758,acute_deterioration,0.363,21.6,failed,,,,,,,,,,,,,,PulseScenarioDriver timed out after 180s on /workspace/scenarios/batch/scenario_P0758.json,/workspace/scenarios/batch/scenario_P0758.json
+P0163,acute_deterioration,0.61,22.4,failed,,,,,,,,,,,,,,PulseScenarioDriver timed out after 180s on /workspace/scenarios/batch/scenario_P0163.json,/workspace/scenarios/batch/scenario_P0163.json
+P0285,acute_deterioration,0.61,25.9,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0285.json
+stderr: ",/workspace/scenarios/batch/scenario_P0285.json
+P1019,acute_deterioration,0.908,21.4,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1019.json
+stderr: ",/workspace/scenarios/batch/scenario_P1019.json
+P0083,acute_deterioration,0.76,19.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0083.json
+stderr: ",/workspace/scenarios/batch/scenario_P0083.json
+P1972,acute_deterioration,0.86,22.5,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1972.json
+stderr: ",/workspace/scenarios/batch/scenario_P1972.json
+P0370,acute_deterioration,0.655,26.5,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0370.json
+stderr: ",/workspace/scenarios/batch/scenario_P0370.json
+P1841,acute_deterioration,0.563,23.8,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1841.json
+stderr: ",/workspace/scenarios/batch/scenario_P1841.json
+P0385,acute_deterioration,0.611,26.4,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0385.json
+stderr: ",/workspace/scenarios/batch/scenario_P0385.json
+P1982,acute_deterioration,0.774,17.0,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1982.json
+stderr: ",/workspace/scenarios/batch/scenario_P1982.json
+P0382,acute_deterioration,0.994,26.2,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0382.json
+stderr: ",/workspace/scenarios/batch/scenario_P0382.json
+P1686,acute_deterioration,0.771,25.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1686.json
+stderr: ",/workspace/scenarios/batch/scenario_P1686.json
+P1552,acute_deterioration,0.889,19.7,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1552.json
+stderr: ",/workspace/scenarios/batch/scenario_P1552.json
+P1034,cardiac_stress,0.538,51.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1034.json
+stderr: ",/workspace/scenarios/batch/scenario_P1034.json
+P0558,cardiac_stress,0.638,52.1,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0558.json
+stderr: ",/workspace/scenarios/batch/scenario_P0558.json
+P0626,cardiac_stress,0.831,44.3,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0626.json
+stderr: ",/workspace/scenarios/batch/scenario_P0626.json
+P1842,cardiac_stress,0.716,52.0,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1842.json
+stderr: ",/workspace/scenarios/batch/scenario_P1842.json
+P1328,cardiac_stress,0.783,35.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1328.json
+stderr: ",/workspace/scenarios/batch/scenario_P1328.json
+P1178,cardiac_stress,0.771,53.1,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1178.json
+stderr: ",/workspace/scenarios/batch/scenario_P1178.json
+P1127,cardiac_stress,0.968,39.1,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1127.json
+stderr: ",/workspace/scenarios/batch/scenario_P1127.json
+P0114,cardiac_stress,0.723,36.8,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0114.json
+stderr: ",/workspace/scenarios/batch/scenario_P0114.json
+P0324,cardiac_stress,0.715,46.5,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0324.json
+stderr: ",/workspace/scenarios/batch/scenario_P0324.json
+P1878,cardiac_stress,0.913,45.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1878.json
+stderr: ",/workspace/scenarios/batch/scenario_P1878.json
+P0329,cardiac_stress,0.668,50.6,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0329.json
+stderr: ",/workspace/scenarios/batch/scenario_P0329.json
+P1996,cardiac_stress,0.884,56.1,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1996.json
+stderr: ",/workspace/scenarios/batch/scenario_P1996.json
+P0407,cardiac_stress,0.406,66.2,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0407.json
+stderr: ",/workspace/scenarios/batch/scenario_P0407.json
+P1772,cardiac_stress,0.954,40.2,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P1772.json
+stderr: ",/workspace/scenarios/batch/scenario_P1772.json
+P0777,cardiac_stress,0.787,37.5,failed,,,,,,,,,,,,,,"PulseScenarioDriver exited 1 on /workspace/scenarios/batch/scenario_P0777.json
+stderr: ",/workspace/scenarios/batch/scenario_P0777.json

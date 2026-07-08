@@ -4,5 +4,9 @@ __pycache__/
 scenarios/*.json
 scenarios/*.log
 scenarios/*.csv
+scenarios/batch/
+scenarios/batch_pilot/
 data/raw/
 *.env
+models/*.joblib
+models/*.png

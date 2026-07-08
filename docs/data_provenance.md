@@ -61,6 +61,7 @@ wearable training source for now.
 | LVEF Stage B threshold | ≤ 40% | (AHA/ACC 2022 guideline) | 2022 AHA/ACC/HFSA Guideline | from planning doc, needs page ref |
 | Ohte et al. parameters | — | — | Ohte et al. | TODO — not yet extracted |
 | NYHA class ↔ METs mapping | I: >7 METs, II: 5–7, III: 2–5, IV: <2 | — | heart.org / AHA NYHA classification | seeded from planning doc |
+| MAP instability/hypoperfusion threshold (Phase 4 `instability_flag`, `src/simulation_features.py`) | < 65 mmHg | — | Surviving Sepsis Campaign resuscitation target (MAP ≥65 mmHg); Vincent & De Backer, "Circulatory Shock", NEJM 2013 | seeded from standard critical-care literature, not from an acquired dataset |
 
 **Note on wearable_baseline resting HR:** MIMIC's mean HR (84.75, SD 15.06) and fedesoriano's
 RestingBP (132.4, SD 18.5) are measurements of acutely-ill inpatients / a coronary-clinic cohort —

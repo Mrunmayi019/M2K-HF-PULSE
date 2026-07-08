@@ -123,7 +123,8 @@ def generate_wearable_trends(patients_df: pd.DataFrame, days: int = 21, seed: in
 
 
 if __name__ == "__main__":
-    patients = generate_patients()
+    # n=2000 -- see the matching comment in generate_patients.py's __main__ block.
+    patients = generate_patients(n=2000)
     trends = generate_wearable_trends(patients)
     DEFAULT_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     trends.to_csv(DEFAULT_OUTPUT_PATH, index=False)

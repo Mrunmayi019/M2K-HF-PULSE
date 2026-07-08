@@ -23,8 +23,20 @@ This repo currently contains two things side by side:
      `src/pulse_runner/`) — patient/scenario construction and simulation execution with crash
      detection, validated against all 5 locked scenario types running inside the actual Pulse
      Docker container.
-   - **Phase 3 onward (not started):** ML scenario classifier, risk scoring model, FastAPI
-     backend, frontend dashboard. See `docs/architecture.md` for the full target pipeline diagram.
+   - **Phase 3 (done):** ML scenario classifier (`src/scenario_classifier/`) — a RandomForest
+     classifier predicts the 5-way `scenario_type` from clinical + wearable-trend features (92%
+     test accuracy), paired with a RandomForestRegressor for `severity` (MAE 0.048). See
+     `docs/methodology.md` §5 for the train/val/test protocol and feature design.
+   - **Phase 4 (done):** batch Pulse simulation dataset (`src/pulse_runner/batch_runner.py`,
+     `src/simulation_features.py`) — a stratified sample of 150 synthetic patients run through
+     Pulse in parallel (117 succeeded, 33 failed — almost entirely high-severity
+     `cardiac_stress`/`acute_deterioration` runs destabilizing the engine, a known Phase 2 limit),
+     with per-run features (HR rise, MAP drop, CO drop%, compensation/instability flags) extracted
+     into `data/simulation_runs/features_dataset.csv` for Phase 5's risk scorer. See
+     `docs/methodology.md` §5 for full composition and results.
+   - **Phase 5 onward (not started):** risk scoring model, analytics package (NYHA staging,
+     deterioration rate, projection), FastAPI backend, frontend dashboard. See
+     `docs/architecture.md` for the full target pipeline diagram.
 
 ## Quick Start
 
@@ -46,9 +58,17 @@ python3 /workspace/app.py                     # simpler Flask fallback, port 500
 
 ```bash
 pip install -r requirements.txt
-python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv
+python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv (n=2000)
 python3 -m src.data_synthesis.generate_wearable_trends  # writes data/synthetic/wearable_trends.csv
-pytest tests/ -v                                        # 44 tests, no Docker required
+pytest tests/ -v                                        # 71 tests, no Docker required
+```
+
+### Train the Phase 3 scenario classifier (no Docker needed)
+
+```bash
+python3 -m src.scenario_classifier.train
+# writes models/scenario_classifier.joblib, models/severity_regressor.joblib,
+# models/confusion_matrix.png, models/feature_importances.png, models/phase3_eval_report.txt
 ```
 
 ### Run a Pulse simulation with the new patient_builder/pulse_runner pipeline
@@ -62,6 +82,22 @@ docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c
 "
 ```
 
+### Run the Phase 4 batch simulation dataset
+
+Requires Docker. Takes roughly 90 minutes for the default 150-patient batch (4 parallel workers,
+~110s/run under this project's Docker emulation — see `docs/methodology.md` §5/§8); results are
+checkpointed incrementally to `data/simulation_runs/checkpoint.csv` so an interruption doesn't lose
+progress already made.
+
+```bash
+docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
+  pip3 install -q pandas pyyaml
+  python3 -m src.pulse_runner.batch_runner
+"
+# writes data/simulation_runs/features_dataset.csv (successful runs) and
+# data/simulation_runs/failed_runs.csv (if any runs crashed/timed out)
+```
+
 ## Repository Structure
 
 ```
@@ -72,16 +108,22 @@ src/
   data_synthesis/                 # Phase 1: synthetic patients + wearable trends
   patient_builder/                # Phase 2: Pulse patient/scenario JSON construction
   pulse_runner/                   # Phase 2: Pulse execution + crash detection
+                                   #   + Phase 4: batch_runner.py (parallelized batch execution)
+  scenario_classifier/            # Phase 3: feature engineering + scenario/severity models
+  simulation_features.py          # Phase 4: per-run feature extraction (see architecture.md's
+                                   #   naming-collision note for why this isn't in a package yet)
 data/
   synthetic/                      # generated patients.csv / wearable_trends.csv
+  simulation_runs/                # Phase 4: features_dataset.csv / failed_runs.csv / checkpoint.csv
   raw/, reference/                # real source data (gitignored, never committed)
+models/                           # trained model artifacts + eval plots (gitignored, never committed)
 docs/
   architecture.md                 # current + target system diagrams
   methodology.md                  # why each decision was made, what was validated
   data_provenance.md              # every clinical number, traced to its source
 scripts/
   validate_phase2.py              # runs all 5 scenario types through Pulse
-tests/                            # 44 tests, no Docker required
+tests/                            # 71 tests, no Docker required
 ```
 
 ## Data Sources
