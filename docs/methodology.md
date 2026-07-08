@@ -288,6 +288,14 @@ the youngest age band's diagnostic cutoff). Both are recorded via `ef_is_fallbac
 structurally blind to that scenario's presentation. The field's OpenAPI description (visible in
 `/docs`) explains why, not just that it can be null.
 
+**Extended in Phase 7** (frontend integration, full gap list in §10): `RiskAssessment` gained
+`ejection_fraction_pct`/`nt_probnp_pg_ml`/`vital_slopes` columns (values already computed in the
+pipeline above, previously discarded once used) plus `scenario_type`/`severity` proxy properties
+onto the already-stored `SimulationRun` fields (no duplication); `StatusResponse` gained
+`latest_wearable`; a new `GET /patients` list endpoint was added; and `CORSMiddleware` was added to
+`main.py` (a browser, unlike `curl`/`TestClient`, enforces CORS — this was invisible until the
+frontend was actually opened and clicked through, see §10).
+
 **Error handling:** malformed wearable vitals reject with Pydantic-driven 422s before ever
 reaching Pulse. A `PulseExecutionError` inside the background job never surfaces as an HTTP
 error (the triggering request already returned 202 before the job runs) — instead
@@ -382,6 +390,23 @@ start/end comparison. This is a strong, independent confirmation that the Phase 
 real, reproducible property of the scenario/formula combination, not an artifact of the offline
 batch dataset.
 
+**Phase 7** (frontend dashboard): no automated test suite (§10 explains why), so verification was
+manual but end-to-end and in an actual browser (Playwright + Chrome), not just visual inspection of
+static markup. Two passes: (1) mock-data mode (`VITE_USE_MOCK=true`) — all three risk buckets
+(LOW/MODERATE/HIGH), the `collecting` state, a `failed`-simulation state, and a backend-unreachable
+network-error state were each rendered and screenshotted, confirming zero console/page errors and a
+pixel-close match against `design_reference.html` opened directly. (2) Real backend mode — a real
+patient was created via the API, given 21 real `wearable-sync` calls, and its background pipeline
+(ML Model 1 → real Pulse run inside Docker → risk scoring → staging → projection) was allowed to
+actually complete; the dashboard was then opened against this live backend and clicked through:
+correct scenario/severity/EF/BNP/vitals rendering, the `fluid_overload` `risk_caveats` warning
+correctly appearing on a real (not mocked) run, the Copy button verified to actually place the
+generated report text on the system clipboard (read back and checked, not just visually confirmed),
+and the manual-refresh button confirmed to re-fetch without error. This second pass is also what
+caught the CORS gap in §10 — a class of bug invisible to `curl`/`TestClient`-only testing. Mobile
+verified at a 390px viewport: no page-level horizontal overflow (only the Vitals table scrolls
+within its own container, as designed), sections stack in a sensible single column.
+
 **Phase 2** (Pulse integration): all 5 locked scenario types were run once each at severity ~0.5,
 using real patients from `data/synthetic/patients.csv`, inside the actual Pulse Docker container
 (`scripts/validate_phase2.py`). Results were physiologically sensible and clearly differentiated:
@@ -443,7 +468,86 @@ detection path actually works, not just that it was written.
   reading — matches `_wearable_features()`'s fixed-window design (Phase 1/3), but means the system
   can go up to 21 days without a fresh assessment for a newly-onboarded patient, which a real
   deployment would likely want to shorten (e.g. a sliding window) rather than a hard reset each time.
+- `GET /patients/{id}/status` reports `simulation_status="complete"` as soon as *any* prior
+  assessment exists for that patient, even while a newer run is actively in progress (it only
+  checks whether a `RiskAssessment` row exists at all, not whether the *latest* `SimulationRun` has
+  finished) — a pre-existing Phase 6 behavior, not something Phase 7 changed. Practical
+  consequence: the frontend's "simulation running" banner is only actually observable before a
+  patient's very first assessment completes; every later re-run is invisible as "running" from the
+  API's perspective until it either lands a new assessment or fails.
+- `GET /patients` has no pagination and the sidebar issues one additional `GET .../report` call per
+  patient to populate its risk-bucket summary (no list-with-summary endpoint exists) — fine at demo
+  scale, would need real pagination/a summary endpoint before this could be used with more than a
+  handful of patients.
+- The API's CORS policy (`allow_origins=["*"]`, added in Phase 7) is appropriate for local
+  development only, same caveat as the "no authentication" limitation above.
+- "Run New Simulation" in the frontend does not actually trigger a new Pulse run — Phase 6 has no
+  manual-trigger endpoint (simulations only start automatically once a 21-day wearable window
+  fills), so the button performs a manual refresh of the current status/report instead. A real
+  on-demand trigger would be a Phase 6 API addition, not a frontend-only change.
 
 ## 9. Future Work
 
 TODO. Tier 3 (ECG-derived BP/contractility) belongs here only — never implement it (locked decision).
+
+## 10. Frontend Dashboard (Phase 7)
+
+**Design source.** `frontend/design_reference.html` is a self-contained "Claude Design" export — a
+bundled React app, gzip+base64-encoded inside `<script type="__bundler/...">` tags, not plain
+inspectable HTML/CSS. Rather than guess the layout from a rendered screenshot, the bundle's
+manifest was decoded directly (`base64` → `gzip` decompress on the `text/javascript` resources;
+`json.loads` on the pre-rendered template string) to recover the exact DOM structure, CSS variables/
+classes, colors, and interaction logic (ECG waveform animation, severity gauge, pulse-on-HIGH-risk
+border animation, copy/download report) actually used by the reference. The resulting port is
+pixel-close to the reference, confirmed by rendering both side by side and comparing screenshots.
+
+**Design-vs-real-API gaps found and resolved.** Comparing the design against the actual Phase 6
+API (not assuming it would just line up) surfaced several fields the design needs that the pipeline
+computes but never returned anywhere, plus a few outright invented values. Each was resolved by
+either extending the backend to expose a real computed value, or redesigning the UI element around
+what's actually computed — never by fabricating a number client-side:
+
+| Design element | Gap found | Resolution |
+|---|---|---|
+| Current Condition / Vitals panels | `scenario_type`, `severity`, EF, BNP, latest wearable reading computed but never returned by any endpoint | Extended `RiskAssessmentPayload`/`StatusResponse` (small additive schema/model changes, §6.4) |
+| Sidebar patient list | No `GET /patients` endpoint existed (only `POST`) | Added `GET /patients` (list, no pagination — demo scale) |
+| HF Stage badge (A-D) | Never computed anywhere — only NYHA I-IV exists | Omitted rather than inventing a clinical output this system never validated |
+| Forward Projection per-horizon HR/MAP/CO | `ProjectionHorizon` only ever carried `projected_severity`/`risk_score`/`risk_bucket`/`status` | Redesigned cards around the real fields instead of fabricating physiological values per horizon |
+| Vitals table "Simulation Output" column | No absolute simulated vitals are persisted (only within-run deltas used internally for `risk_score`) | Redesigned to a 4-column table (Metric / Today's Input / 7-Day Trend / Status), with "7-Day Trend" backed by a new addition: persisting `compute_deterioration_rate()`'s `vital_slopes` onto `RiskAssessment` (previously computed then discarded) |
+| "Probability of progressing to next HF stage" bar | No probability is ever computed — only `days_to_next_stage`, a day-count from linear extrapolation | Relabeled/redesigned around the real day-count, framed as a 30-day-window progress bar |
+| "Run New Simulation" button | No manual-trigger endpoint exists — Phase 6 only runs the pipeline automatically once a 21-day wearable window fills | Button performs a manual refetch of `/report` instead; disabled with an "X/21 days collected" label while `simulation_status === "collecting"` |
+| Patient display name | `Patient` has no `name` field (anonymized by design) | Sidebar/hero show a deterministic ID-derived label/avatar instead of inventing a name field |
+| "Digital Twin Confidence 92%" badge | No such metric is computed anywhere | Omitted, same reasoning as the HF Stage badge |
+
+**CORS — found by actually using a browser, not `curl`.** Every backend check up to this point
+(`curl`, `TestClient`, direct API calls) succeeds against the FastAPI server with no CORS
+middleware, because CORS is a browser-enforced restriction — `curl` and Python's `requests`/
+`httpx` simply don't apply it. The first time the actual frontend (Vite dev server, its own origin)
+was opened in a real browser and clicked through, every `fetch()` failed as a generic network error
+before ever reaching the server. Fixed by adding `CORSMiddleware` (`allow_origins=["*"]`) to
+`src/api/main.py` — wide open since this is a local decision-support tool, not a public
+multi-tenant API. This is precisely the kind of gap that only surfaces when the thing is actually
+opened in a browser and clicked through, not just exercised via test client or `curl` — see §7 for
+how this was verified afterward.
+
+**State handling.** `usePatientReport` treats `simulation_status` as a small state machine, not a
+single loading spinner: `collecting` (progress toward the 21-day window), `running`/`pending` with
+no prior assessment (first-ever simulation for a patient), `running`/`pending` with a prior
+assessment present (dimmed last-known data + a banner, not a blank screen), `failed` (surfaces
+`error_message`, deliberately shows nothing else rather than stale or fabricated data), and
+`complete`. A separate network/`ErrorState` (backend unreachable) is distinct from `failed`
+(backend reachable, but the simulation itself failed) — conflating the two would make a down
+backend look like a bad simulation, or vice versa.
+
+**What wasn't built, on purpose.** No test suite under `frontend/` — the approved build order's 5
+steps (static/mock → wire real data → loading/error states → mobile → polish) didn't include one,
+unlike every prior Python phase's `pytest` suite, so none was added silently. No sidebar
+hamburger/drawer toggle — the responsive pass collapses the sidebar to a static block above the
+main content on narrow viewports instead, which is simpler and doesn't overlap or break anything at
+390px width (verified), even though it's not literally the "collapsible drawer" language used while
+planning the mobile pass.
+
+See §7 for how all of the above was verified (mock-data static build, then a real end-to-end run:
+real patient → real 21-day wearable sync → real Pulse simulation inside Docker → real ML
+classification → real risk scoring, rendered correctly in an actual browser with zero console
+errors).
