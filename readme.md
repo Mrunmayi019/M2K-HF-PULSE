@@ -43,8 +43,16 @@ This repo currently contains two things side by side:
      deterioration rate calculator (`deterioration_rate.py`); and forward projection via
      incremental Pulse re-simulation (`projection.py`). See `docs/methodology.md` §6 for the full
      scoring formula, citations, and a known limitation found during validation.
-   - **Phase 6 onward (not started):** FastAPI backend + database, frontend dashboard. See
-     `docs/architecture.md` for the full target pipeline diagram.
+   - **Phase 6 (done):** FastAPI backend (`src/api/`) — 5 SQLAlchemy tables (patients,
+     clinical_reports, wearable_readings, simulation_runs, risk_assessments), Pydantic
+     request/response schemas with physiological-range validation, and 7 endpoints. Wearable data
+     is submitted daily and accumulates to a 21-day window before `BackgroundTasks` triggers one
+     assessment pipeline (ML Model 1 → Pulse → risk scoring → staging → projection) — every read
+     endpoint (`/status`, `/history`, `/projection`, `/report`) is a fast DB read, never blocking
+     on Pulse. `risk_caveats` surfaces the §6.1 `fluid_overload` finding directly in API responses.
+     See `docs/methodology.md` §6.4 for the full orchestration design.
+   - **Phase 7 onward (not started):** frontend dashboard. See `docs/architecture.md` for the full
+     target pipeline diagram.
 
 ## Quick Start
 
@@ -68,7 +76,7 @@ python3 /workspace/app.py                     # simpler Flask fallback, port 500
 pip install -r requirements.txt
 python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv (n=2000)
 python3 -m src.data_synthesis.generate_wearable_trends  # writes data/synthetic/wearable_trends.csv
-pytest tests/ -v                                        # 114 tests, no Docker required
+pytest tests/ -v                                        # 135 tests, no Docker required
 ```
 
 ### Train the Phase 3 scenario classifier (no Docker needed)
@@ -118,6 +126,25 @@ print(project_physiology(patient, patient['scenario_type'], float(patient['sever
 "
 ```
 
+### Run the Phase 6 API server (Docker required for real assessments, calls Pulse)
+
+The server itself is pure Python (no Docker needed just to start it), but the background
+assessment pipeline calls `run_pulse()`, so run it inside the container for real end-to-end use:
+
+```bash
+docker run --rm -p 8000:8000 -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
+  pip3 install -q -r requirements.txt
+  uvicorn src.api.main:app --host 0.0.0.0
+"
+```
+
+Then visit `http://localhost:8000/docs` for the interactive OpenAPI UI (this is also where the
+`risk_caveats` field's full documented rationale is visible). Typical flow: `POST /patients` →
+`POST /patients/{id}/clinical-report` → `POST /patients/{id}/wearable-sync` once daily for 21 days
+(the assessment pipeline triggers automatically once the window fills) → `GET /patients/{id}/status`
+`/history` `/projection` `/report`. Database defaults to a local SQLite file at
+`data/db/m2k_hf_pulse.db` (gitignored runtime state); override with the `DATABASE_URL` env var.
+
 ### Run the Phase 4 batch simulation dataset
 
 Requires Docker. Takes roughly 90 minutes for the default 150-patient batch (4 parallel workers,
@@ -151,9 +178,13 @@ src/
                                    #   + Phase 5: risk_score.py (primary), staging.py,
                                    #   deterioration_rate.py, projection.py
   ml_models/                      # Phase 5: train_risk_scorer.py (secondary/experimental XGBoost)
+  api/                            # Phase 6: database.py, models.py (5 tables), schemas.py,
+                                   #   services.py (Tier 1 fallback + background pipeline),
+                                   #   routes.py (7 endpoints), main.py (FastAPI app)
 data/
   synthetic/                      # generated patients.csv / wearable_trends.csv
   simulation_runs/                # Phase 4: features_dataset.csv / failed_runs.csv / checkpoint.csv
+  db/                             # Phase 6: SQLite file (gitignored runtime state)
   raw/, reference/                # real source data (gitignored, never committed)
 models/                           # trained model artifacts + eval plots (gitignored, never committed)
                                    #   model_card.md documents both Model 1 and Model 2, incl.
@@ -164,7 +195,7 @@ docs/
   data_provenance.md              # every clinical number, traced to its source
 scripts/
   validate_phase2.py              # runs all 5 scenario types through Pulse
-tests/                            # 114 tests, no Docker required
+tests/                            # 135 tests, no Docker required
 ```
 
 ## Data Sources

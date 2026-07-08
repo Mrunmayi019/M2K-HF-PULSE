@@ -251,6 +251,68 @@ the primary output). Headline numbers: 5-fold stratified CV, MAE 0.089 ± 0.020,
   severity for 7/14/30-day horizons. Manually verified once inside Docker on patient `P0000`
   (`acute_deterioration`, starting severity 0.207) — see §7.
 
+### 6.4 API orchestration (`src/api/`, Phase 6)
+
+The FastAPI backend doesn't add new modeling logic — it's the stateful glue that turns the
+Phases 1-5 pipeline (already built) into a system a client can actually call. Five SQLAlchemy
+tables (`patients`, `clinical_reports`, `wearable_readings`, `simulation_runs`,
+`risk_assessments`) persist what would otherwise be lost between requests — without this,
+`GET /history`'s trend and `GET /projection`'s forecast can't be honestly demoed, they'd have to
+be recomputed or faked on every call.
+
+**Wearable accumulation, not immediate triggering:** `POST /patients/{id}/wearable-sync` stores
+one day's reading per call (matching the roadmap PDF's own "daily wearable data" framing) and only
+kicks off the assessment pipeline once a patient has 21 accumulated readings — `_wearable_features()`
+(Phase 1/3) needs that fixed window. Below 21, the endpoint just stores the reading and reports a
+`"collecting"` status.
+
+**Everything Pulse-related lives in one background job, not spread across endpoints:**
+`BackgroundTasks` runs `services.run_assessment_pipeline()` once the window fills — ML Model 1
+(scenario classification) → `patient_builder`/`run_pulse()` (current-state simulation) →
+`simulation_features` → `risk_score` + `staging` → `deterioration_rate` (same 21-day window) →
+`projection.project_physiology()` (3 more Pulse calls, 7/14/30-day horizons) → one
+`simulation_runs` row + one `risk_assessments` row, written together. This means every `GET`
+endpoint (`/status`, `/history`, `/projection`, `/report`) is a fast DB read with zero Pulse calls
+in the request path — not just `/wearable-sync` returning immediately, but the whole read side of
+the API never blocks on Pulse. One background job does 4 total Pulse calls (~2min each under this
+machine's arm64 emulation, §4/§8) — real wall-clock time, but entirely off the request path.
+
+**Tier 1 fallback** (`services.apply_tier1_fallback`): a clinical report with missing EF defaults
+to `reference_stats.yaml`'s healthy-population mean (62%, already `assumed_default`); missing
+NT-proBNP defaults to 100 pg/mL (new `assumed_default`, see `data_provenance.md` — well under even
+the youngest age band's diagnostic cutoff). Both are recorded via `ef_is_fallback`/
+`bnp_is_fallback` flags on the stored report, never silently blended with a real reading.
+
+**`risk_caveats`** on `risk_assessments`: populated with a warning whenever the detected
+`scenario_type` is `fluid_overload`, directly surfacing §6.1's finding that `risk_score` is
+structurally blind to that scenario's presentation. The field's OpenAPI description (visible in
+`/docs`) explains why, not just that it can be null.
+
+**Error handling:** malformed wearable vitals reject with Pydantic-driven 422s before ever
+reaching Pulse. A `PulseExecutionError` inside the background job never surfaces as an HTTP
+error (the triggering request already returned 202 before the job runs) — instead
+`simulation_runs.status` becomes `"failed"` with `error_message` and `scenario_json_path`
+recorded, discoverable via `GET /status`. A defensive global exception handler still returns 500
+for genuinely unexpected errors in the synchronous request path (DB issues, etc.).
+
+**A real environment gotcha, not a design choice:** the Pulse Docker container ships Python 3.9,
+but `src/api/models.py`/`schemas.py` were first written using PEP 604 union syntax (`str | None`).
+That parses fine under `from __future__ import annotations` on any Python version, but SQLAlchemy's
+`Mapped[]` and Pydantic's `BaseModel` both resolve annotations at class-definition time via
+`eval()`, which fails on 3.9 (`X | None` needs 3.10+) — `NameError: Could not de-stringify
+annotation 'str | None'` the first time `src/api/main.py` was imported inside the container. Fixed
+by using `typing.Optional[X]` in those two files specifically; plain function signatures elsewhere
+in `src/api/` (never runtime-introspected) were left as `X | None`, since that's the project's
+existing style everywhere else and there's nothing that resolves those annotations at runtime.
+
+**One real integration bug this session's own test suite caught:** `project_physiology()`
+(Phase 5) needs `ejection_fraction_pct` in the same patient dict it uses for
+`build_patient_file()`/`build_scenario_file()`, but the API's `demo_row` (built for the demographic
+fields alone) initially omitted it — a `KeyError` that only `tests/test_api.py`'s full
+pipeline test surfaced, not either phase's own unit tests in isolation. Fixed by including it in
+`demo_row`; a good example of why an end-to-end integration test earns its keep even when every
+component underneath it is already individually tested.
+
 ## 7. Validation Approach and Results
 
 **Phase 1** (data synthesis): see `tests/test_data_synthesis.py` (15 checks: schema, clinical
@@ -292,6 +354,33 @@ slightly across horizons. This is an emergent property of how `acute_deteriorati
 mechanics respond to severity in this range (similar to other emergent, not hand-tuned, findings
 in §4/§7) — the takeaway from this single verification run is that the pipeline executes
 correctly, not a claim about risk trending strictly upward with severity at the high end.
+
+**Phase 6** (FastAPI backend): `tests/test_api.py` (21 checks, `FastAPI TestClient` + an isolated
+temp-file SQLite DB per test, `run_pulse()` mocked at both call sites —
+`src.api.services.run_pulse` for the current-state simulation and `src.analytics.projection.run_pulse`
+for the 3 projection re-simulations, since each module imported its own reference) — happy-path
+and failure-path coverage for all 7 endpoints: patient creation (+ invalid-age 422), clinical
+report with and without Tier 1 fallback (+ unknown-patient 404), wearable-sync malformed-vitals
+422, the `"collecting"` state below the 21-day threshold, pipeline triggering at the threshold, a
+mocked `PulseExecutionError` correctly landing `simulation_runs.status="failed"`, and both the
+`fluid_overload`→`risk_caveats`-populated and non-`fluid_overload`→`risk_caveats`-null cases.
+
+The full pipeline (all 4 real Pulse calls: 1 current-state + 3 projection horizons, no mocking)
+was also manually verified once inside Docker: a patient with EF=32/NT-proBNP=1800 and 21 days of
+wearable data with a real upward HR (+2 bpm/day) and weight (+0.2 kg/day) drift. Result, end to
+end with nothing faked: ML Model 1 correctly classified this as `fluid_overload` (rising weight +
+HR is literally the textbook fluid-overload signature); the pipeline completed successfully
+(`simulation_status="complete"`); and — notably — **`risk_score` came back `0.0`/`LOW` with every
+component at zero**, reproducing §6.1's `fluid_overload` blind-spot finding exactly, this time on
+a real live run rather than the offline 117-row batch. `risk_caveats` was correctly populated with
+the warning. `deterioration_direction` correctly read `"worsening"` (from the real upward trend),
+`nyha_class` came back `"II"`, and the 7/14/30-day projection showed severity climbing
+0.159→0.203→0.303 while `risk_score` stayed flat at `0.0`/`LOW` throughout every horizon — the
+blind spot doesn't go away as projected severity increases, because the mechanism (a shifted
+baseline Pulse never re-compares against) doesn't change with severity within a single run's own
+start/end comparison. This is a strong, independent confirmation that the Phase 5 finding is a
+real, reproducible property of the scenario/formula combination, not an artifact of the offline
+batch dataset.
 
 **Phase 2** (Pulse integration): all 5 locked scenario types were run once each at severity ~0.5,
 using real patients from `data/synthetic/patients.csv`, inside the actual Pulse Docker container
@@ -343,6 +432,17 @@ detection path actually works, not just that it was written.
   confirmed at both single-run scale (Phase 2) and across the full Phase 4 150-run batch, where it
   meant ~4 parallel workers were needed to keep total wall-clock to roughly 90 minutes rather than
   ~4.5 hours sequential.
+- No authentication/authorization on the API — every endpoint is open, appropriate for local
+  prototype use only, not for anything handling real patient data.
+- `BackgroundTasks` runs the assessment pipeline in FastAPI's own thread pool, not a real task
+  queue — fine at prototype scale (one pipeline per patient's 21-day window closing), but it means
+  a burst of many patients completing their window simultaneously would serialize behind the
+  thread pool's size rather than scale independently. Celery/Redis is explicitly a Phase 9 stretch
+  goal for exactly this reason, not something Phase 6 needed to solve.
+- A patient's assessment only updates once per 21-day window fill, not incrementally per new
+  reading — matches `_wearable_features()`'s fixed-window design (Phase 1/3), but means the system
+  can go up to 21 days without a fresh assessment for a newly-onboarded patient, which a real
+  deployment would likely want to shorten (e.g. a sliding window) rather than a hard reset each time.
 
 ## 9. Future Work
 

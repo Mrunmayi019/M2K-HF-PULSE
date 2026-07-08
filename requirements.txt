@@ -5,3 +5,7 @@ pytest
 scikit-learn
 matplotlib
 xgboost
+fastapi
+uvicorn
+sqlalchemy
+httpx

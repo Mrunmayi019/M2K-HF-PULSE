@@ -66,3 +66,28 @@ def build_features(patients_df: pd.DataFrame, trends_df: pd.DataFrame) -> pd.Dat
 def feature_columns(features_df: pd.DataFrame) -> list[str]:
     """Feature column names present in a `build_features` output (excludes id + targets)."""
     return [c for c in features_df.columns if c not in {"patient_id", *TARGET_COLUMNS}]
+
+
+def build_inference_features(patient_row: dict, trends_df: pd.DataFrame) -> pd.DataFrame:
+    """Phase 6: same feature construction as `build_features`, for live API inference where
+    `scenario_type`/`severity` aren't known yet -- they're exactly what the classifier predicts.
+
+    `build_features` can't be reused directly for this: its final column selection hard-requires
+    TARGET_COLUMNS to already be present (correct for training, where they're the labels; a
+    KeyError otherwise). This returns feature columns only, no targets.
+
+    `patient_row` needs `patient_id`, `age`, `sex`, `bmi`, `ejection_fraction_pct`,
+    `nt_probnp_pg_ml`. `nyha_class` is optional -- a brand-new patient won't have one yet (it's
+    what `src/analytics/staging.py` computes *from* the simulation this feature vector feeds into),
+    so it defaults to "I" if absent, the same kind of explicit Tier-1-style fallback used elsewhere
+    in the API (see docs/data_provenance.md).
+    """
+    clinical = pd.DataFrame([patient_row])
+    clinical["sex_male"] = (clinical["sex"] == "Male").astype(int)
+    clinical["nyha_ordinal"] = clinical.get("nyha_class", pd.Series(["I"])).fillna("I").map(NYHA_ORDINAL)
+
+    wearable = _wearable_features(trends_df)
+    merged = clinical.merge(wearable, on="patient_id", how="inner")
+
+    feature_cols = CLINICAL_FEATURE_COLUMNS + [c for c in wearable.columns if c != "patient_id"]
+    return merged[["patient_id"] + feature_cols]

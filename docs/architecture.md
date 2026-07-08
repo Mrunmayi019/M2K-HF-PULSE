@@ -64,8 +64,11 @@ Wearable / clinical report input
   src/analytics/projection.py           — Phase 5, BUILT (incremental severity re-simulation,
          │                                 7/14/30-day horizons, reuses patient_builder/pulse_runner)
          ▼
-  src/api/ (FastAPI) + database          — Phase 6, not yet created
-         │
+  src/api/ (FastAPI) + SQLite/Postgres    — Phase 6, BUILT
+         │  (5 tables: patients, clinical_reports, wearable_readings, simulation_runs,
+         │   risk_assessments -- orchestrates everything above via one BackgroundTasks pipeline
+         │   per /wearable-sync call once a 21-day window fills; every GET endpoint is a fast DB
+         │   read, zero Pulse calls in the request path; see methodology.md §6.4)
          ▼
   frontend/ dashboard                    — Phase 7, not yet created
 ```
@@ -85,5 +88,6 @@ The target architecture reuses names already taken by prototype files at the top
 - Simulation: Kitware Pulse Physiology Engine (`kitware/pulse:4.3.1` Docker image)
 - Data synthesis / analytics: Python, pandas, numpy
 - ML: scikit-learn (Random Forest, Phase 3), XGBoost (secondary, Phase 5)
-- Backend (target): FastAPI + Postgres/SQLite — not yet started
+- Backend: FastAPI + SQLAlchemy, SQLite by default (`DATABASE_URL` env var portable to Postgres —
+  "stretch/deploy claim" per the planning PDF; no Postgres server actually stood up here)
 - Frontend (current prototype): Streamlit / Flask; (target): TBD, see roadmap Phase 7
