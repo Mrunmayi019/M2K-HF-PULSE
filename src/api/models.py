@@ -99,7 +99,24 @@ class RiskAssessment(Base):
     deterioration_direction: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     days_to_next_stage: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     projection_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # Phase 7: the clinical values actually used to produce this assessment (already computed in
+    # services.py at pipeline time -- persisted here instead of discarded, so the API can return
+    # what powered a given assessment rather than only the current/latest clinical report).
+    ejection_fraction_pct: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    nt_probnp_pg_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # Per-vital trend slopes from compute_deterioration_rate(), native units/day (e.g. resting_hr_bpm
+    # rising 0.8 bpm/day) -- powers the frontend's "7-Day Trend" column instead of a fabricated
+    # "Simulation Output" figure that was never actually computed.
+    vital_slopes: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
 
     patient: Mapped["Patient"] = relationship(back_populates="risk_assessments")
     simulation_run: Mapped["SimulationRun"] = relationship(back_populates="risk_assessment")
+
+    @property
+    def scenario_type(self) -> Optional[str]:
+        return self.simulation_run.scenario_type if self.simulation_run else None
+
+    @property
+    def severity(self) -> Optional[float]:
+        return self.simulation_run.severity if self.simulation_run else None

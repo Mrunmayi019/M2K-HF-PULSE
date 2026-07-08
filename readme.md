@@ -51,8 +51,18 @@ This repo currently contains two things side by side:
      endpoint (`/status`, `/history`, `/projection`, `/report`) is a fast DB read, never blocking
      on Pulse. `risk_caveats` surfaces the §6.1 `fluid_overload` finding directly in API responses.
      See `docs/methodology.md` §6.4 for the full orchestration design.
-   - **Phase 7 onward (not started):** frontend dashboard. See `docs/architecture.md` for the full
-     target pipeline diagram.
+   - **Phase 7 (done):** frontend dashboard (`frontend/`) — a React (Vite) single-page dashboard
+     built against a decoded design reference (`frontend/design_reference.html`), wired to the
+     Phase 6 API. Comparing the design against the actual API surfaced several fields the pipeline
+     computes but never returned (scenario_type, severity, EF, BNP, per-vital trend slopes, latest
+     wearable reading) — added as small, additive extensions to `src/api/models.py|schemas.py|
+     services.py|routes.py` (plus a `GET /patients` list endpoint) rather than fabricated
+     client-side. Design elements with no real backing data (an HF Stage A-D badge, per-horizon
+     HR/MAP/CO, an absolute "Simulation Output" vitals column, a fabricated stage-progression
+     probability) were either dropped or redesigned around the fields that are actually computed —
+     see the Phase 7 plan for the full list of these decisions. Handles `collecting` /
+     `running`/`pending` / `failed` / `complete` simulation states and backend-unreachable errors
+     as distinct UI states, not just a single loading spinner.
 
 ## Quick Start
 
@@ -161,6 +171,21 @@ docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c
 # data/simulation_runs/failed_runs.csv (if any runs crashed/timed out)
 ```
 
+### Run the Phase 7 frontend dashboard
+
+Backend must be running first (see the Phase 6 API instructions above).
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # VITE_API_URL defaults to http://localhost:8000
+npm run dev
+```
+
+Visit the printed local URL. The sidebar lists patients from `GET /patients`; select one to see
+its dashboard (hero risk status, current condition, vitals, forward projection, and a
+copy/download-able clinical summary report), all sourced from `GET /patients/{id}/report`.
+
 ## Repository Structure
 
 ```
@@ -189,6 +214,14 @@ data/
 models/                           # trained model artifacts + eval plots (gitignored, never committed)
                                    #   model_card.md documents both Model 1 and Model 2, incl.
                                    #   the Phase 5 secondary model's limitations
+frontend/                         # Phase 7: React (Vite) dashboard
+  design_reference.html           #   decoded design export (colors/layout/interaction reference)
+  src/
+    components/                   #   layout/, hero/, condition/, vitals/, projection/, report/,
+                                   #     shared/ (skeleton, error/collecting/failed states)
+    hooks/                        #   usePatients, usePatientReport (polls while running/pending)
+    api/client.js                 #   fetch wrapper, base URL from VITE_API_URL
+    mock/mockData.js              #   VITE_USE_MOCK=true renders off this instead of a live API
 docs/
   architecture.md                 # current + target system diagrams
   methodology.md                  # why each decision was made, what was validated

@@ -32,6 +32,11 @@ def create_patient(payload: schemas.PatientCreate, db: Session = Depends(get_db)
     return patient
 
 
+@router.get("/patients", response_model=list[schemas.PatientResponse])
+def list_patients(db: Session = Depends(get_db)):
+    return db.query(models.Patient).order_by(models.Patient.created_at.asc()).all()
+
+
 @router.post(
     "/patients/{patient_id}/clinical-report",
     response_model=schemas.ClinicalReportResponse,
@@ -123,11 +128,19 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
     else:
         sim_status = "pending"
 
+    latest_wearable = (
+        db.query(models.WearableReading)
+        .filter(models.WearableReading.patient_id == patient.id)
+        .order_by(models.WearableReading.recorded_date.desc())
+        .first()
+    )
+
     return schemas.StatusResponse(
         patient_id=patient.id,
         simulation_status=sim_status,
         reading_count=reading_count,
         latest_assessment=schemas.RiskAssessmentPayload.model_validate(assessment) if assessment else None,
+        latest_wearable=schemas.WearableReadingResponse.model_validate(latest_wearable) if latest_wearable else None,
         error_message=latest_run.error_message if latest_run and latest_run.status == "failed" else None,
     )
 

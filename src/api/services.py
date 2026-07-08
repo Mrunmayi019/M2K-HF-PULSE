@@ -267,6 +267,9 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
             deterioration_direction=rate_info["direction"],
             days_to_next_stage=days_forward,
             projection_json=projection_json,
+            ejection_fraction_pct=ejection_fraction_pct,
+            nt_probnp_pg_ml=nt_probnp_pg_ml,
+            vital_slopes=rate_info["vital_slopes"],
         )
     )
     run.status = "complete"

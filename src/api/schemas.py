@@ -70,6 +70,18 @@ class WearableSyncResponse(BaseModel):
     message: str
 
 
+class WearableReadingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    recorded_date: datetime.date
+    resting_hr_bpm: float
+    spo2_pct: float
+    weight_kg: float
+    steps_per_day: float
+    sleep_hours: float
+    hrv_rmssd_ms: float
+
+
 # ---- Shared risk payload pieces ----
 
 RISK_CAVEATS_DESCRIPTION = (
@@ -99,6 +111,11 @@ class RiskAssessmentPayload(BaseModel):
     risk_caveats: Optional[str] = Field(default=None, description=RISK_CAVEATS_DESCRIPTION)
     deterioration_direction: Optional[str] = None
     days_to_next_stage: Optional[int] = None
+    scenario_type: Optional[str] = None
+    severity: Optional[float] = None
+    ejection_fraction_pct: Optional[float] = None
+    nt_probnp_pg_ml: Optional[float] = None
+    vital_slopes: Optional[dict] = None
     created_at: datetime.datetime
 
 
@@ -109,6 +126,7 @@ class StatusResponse(BaseModel):
     simulation_status: Literal["collecting", "pending", "running", "complete", "failed"]
     reading_count: int
     latest_assessment: Optional[RiskAssessmentPayload] = None
+    latest_wearable: Optional[WearableReadingResponse] = None
     error_message: Optional[str] = None
 
 
