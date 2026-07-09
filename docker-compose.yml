@@ -1,0 +1,57 @@
+# One-command local stack: `docker compose up --build`, then open http://localhost:3000.
+#
+# Three services: db (Postgres) -> pulse-backend (FastAPI + the Pulse engine) -> frontend
+# (React, served by nginx). See backend/Dockerfile for why pulse-backend is pinned to
+# linux/amd64 -- the Pulse binary baked into that image has no arm64 build.
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: m2k_hf_pulse
+      POSTGRES_PASSWORD: m2k_hf_pulse
+      POSTGRES_DB: m2k_hf_pulse
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U m2k_hf_pulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pulse-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mounted, not baked in at build time -- data/synthetic/*.csv, models/*.joblib
+      # (trained locally, gitignored), and anything the API writes (data/simulation_runs/,
+      # data/validation_runs/) all persist to the host and survive `docker compose down`.
+      - ./data:/workspace/data
+    environment:
+      # src/api/database.py already reads this env var and branches its sqlite-only
+      # connect_args accordingly -- no code change needed to point it at Postgres instead of the
+      # default local sqlite file.
+      DATABASE_URL: postgresql+psycopg2://m2k_hf_pulse:m2k_hf_pulse@db:5432/m2k_hf_pulse
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Must be the address the USER'S BROWSER can reach (the published host port), not the
+        # Compose service name "pulse-backend" -- see frontend/Dockerfile's comment. The service
+        # name only resolves on the internal Compose network, which the browser is never on.
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "3000:80"
+    depends_on:
+      - pulse-backend
+
+volumes:
+  postgres_data:

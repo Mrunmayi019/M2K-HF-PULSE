@@ -28,6 +28,19 @@ makes `scenario_type`/`severity` close to deterministic functions of the input f
 discussion in `docs/methodology.md` §5) — high accuracy here reflects a correctly-wired pipeline
 more than validated real-world diagnostic performance. No real clinical validation yet.
 
+**Live-pipeline severity performance is materially worse than the table above, with a diagnosed
+cause.** A 25-patient batch validation run through the actual API (`scripts/validate_phase8.py`,
+full writeup in `docs/methodology.md` §7/§8) measured severity MAE 0.271 in the live pipeline vs.
+0.048 offline — `scenario_type` classification was unaffected (100% live agreement). Root cause:
+`build_inference_features()` always defaults the `nyha_ordinal` feature to the most-benign class
+(`"I"`) at live-inference time, since a genuinely new patient's NYHA class isn't known until this
+pipeline itself computes it downstream, whereas offline training used each patient's real, varied
+class. This is a train/inference feature-availability mismatch, not a data-generation artifact —
+see `docs/methodology.md` §9 for the concrete fix (retrain the severity regressor without
+`nyha_ordinal`). Any severity number this system reports live should currently be read as directional,
+not precise — the scenario classification and the primary risk score (§6.1, `risk_score.py`) are
+not affected by this specific gap.
+
 ## Model 2 — Risk Scorer (Phase 5)
 
 Two models exist for the same task (predicting `severity`/risk from one Pulse simulation run's

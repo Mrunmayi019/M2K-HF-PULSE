@@ -1,5 +1,7 @@
 # Methodology
 
+**Personalised Digital Twin for Early Heart Failure Deterioration Detection**
+
 Status: skeleton — filled in incrementally as each roadmap phase completes, not written
 retroactively before submission. See CLAUDE.md for the decisions already locked (personalization
 tiers, scenario taxonomy, dataset strategy, primary risk scorer choice) — this document explains
@@ -7,8 +9,40 @@ tiers, scenario taxonomy, dataset strategy, primary risk scorer choice) — this
 
 ## 1. Problem Statement
 
-TODO — pull from the presentation script's Slide 2/3 content once finalized (heart failure
-readmission problem, monitoring gap between clinic visits).
+Heart failure (HF) affects an estimated 64 million people worldwide, and its defining clinical
+feature is that it is progressive: patients decline gradually, not instantaneously. Despite this,
+roughly half of HF patients are re-hospitalized within 6 months of discharge — not because
+deterioration is undetectable in principle, but because it is missed in practice. Three structural
+gaps in current monitoring explain why:
+
+1. **Monitoring is episodic, not continuous.** Patients are typically only assessed at clinic
+   visits spaced 4-6 weeks apart. A patient can move from a stable state to a crisis well within
+   that window with no clinical observation in between.
+2. **Consumer wearables report numbers, not physiology.** A smartwatch can show "resting HR: 95
+   today," but has no model of what that number means for a specific patient's cardiovascular
+   state — whether it reflects benign daily variation or an early compensatory response to
+   worsening cardiac output. The measurement is real; the interpretation is missing.
+3. **No existing home-monitoring system projects a patient's trajectory forward.** Threshold-based
+   alerts (e.g. "SpO2 < 92%") only fire after a value has already crossed into an abnormal range —
+   they describe where a patient is, not where they are heading.
+
+The consequence, from the patient's side, is a daily judgment call with no good options: a
+55-year-old HF patient who wakes up slightly breathless with a marginally elevated heart rate has
+no way to distinguish "this is a bad day" from "this is the start of decompensation" — so they
+either under-react (and risk a preventable hospitalization) or over-react (and generate an
+unnecessary ER visit). By the time overt symptoms bring a patient back into contact with the
+health system, significant physiological decline has typically already occurred, and treatment is
+reactive rather than preventive.
+
+This project (working title: *Personalised Digital Twin for Early Heart Failure Deterioration
+Detection*) addresses this gap by building a patient-specific digital twin: a validated
+physiology simulation (Kitware Pulse), personalized to an individual patient's clinical baseline
+(EF, NT-proBNP, demographics) and driven forward by their own rolling wearable trend data, used to
+answer the question a wearable alone cannot — *given this patient's trajectory so far, what is
+their body likely to do next, and how urgent is it?* Sections 3-6 below detail how each modeling
+decision (personalization tier scope, scenario taxonomy, primary risk scorer choice) was made in
+service of that question, and Section 7 documents what has actually been validated to support it,
+as opposed to what remains a design intention.
 
 ## 2. Data Sources and Provenance
 
@@ -21,7 +55,30 @@ See `docs/data_provenance.md` for the full parameter-level table. Summary:
 
 See CLAUDE.md "Locked Phase 0 Decisions" — Tier 1 (demographics + EF + BNP + wearables) is core,
 Tier 2 (echo PPG) optional/stretch, Tier 3 (ECG-derived BP/contractility) permanently cut.
-TODO — write the justification narrative once Tier 2 status is decided.
+
+**Why Tier 2 stayed unbuilt, not just deprioritized:** Tier 2 was scoped as an *optional* add-on
+from the start — echocardiography-derived PPG features feeding a vascular-compliance estimate,
+layered on top of Tier 1 rather than replacing it. Two things kept it out of the delivered system,
+both confirmed by what actually shipped rather than a schedule guess:
+
+1. **No echo/PPG dataset was ever acquired.** `docs/data_provenance.md`'s "Real datasets acquired"
+   table lists exactly four sources — `mimic_bigquery_extract`, `andrewmvd_kaggle`,
+   `fedesoriano_kaggle`, `nhanes_kaggle` — none of which contain echocardiographic or PPG
+   waveform data. Building Tier 2 would have meant synthesizing vascular-compliance values with no
+   real-data grounding at all, which conflicts with this project's own stated dataset strategy
+   (§2): every synthetic parameter traces to a cited real distribution, and no substitute source
+   for echo/PPG was ever sourced or vetted.
+2. **Tier 1 alone already met the project's own accuracy targets.** The scenario classifier
+   trained on Tier 1 features (clinical snapshot + wearable-trend aggregates, no vascular-
+   compliance term) reached 92.3% test accuracy and severity MAE 0.048 (§5) — comfortably past the
+   informal >80% target the roadmap set for this model. Tier 2 was never load-bearing for a result
+   the system actually needed to hit; adding it would have been complexity without a corresponding
+   accuracy gap to close.
+
+Tier 2 therefore remains exactly what it was scoped as — optional and unimplemented — not a cut
+scope item disguised as a stretch goal. It is listed again in §9 as legitimate future work, since
+an echo/PPG-derived compliance term is a real, literature-supported way to sharpen the digital
+twin's cardiovascular personalization if a suitable dataset is later acquired.
 
 ## 4. Pulse Integration Methodology
 
@@ -434,8 +491,77 @@ Every scenario's log was scanned by `run_pulse()`'s crash detection; no run curr
 fatal marker, though `acute_deterioration` did during earlier tuning (see §4) — confirming the
 detection path actually works, not just that it was written.
 
+**Phase 8** (full-pipeline batch validation, `scripts/validate_phase8.py`): 25 synthetic patients
+(5 stratified per scenario type, `data/synthetic/patients.csv` rows `patient_id`s in
+`data/validation_runs/20260709_063540/results.csv`) were run through the **live API** — not a
+direct `run_pulse()` call like Phases 2/4 above — via `POST /patients` → `/clinical-report` → 21×
+`/wearable-sync` (each patient's real synthetic 21-day wearable window, replayed day by day) →
+`GET /status`, inside the Pulse Docker container, with zero mocking. This is the first time the
+full production code path (ML Model 1 → `patient_builder` → `run_pulse()` → `simulation_features`
+→ `risk_score` + `staging` → `deterioration_rate` → `project_physiology`, all orchestrated by
+`src/api/services.py`) was exercised across a batch rather than a single hand-run patient.
+
+**Headline result: 25/25 completed, zero crashes/timeouts.** This is notably better than Phase 4's
+117/150 (78%) — including two patients above Phase 4's documented crash thresholds
+(`cardiac_stress` at severity 0.831, `acute_deterioration` at severity 0.894, both ~0.2-0.3 above
+where Phase 4 saw failures cluster). With n=5 per scenario here vs. n=30 in Phase 4, this reads as
+a favorable small-sample draw rather than evidence the underlying Pulse instability (§4, §5) is
+resolved — it does not contradict Phase 4's finding, just doesn't reproduce it at this sample size.
+
+**Scenario classification agreement: 100% (25/25)** — the live classifier output matched each
+patient's true `scenario_type` on every patient, consistent with (and slightly better than) the
+offline 92.3% test-set accuracy (§5).
+
+**Severity MAE: 0.271 — a real, diagnosed discrepancy from the offline 0.048 MAE, not just
+expected live-vs-test noise.** Inspecting the per-patient predictions
+(`data/validation_runs/20260709_063540/results.csv`) shows predicted severities compressed into a
+narrow ~0.02-0.19 band for nearly every patient, regardless of true severity spanning 0.001-0.964
+— most visibly in `fluid_overload` (true severities up to 0.964, every prediction still ~0.15-0.18)
+and `acute_deterioration` (true up to 0.894, predictions ~0.17-0.19). Root cause, traced to
+`src/scenario_classifier/features.py`: `build_features()` (used for offline training) computes
+`nyha_ordinal` from each patient's real, varied `nyha_class` (I-IV); `build_inference_features()`
+(used by the live pipeline, `src/api/services.py`'s `ml_row` dict) never includes `nyha_class` at
+all, so it silently defaults to `"I"` (`build_inference_features` docstring: "a brand-new patient
+won't have one yet"). Every single live-pipeline patient therefore gets the most-benign-possible
+NYHA ordinal as an input feature regardless of their true class — a real train/inference feature
+skew, not a bug in the classical sense: at genuine live-inference time, a NYHA class truly isn't
+known yet (it's what `staging.py` computes *from* this pipeline's own output), so there's no
+leakage-free way to give the live path what the offline training data had. This is a legitimate
+structural gap between the modeling assumption ("nyha_ordinal is a fair feature") and the
+deployment constraint ("nyha_ordinal doesn't exist yet at prediction time") that batch offline
+evaluation on `patients.csv` alone could never have surfaced — only running the real pipeline did.
+Notably, this did **not** measurably hurt scenario-type classification (100% agreement above),
+only the continuous severity regression — see §9 for the concrete fix this suggests (retraining
+the severity regressor without `nyha_ordinal`).
+
+**Risk bucket distribution vs. §6.1's offline expectations** — 4 of 5 scenario types reproduced the
+documented pattern closely: `stable` and `deconditioning` were 5/5 `LOW` as expected;
+`fluid_overload` was 5/5 `LOW` despite true severities up to 0.964 — an exact, independent
+reproduction of §6.1's documented blind spot on real live-pipeline data, not just the offline
+117-row batch; `cardiac_stress` was 4/5 `MODERATE` + 1/5 `HIGH` (0 `LOW`), matching the offline
+"80% MODERATE / 20% HIGH" finding almost exactly. `acute_deterioration` was the one scenario that
+didn't cleanly reproduce the offline pattern — 2 `HIGH`, 1 `MODERATE`, 2 `LOW`, with `risk_score`
+not tracking true severity monotonically within this small sample (e.g. one severity-0.220 patient
+scored `HIGH` while a severity-0.894 patient scored only `MODERATE`). Given the offline
+within-scenario correlation for `acute_deterioration` was already the weakest of the improving
+group (0.70, §6.1) and n=5 is small, this reads as expected noise rather than a new finding, but
+is flagged rather than smoothed over.
+
+**Timing:** total summed per-patient wall-clock was 8854s across 25 patients (mean 354s/patient ≈
+5.9 min, each patient making up to 4 real Pulse calls sequentially within its own request); actual
+elapsed wall-clock for the whole run was shorter than that sum, since `--workers 4` (the default)
+ran 4 patients' pipelines concurrently.
+
 ## 8. Limitations
 
+- **The live-pipeline severity regressor underperforms its offline benchmark by a diagnosed, real
+  margin: MAE 0.271 live vs. 0.048 offline (§7, Phase 8 batch validation).** Root cause:
+  `build_inference_features()` (`src/scenario_classifier/features.py`) always defaults
+  `nyha_ordinal` to the most-benign class (`"I"`) at live-inference time, because a genuinely new
+  patient's NYHA class isn't known until *after* this pipeline runs — whereas offline training used
+  each patient's real, varied `nyha_class`. Scenario-type classification was unaffected (100%
+  agreement across 25 live patients); only the continuous severity value is degraded. Not
+  discoverable from offline batch evaluation alone — see §9 for the concrete fix this points to.
 - No real clinical validation yet (synthetic data only).
 - Wearable sensor measurement error not modeled.
 - Pulse's native operating range (age 18-65, BMI 16.0-30.0) is narrower than our real-data-grounded
@@ -488,7 +614,62 @@ detection path actually works, not just that it was written.
 
 ## 9. Future Work
 
-TODO. Tier 3 (ECG-derived BP/contractility) belongs here only — never implement it (locked decision).
+Everything below is a real candidate for continued work, not a padded wishlist — each item is
+either an explicit Phase 9 stretch goal from the original roadmap that Phases 0-8 deliberately
+didn't need to solve, or a next step toward the team's stated goal of turning this system into a
+research paper once the pipeline is validated end-to-end (§7/§8).
+
+**Directly motivated by the Phase 8 validation findings (§7, §8) — both held, not started:**
+- **Retrain the severity regressor without `nyha_ordinal` as a feature** (or with it only when
+  genuinely available, e.g. on reassessment after a first NYHA class exists) — the diagnosed
+  0.271-vs-0.048 MAE gap is a train/inference feature-availability mismatch, not noise, and this is
+  a concrete, scoped fix rather than an open research question. Re-run
+  `scripts/validate_phase8.py` afterward to confirm the gap closes. **Not done yet because
+  retraining and re-shipping Model 1 changes a result already reported in this document and the
+  model card — held pending team sign-off rather than silently updated.**
+- **Expand the batch validation beyond n=5/scenario** — `acute_deterioration`'s risk-bucket
+  distribution didn't cleanly reproduce the offline pattern at this sample size (§7); a larger
+  batch (e.g. matching Phase 4's n=30/scenario) would distinguish real signal from small-sample
+  noise before this becomes a claim in a paper. **Not done yet because it costs several more hours
+  of Docker wall-clock time (Phase 4's 150-run batch took ~90 min even parallelized) for a
+  confirmatory result, not a new finding — worth scheduling deliberately rather than run ad hoc.**
+
+**Deferred engineering (Phase 9, roadmap-defined):**
+- **Tier 2 personalization** (echo/PPG-derived vascular compliance) — see §3 for exactly why it
+  was never load-bearing for Phases 0-7's results; still a legitimate accuracy lever if a suitable
+  echo/PPG dataset is acquired.
+- **Self-calibrating baseline** — currently a patient's Pulse-input parameters are set once at
+  onboarding and never adjusted; comparing the twin's predicted vitals against a patient's actual
+  incoming wearable readings and iteratively correcting the baseline would make the simulation
+  converge toward that specific patient over time, rather than staying fixed at intake values.
+- **Real task queue (Celery/Redis)** in place of FastAPI's `BackgroundTasks` thread pool — see the
+  Limitations entry in §8; only matters at a patient volume beyond this prototype's scale.
+- **Full-stack containerization** (`Dockerfile`/`docker-compose.yml` covering the API, database,
+  and frontend together, not just the Pulse engine) and **basic CI** (running the existing 135+
+  pytest suite on every push) — neither changes system behavior, both materially improve the
+  project's reproducibility and credibility as an artifact, including for a research-paper
+  submission's own review process.
+
+**Clinical and modeling scope, deferred deliberately:**
+- **Tier 3 (ECG-derived blood pressure/contractility) — locked out permanently, not deferred.**
+  This is listed here only for completeness, per the Phase 0 locked decision: it should never be
+  implemented, because the underlying ECG-to-hemodynamics formulas were never validated against a
+  real dataset in this project and would introduce unfounded precision into the pipeline.
+- **Medication-effect modeling** — diuretics, beta-blockers, and ACE inhibitors materially change
+  HF physiology and are not represented in any current Pulse scenario; nearly all real HF patients
+  are on at least one of these, so this is one of the more consequential gaps for real-world
+  applicability (see also the medication-modeling Limitation in §8).
+- **Real clinical validation** — every result documented in §5-§7 is validated against synthetic
+  data, offline batch simulation, or a single manually-run live pipeline, never against real
+  patient outcomes. A partnership with a cardiology department to compare the twin's risk/staging
+  output against actual clinician assessments and real deterioration events is the single most
+  important next step before any claim in this project could support a peer-reviewed research
+  paper rather than a systems-engineering demonstration.
+- **Extending beyond heart failure** — the same wearable-trend → scenario-classification →
+  Pulse-simulation → risk-scoring architecture is not HF-specific in its mechanics; COPD,
+  post-surgical recovery monitoring, and diabetes management were identified as plausible targets
+  for the same pipeline, contingent on defining an analogous scenario taxonomy and risk formula for
+  each condition — not attempted here.
 
 ## 10. Frontend Dashboard (Phase 7)
 

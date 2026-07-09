@@ -1,0 +1,27 @@
+# Backend build context (backend/Dockerfile's COPY . . at repo root) -- keeps the image small and
+# the build fast by excluding everything the API doesn't need at runtime.
+.git
+.github
+__pycache__
+*.pyc
+.pytest_cache
+.DS_Store
+
+# Frontend has its own Dockerfile/build context -- irrelevant to (and node_modules would bloat)
+# the backend image.
+frontend/node_modules
+frontend/dist
+
+# Runtime state / large local artifacts -- regenerated or mounted in, not baked into the image.
+data/raw
+data/db
+data/validation_runs
+scenarios/*.json
+scenarios/*.log
+scenarios/*.csv
+scenarios/batch/
+scenarios/batch_pilot/
+scenarios/projection/
+scenarios/api/
+
+*.env

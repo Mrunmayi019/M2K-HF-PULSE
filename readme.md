@@ -1,11 +1,40 @@
 # M2K HF-PULSE
 
+[![CI](https://github.com/Mrunmayi019/M2K-HF-PULSE/actions/workflows/ci.yml/badge.svg)](https://github.com/Mrunmayi019/M2K-HF-PULSE/actions/workflows/ci.yml)
+
 **Personalized Digital Twin for Early Heart Failure Deterioration Detection**
 
 A system that combines wearable/clinical patient data, the [Kitware Pulse](https://pulse.kitware.com/)
 physiology simulation engine, and machine learning to detect early signs of heart failure
 decompensation before a patient reaches crisis — days before symptoms would otherwise prompt a
 hospital visit.
+
+## Quick Start
+
+The whole stack (Postgres + FastAPI/Pulse backend + React frontend) in one command:
+
+```bash
+git clone https://github.com/Mrunmayi019/M2K-HF-PULSE.git
+cd M2K-HF-PULSE
+docker compose up --build
+```
+
+Then open **http://localhost:3000**. The API itself is at `http://localhost:8000/docs` (interactive
+OpenAPI UI).
+
+> **Note for Apple Silicon (M1/M2/M3) users:** the backend image bundles the Pulse physiology
+> engine from `kitware/pulse:4.3.1`, which only ships an `amd64` build — Docker Desktop runs it
+> under emulation on arm64 Macs. Everything works, but Pulse simulation calls are noticeably
+> slower than on a native amd64 machine (see `docs/methodology.md` §8) — the first patient's
+> assessment (which needs 4 real Pulse calls) can take several minutes rather than seconds. This
+> is expected, not a hang.
+
+See `docs/running_the_stack.md` for the full step-by-step walkthrough (verifying each service,
+smoke-testing the real Pulse pipeline, and troubleshooting).
+
+First run will take a while (building both images + `pip install`/`npm ci`); subsequent
+`docker compose up` runs are fast thanks to layer caching. `docker compose down` stops everything;
+add `-v` to also drop the Postgres volume.
 
 ## Status
 
@@ -64,7 +93,10 @@ This repo currently contains two things side by side:
      `running`/`pending` / `failed` / `complete` simulation states and backend-unreachable errors
      as distinct UI states, not just a single loading spinner.
 
-## Quick Start
+## Running Individual Components (Manual Setup)
+
+For running one piece at a time outside `docker compose` (developing a single component, or
+debugging in isolation) — see "Quick Start" above for the one-command full-stack path.
 
 ### Run the existing prototype dashboard
 
@@ -228,7 +260,14 @@ docs/
   data_provenance.md              # every clinical number, traced to its source
 scripts/
   validate_phase2.py              # runs all 5 scenario types through Pulse
+  validate_phase8.py              # Phase 8: batch-validates 20-30 synthetic patients through
+                                   #   the live API pipeline end to end (see docs/methodology.md §7)
 tests/                            # 135 tests, no Docker required
+backend/Dockerfile                # Phase 9: FastAPI + Pulse engine image (linux/amd64, see file
+                                   #   for why); build context is the repo root, not backend/
+frontend/Dockerfile               # Phase 9: Vite build -> nginx serve, multi-stage
+docker-compose.yml                # Phase 9: db (Postgres) + pulse-backend + frontend, one command
+.github/workflows/ci.yml          # Phase 9: pytest + frontend build on every push/PR
 ```
 
 ## Data Sources
@@ -250,6 +289,9 @@ datasets and aggregate statistics are committed.
 - **`docs/architecture.md`** — system diagrams (current prototype + target pipeline)
 - **`docs/methodology.md`** — the "why" behind each phase, validation results, honest limitations
 - **`docs/data_provenance.md`** — every clinical threshold/statistic, traced to a source
+- **`docs/running_the_stack.md`** — step-by-step guide to `docker compose up --build`, verifying
+  each service, the Pulse-in-container smoke test, and troubleshooting (Node/Vite version, missing
+  shared libraries)
 - **`models/model_card.md`** — both trained models' training data, performance, and limitations
 
 ## Contributors
