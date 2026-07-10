@@ -25,7 +25,7 @@ jobs:
       # this suite exercises DATABASE_URL branching beyond what src/api/database.py already does
       # in a couple of lines.
       - name: Run tests
-        run: pytest tests/ -v
+        run: PYTHONPATH=. pytest tests/ -v
 
   frontend-build:
     runs-on: ubuntu-latest
