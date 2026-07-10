@@ -296,4 +296,4 @@ datasets and aggregate statistics are committed.
 
 ## Contributors
 
-Mrunmayi Mohite · Kaveri Sharma · Meghan Singhal
+Kaveri Sharma, Mrunmayi Mohite, Meghan Singhal
