@@ -130,6 +130,30 @@ Every line ending in `=> not found` is a missing library. Map it to a Debian/Ubu
 search — e.g. `libc++.so.1` → package `libc++1`) and add it to the `apt-get install` list in
 `backend/Dockerfile`, then rebuild.
 
+### Background pipeline crashes: `FileNotFoundError: /workspace/models/scenario_classifier.joblib`
+
+The trained ML models (`models/scenario_classifier.joblib`, `models/severity_regressor.joblib`)
+are gitignored (`models/*.joblib`) and are **not** volume-mounted into `pulse-backend` — only
+`./data:/workspace/data` is (see `docker-compose.yml`). They're baked into the image at build time
+via `backend/Dockerfile`'s `COPY . .`, which means they have to already exist locally *before*
+`docker compose up --build` for the very first time. If they don't, every patient's background
+assessment pipeline (triggered once a 21-day wearable window fills) crashes with this
+`FileNotFoundError` the moment it tries to classify a scenario — visible in
+`docker compose logs pulse-backend`, and the patient's `GET /status` stays stuck on `pending`
+forever (the pipeline crashes before it ever writes a `SimulationRun` row, so there's nothing for
+`/status` to report `running`/`failed` from).
+
+**Fix:**
+
+```bash
+python -m src.scenario_classifier.train    # writes models/scenario_classifier.joblib + severity_regressor.joblib
+docker compose up -d --build pulse-backend # rebuild so the image picks them up
+```
+
+If a patient already got stuck in `pending` from before the fix, their triggering `/wearable-sync`
+call already fired and won't retry itself — push one more day's reading for that same patient
+(any date past the 21-day window) to re-trigger the pipeline now that the models exist.
+
 ### General Apple Silicon note
 
 Every Pulse-related step (`--build`'s Pulse stage, the smoke test's ~10-minute wait) is slower on

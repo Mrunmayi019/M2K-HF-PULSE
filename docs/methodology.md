@@ -732,3 +732,58 @@ See §7 for how all of the above was verified (mock-data static build, then a re
 real patient → real 21-day wearable sync → real Pulse simulation inside Docker → real ML
 classification → real risk scoring, rendered correctly in an actual browser with zero console
 errors).
+
+## 11. Frontend Extension — Trends & History, Simulation Lab, Reports, Settings
+
+**Status: done.** Full detail, including exactly what was verified and how, is in
+`docs/frontend_extension_validation.md` — this section summarizes the design decisions; that
+document carries the evidence.
+
+Phase 7 (§10) shipped a 5-item sidebar, but only "Patient Dashboard" was wired to real content —
+the other four items were static labels with no click handler. This phase makes all five
+functional:
+
+- **Trends & History** — a risk-score-over-time chart, a full assessment history table, and
+  per-vital trend charts over the synced wearable window. Needed one small backend addition,
+  `GET /patients/{id}/wearable-history` (`src/api/routes.py`), since the only prior read path for
+  wearable data was `StatusResponse.latest_wearable` — a single most-recent row, not the series a
+  trend chart needs. New reusable `TrendChart` component (hand-built SVG, not a charting library
+  dependency) with a hover crosshair + tooltip, matching this project's existing "small,
+  dependency-light frontend" convention (§10: "plain fetch/hooks (no React Query — kept
+  dependencies minimal)").
+- **Simulation Lab** — a patient-creation wizard (demographics → optional clinical report → a
+  21-day wearable trend) that drives the real API end to end, so a new patient can be created from
+  the UI itself rather than only via `curl`/Swagger/a throwaway script. The 21-day trend is
+  generated client-side (`frontend/src/utils/syntheticTrend.js`, linear interpolation between a
+  start/end vitals snapshot with light noise, 4 presets) — explicitly a UI convenience for demoing
+  the pipeline, not a replacement for `src/data_synthesis/`'s cited, real-data-grounded population
+  generator. The same page also surfaces the selected patient's raw `component_scores` breakdown
+  (`hr_rise`, `map_drop`, `co_drop_pct`, `compensation_flag`, `instability_flag`) as meters —
+  the same 5 features `risk_score.py` consumes (§6.1), now visible rather than only present in the
+  API response.
+- **Reports** — a master-detail view across all patients, reusing the existing `DoctorReportCard`
+  component (copy/download already built in Phase 7) rather than duplicating its report-text logic.
+- **Settings** — a working dark/light/system theme toggle (persisted, respects
+  `prefers-color-scheme` when unset) and a live "Test Connection" check against the real backend
+  (round-trip latency, not just a static URL display).
+
+**Dark mode implementation note.** The existing palette used `--navy`/`--navy2` for two unrelated
+things: body text color, and the fixed-dark backgrounds of surfaces meant to stay dark in *both*
+themes (the sidebar, the doctor-report card, primary buttons). New `--text`/`--text2` tokens were
+added specifically so flipping the theme changes only text color, not those intentionally-fixed
+dark surfaces. Manual dark-mode QA caught and fixed one real bug this introduced risk for: three
+SVG elements (`TrendChart`'s gridlines/dot-rings, `SeverityGauge`'s track circle) had hardcoded
+light-mode hex strokes that rendered as blown-out bright lines against the dark background —
+switched to the new CSS custom properties. Full detail in
+`docs/frontend_extension_validation.md` §4.1.
+
+**Verification.** `npm run build`/`npm run lint` clean; `pytest tests/` at 137/137 (135 + 2 new
+`GET /wearable-history` checks); manual, real-browser click-through of all 5 tabs in both themes
+against the live `docker compose` stack, including a full no-mocking test of the Simulation Lab
+wizard (a real patient created purely through UI form interaction, confirmed reaching the same
+`collecting → pending → running` state machine §10 already documents); zero browser console
+errors. See `docs/frontend_extension_validation.md` for the full evidence trail, including a
+real, unrelated infrastructure bug this work depended on fixing first (§4.2 of that document: the
+background pipeline crashing with `FileNotFoundError` on a fresh `docker compose up --build`
+because the trained `.joblib` models are gitignored and not volume-mounted, only baked in at image
+build time — now also captured in `docs/running_the_stack.md`'s Troubleshooting section).

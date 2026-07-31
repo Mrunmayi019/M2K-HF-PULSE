@@ -7,7 +7,7 @@ export default function SeverityGauge({ severity, color = '#64748B' }) {
 
   return (
     <svg width={64} height={64} viewBox="0 0 64 64" style={{ flex: 'none' }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#EEF2F6" strokeWidth={7} />
+      <circle cx={cx} cy={cy} r={r} fill="none" style={{ stroke: 'var(--well)' }} strokeWidth={7} />
       <circle
         cx={cx}
         cy={cy}

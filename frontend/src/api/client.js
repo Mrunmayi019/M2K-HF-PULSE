@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 async function request(path, options) {
   let res
@@ -39,4 +39,28 @@ export function getReport(patientId) {
 
 export function getStatus(patientId) {
   return request(`/patients/${patientId}/status`)
+}
+
+export function getHistory(patientId) {
+  return request(`/patients/${patientId}/history`)
+}
+
+export function getWearableHistory(patientId) {
+  return request(`/patients/${patientId}/wearable-history`)
+}
+
+export function createClinicalReport(patientId, payload) {
+  return request(`/patients/${patientId}/clinical-report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export function syncWearableReading(patientId, payload) {
+  return request(`/patients/${patientId}/wearable-sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
 }

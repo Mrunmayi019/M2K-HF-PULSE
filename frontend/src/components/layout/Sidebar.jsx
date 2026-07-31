@@ -1,6 +1,12 @@
 import { avatarFromId } from '../../utils/format.js'
 
-const NAV_ITEMS = ['Patient Dashboard', 'Trends & History', 'Simulation Lab', 'Reports', 'Settings']
+export const NAV_ITEMS = [
+  { key: 'dashboard', label: 'Patient Dashboard' },
+  { key: 'trends', label: 'Trends & History' },
+  { key: 'lab', label: 'Simulation Lab' },
+  { key: 'reports', label: 'Reports' },
+  { key: 'settings', label: 'Settings' },
+]
 
 function patientMeta(patient, report) {
   const bucket = report?.status?.latest_assessment?.risk_bucket
@@ -9,7 +15,7 @@ function patientMeta(patient, report) {
   return `${patient.age} yrs · ${riskLabel}`
 }
 
-export default function Sidebar({ patients, reports, selectedId, onSelect }) {
+export default function Sidebar({ patients, reports, selectedId, onSelect, activeTab, onNavigate }) {
   return (
     <div className="sidebar">
       <div className="brand">
@@ -25,10 +31,17 @@ export default function Sidebar({ patients, reports, selectedId, onSelect }) {
       </div>
       <div>
         <div className="navsec">Menu</div>
-        {NAV_ITEMS.map((item, i) => (
-          <div key={item} className={`navitem ${i === 0 ? 'active' : ''}`}>
+        {NAV_ITEMS.map((item) => (
+          <div
+            key={item.key}
+            className={`navitem ${item.key === activeTab ? 'active' : ''}`}
+            onClick={() => onNavigate(item.key)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && onNavigate(item.key)}
+          >
             <span className="navdot" />
-            {item}
+            {item.label}
           </div>
         ))}
       </div>

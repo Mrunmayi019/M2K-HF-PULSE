@@ -71,14 +71,24 @@ Wearable / clinical report input
          │   read, zero Pulse calls in the request path; see methodology.md §6.4). Phase 7 added
          │   GET /patients, exposed scenario_type/severity/EF/BNP/vital_slopes/latest_wearable
          │   (already computed, previously discarded after use), and CORS middleware (needed the
-         │   moment a browser -- not curl -- called the API from a different origin).
+         │   moment a browser -- not curl -- called the API from a different origin). The Phase 7
+         │   frontend extension (below) added GET /patients/{id}/wearable-history (full synced
+         │   wearable series, not just the latest reading -- feeds the Trends & History charts).
          ▼
-  frontend/ (React + Vite)               — Phase 7, BUILT
+  frontend/ (React + Vite)               — Phase 7, BUILT; extended Phase 7 (Trends/Lab/Reports/Settings)
          │  (src/components/: layout/, hero/, condition/, vitals/, projection/, report/, shared/
-         │   state components; src/hooks/: usePatients, usePatientReport (polls while
-         │   running/pending); built against a decoded design reference,
+         │   state components, + trends/, lab/, reports/, settings/ from the extension below;
+         │   src/hooks/: usePatients, usePatientReport (polls while running/pending), + useTrends,
+         │   useTheme from the extension; built against a decoded design reference,
          │   frontend/design_reference.html -- see methodology.md §10 for the decode approach and
          │   every design-vs-real-API gap found and resolved)
+         ▼
+  frontend/ sidebar tabs beyond the dashboard  — Phase 7 extension, BUILT
+         │  (Trends & History, Simulation Lab, Reports, Settings -- previously static labels with
+         │   no click handler, now all wired to real data/actions; adds a working dark/light/
+         │   system theme toggle across the whole app. See methodology.md §11 and
+         │   docs/frontend_extension_validation.md for the full design rationale and verification
+         │   evidence.)
 ```
 
 ## Known naming collisions

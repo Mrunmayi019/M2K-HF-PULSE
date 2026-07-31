@@ -10,6 +10,36 @@
   --muted: #64748b;
   --line: #e2e8f0;
   --card: #ffffff;
+  /* text tokens are separate from --navy/--navy2, which also back always-dark surfaces
+     (sidebar, doccard, btn-primary) that must NOT flip in dark mode */
+  --text: #0f172a;
+  --text2: #1e293b;
+  --well: #eef2f6;
+  --zebra: #fafbfc;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0a1220;
+  --card: #101a2c;
+  --line: #223049;
+  --muted: #8896ac;
+  --text: #e5e9f2;
+  --text2: #c3cee0;
+  --well: #16213a;
+  --zebra: #0d1728;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0a1220;
+    --card: #101a2c;
+    --line: #223049;
+    --muted: #8896ac;
+    --text: #e5e9f2;
+    --text2: #c3cee0;
+    --well: #16213a;
+    --zebra: #0d1728;
+  }
 }
 
 * {
@@ -20,7 +50,8 @@ body {
   margin: 0;
   background: var(--bg);
   font-family: 'Inter', system-ui, sans-serif;
-  color: var(--navy);
+  color: var(--text);
+  transition: background 0.15s, color 0.15s;
 }
 
 .mono {
@@ -193,7 +224,7 @@ a:hover {
   color: var(--muted);
 }
 .simtime b {
-  color: var(--navy);
+  color: var(--text);
 }
 
 .btn {
@@ -231,12 +262,12 @@ a:hover {
   background: var(--tealD);
 }
 .btn-ghost {
-  background: #fff;
-  color: var(--navy);
+  background: var(--card);
+  color: var(--text);
   border: 1px solid var(--line);
 }
 .btn-ghost:hover:not(:disabled) {
-  background: #f1f5f9;
+  background: var(--well);
 }
 .btn-dark {
   background: rgba(255, 255, 255, 0.08);
@@ -277,7 +308,7 @@ a:hover {
 .sectitle {
   font-size: 13px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text);
   margin: 0 0 12px 2px;
   display: flex;
   align-items: center;
@@ -354,8 +385,8 @@ a:hover {
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 7px;
-  background: #f1f5f9;
-  color: var(--navy2);
+  background: var(--well);
+  color: var(--text2);
   border: 1px solid var(--line);
 }
 .heroname {
@@ -366,7 +397,7 @@ a:hover {
 }
 .herosummary {
   font-size: 15px;
-  color: var(--navy2);
+  color: var(--text2);
   font-weight: 500;
   max-width: 520px;
 }
@@ -433,7 +464,7 @@ a:hover {
 }
 .minicard {
   flex: 1;
-  background: #f8fafc;
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px 14px;
@@ -457,7 +488,7 @@ a:hover {
   padding: 24px;
 }
 .metriccard {
-  background: #f8fafc;
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 14px 16px;
@@ -514,10 +545,10 @@ table.vt th {
 }
 table.vt td {
   padding: 13px 16px;
-  border-bottom: 1px solid #eef2f6;
+  border-bottom: 1px solid var(--well);
 }
 table.vt tr:nth-child(even) td {
-  background: #fafbfc;
+  background: var(--zebra);
 }
 table.vt tr:last-child td {
   border-bottom: none;
@@ -564,7 +595,7 @@ table.vt tr:last-child td {
   margin-bottom: 12px;
 }
 .projhead.now {
-  color: var(--navy);
+  color: var(--text);
 }
 .projrow {
   margin-bottom: 12px;
@@ -606,7 +637,7 @@ table.vt tr:last-child td {
 .probtrack {
   height: 8px;
   border-radius: 100px;
-  background: #eef2f6;
+  background: var(--well);
   overflow: hidden;
 }
 .probfill {
@@ -664,7 +695,7 @@ table.vt tr:last-child td {
 
 /* ---- shared states ---- */
 .skeleton {
-  background: linear-gradient(90deg, #eef2f6 25%, #e2e8f0 37%, #eef2f6 63%);
+  background: linear-gradient(90deg, var(--well) 25%, var(--line) 37%, var(--well) 63%);
   background-size: 400% 100%;
   animation: skeleton-shine 1.4s ease infinite;
   border-radius: 8px;
@@ -686,7 +717,7 @@ table.vt tr:last-child td {
 .statecard .statetitle {
   font-size: 15px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text);
   margin-bottom: 6px;
 }
 .statecard .btn {
@@ -698,11 +729,348 @@ table.vt tr:last-child td {
   gap: 10px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #f1f5f9;
+  background: var(--well);
   border: 1px solid var(--line);
   font-size: 12.5px;
-  color: var(--navy2);
+  color: var(--text2);
   margin-bottom: 16px;
+}
+
+/* ---- trend charts (Trends & History) ---- */
+.vitalsgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.vitalcard {
+  padding: 16px 18px 10px;
+}
+.vitalcardhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.vitalcardunit {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.trendchart {
+  position: relative;
+}
+.trendchart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.trendchart-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: var(--navy);
+  color: #fff;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: opacity 0.1s;
+  z-index: 2;
+}
+.trendchart-tooltip .tt-val {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.trendchart-tooltip .tt-x {
+  color: #94a3b8;
+  font-size: 10px;
+}
+.trendchart-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ---- forms (Simulation Lab) ---- */
+.labform {
+  padding: 24px 28px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.labformsection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.labformtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.labformtitle .sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.fieldgrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.fieldgrid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.fieldlabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fieldinputwrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: inherit;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+.select {
+  appearance: none;
+  cursor: pointer;
+}
+.fieldunit {
+  position: absolute;
+  right: 11px;
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.presetbtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.presetbtn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 100px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+}
+.presetbtn.active {
+  background: rgba(20, 184, 166, 0.14);
+  border-color: var(--teal);
+  color: var(--tealD);
+}
+.trendpointgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.trendpointcol {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.trendpointtitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.labformerror {
+  font-size: 12.5px;
+  color: var(--red);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.labformfooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.labprogress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text2);
+  margin-right: auto;
+}
+.labresult {
+  font-size: 12.5px;
+  color: var(--green);
+  font-weight: 600;
+  margin-right: auto;
+}
+
+/* ---- simulation internals meters ---- */
+.metergrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+.metercard {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.meterhead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+/* ---- reports list ---- */
+.reportslist {
+  padding: 8px;
+  max-height: 620px;
+  overflow-y: auto;
+}
+.reportrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.reportrow:hover {
+  background: var(--well);
+}
+.reportrow.sel {
+  background: rgba(20, 184, 166, 0.12);
+}
+.reportrow .pmeta {
+  font-size: 11.5px;
+}
+
+/* ---- settings ---- */
+.settingscard {
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.settingsrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.settingsrow:last-child {
+  border-bottom: none;
+}
+.settingslabel {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.settingsdesc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  max-width: 440px;
+}
+.themebtns {
+  display: flex;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 3px;
+}
+.themebtn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.themebtn.active {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+.aboutgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.aboutitem {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.aboutitem b {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.conncheck {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.conndot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
 }
 
 /* ---- mobile ---- */
@@ -713,6 +1081,19 @@ table.vt tr:last-child td {
   .projgrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+  }
+  .vitalsgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fieldgrid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .trendpointgrid {
+    grid-template-columns: 1fr;
+  }
+  .metergrid,
+  .aboutgrid {
+    grid-template-columns: 1fr;
   }
   .projcol {
     border-left: none;
@@ -747,5 +1128,12 @@ table.vt tr:last-child td {
   }
   .projgrid {
     grid-template-columns: 1fr;
+  }
+  .vitalsgrid {
+    grid-template-columns: 1fr;
+  }
+  .fieldgrid3,
+  .fieldgrid4 {
+    grid-template-columns: 1fr 1fr;
   }
 }

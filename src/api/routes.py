@@ -98,6 +98,20 @@ def sync_wearable_reading(
     )
 
 
+@router.get("/patients/{patient_id}/wearable-history", response_model=schemas.WearableHistoryResponse)
+def get_wearable_history(patient: models.Patient = Depends(get_patient_or_404), db: Session = Depends(get_db)):
+    readings = (
+        db.query(models.WearableReading)
+        .filter(models.WearableReading.patient_id == patient.id)
+        .order_by(models.WearableReading.recorded_date.asc())
+        .all()
+    )
+    return schemas.WearableHistoryResponse(
+        patient_id=patient.id,
+        readings=[schemas.WearableReadingResponse.model_validate(r) for r in readings],
+    )
+
+
 def _latest_assessment(db: Session, patient_id: str) -> models.RiskAssessment | None:
     return (
         db.query(models.RiskAssessment)

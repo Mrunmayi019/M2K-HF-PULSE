@@ -74,7 +74,9 @@ This repo currently contains two things side by side:
      scoring formula, citations, and a known limitation found during validation.
    - **Phase 6 (done):** FastAPI backend (`src/api/`) — 5 SQLAlchemy tables (patients,
      clinical_reports, wearable_readings, simulation_runs, risk_assessments), Pydantic
-     request/response schemas with physiological-range validation, and 7 endpoints. Wearable data
+     request/response schemas with physiological-range validation, and 8 endpoints (the 8th,
+     `GET /patients/{id}/wearable-history`, added in the Phase 7 frontend extension below).
+     Wearable data
      is submitted daily and accumulates to a 21-day window before `BackgroundTasks` triggers one
      assessment pipeline (ML Model 1 → Pulse → risk scoring → staging → projection) — every read
      endpoint (`/status`, `/history`, `/projection`, `/report`) is a fast DB read, never blocking
@@ -92,6 +94,19 @@ This repo currently contains two things side by side:
      see the Phase 7 plan for the full list of these decisions. Handles `collecting` /
      `running`/`pending` / `failed` / `complete` simulation states and backend-unreachable errors
      as distinct UI states, not just a single loading spinner.
+   - **Phase 7 extension (done):** the sidebar's other 4 sections — Trends & History, Simulation
+     Lab, Reports, Settings — were static labels with no click handler; all 4 are now wired to real
+     data and actions, plus a working dark/light/system theme toggle across the whole app. Trends &
+     History adds per-vital trend charts (needed the new `GET /wearable-history` endpoint above) and
+     a risk-score-over-time chart, both hand-built SVG components with hover tooltips, no charting
+     library added. Simulation Lab is a patient-creation wizard that drives the real API end to end
+     (demographics → clinical report → a client-side-generated 21-day wearable trend, 4 presets) —
+     the first way to create a patient from the UI itself — plus a live view of the selected
+     patient's raw risk-score component breakdown. Reports is a master-detail view across all
+     patients reusing the existing report/copy/download component. See `docs/methodology.md` §11
+     and `docs/frontend_extension_validation.md` for the full design rationale and the manual,
+     real-browser verification evidence (including one real dark-mode rendering bug found and
+     fixed).
 
 ## Running Individual Components (Manual Setup)
 
@@ -118,7 +133,7 @@ python3 /workspace/app.py                     # simpler Flask fallback, port 500
 pip install -r requirements.txt
 python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv (n=2000)
 python3 -m src.data_synthesis.generate_wearable_trends  # writes data/synthetic/wearable_trends.csv
-pytest tests/ -v                                        # 135 tests, no Docker required
+pytest tests/ -v                                        # 137 tests, no Docker required
 ```
 
 ### Train the Phase 3 scenario classifier (no Docker needed)
@@ -246,23 +261,29 @@ data/
 models/                           # trained model artifacts + eval plots (gitignored, never committed)
                                    #   model_card.md documents both Model 1 and Model 2, incl.
                                    #   the Phase 5 secondary model's limitations
-frontend/                         # Phase 7: React (Vite) dashboard
+frontend/                         # Phase 7: React (Vite) dashboard; extended (Trends/Lab/Reports/
+                                   #   Settings tabs + dark mode) in the Phase 7 extension
   design_reference.html           #   decoded design export (colors/layout/interaction reference)
   src/
     components/                   #   layout/, hero/, condition/, vitals/, projection/, report/,
-                                   #     shared/ (skeleton, error/collecting/failed states)
-    hooks/                        #   usePatients, usePatientReport (polls while running/pending)
+                                   #     shared/ (skeleton, error/collecting/failed states),
+                                   #     + trends/, lab/, reports/, settings/ (Phase 7 extension)
+    hooks/                        #   usePatients, usePatientReport (polls while running/pending),
+                                   #     + useTrends, useTheme (Phase 7 extension)
+    utils/syntheticTrend.js       #   client-side 21-day wearable trend generator, Simulation Lab
+                                   #     only -- not a substitute for src/data_synthesis/
     api/client.js                 #   fetch wrapper, base URL from VITE_API_URL
     mock/mockData.js              #   VITE_USE_MOCK=true renders off this instead of a live API
 docs/
   architecture.md                 # current + target system diagrams
   methodology.md                  # why each decision was made, what was validated
   data_provenance.md              # every clinical number, traced to its source
+  frontend_extension_validation.md  # Phase 7 extension: what was built + full verification evidence
 scripts/
   validate_phase2.py              # runs all 5 scenario types through Pulse
   validate_phase8.py              # Phase 8: batch-validates 20-30 synthetic patients through
                                    #   the live API pipeline end to end (see docs/methodology.md §7)
-tests/                            # 135 tests, no Docker required
+tests/                            # 137 tests, no Docker required
 backend/Dockerfile                # Phase 9: FastAPI + Pulse engine image (linux/amd64, see file
                                    #   for why); build context is the repo root, not backend/
 frontend/Dockerfile               # Phase 9: Vite build -> nginx serve, multi-stage
@@ -291,7 +312,9 @@ datasets and aggregate statistics are committed.
 - **`docs/data_provenance.md`** — every clinical threshold/statistic, traced to a source
 - **`docs/running_the_stack.md`** — step-by-step guide to `docker compose up --build`, verifying
   each service, the Pulse-in-container smoke test, and troubleshooting (Node/Vite version, missing
-  shared libraries)
+  shared libraries, missing trained models on a fresh build)
+- **`docs/frontend_extension_validation.md`** — the Trends/Simulation Lab/Reports/Settings tabs and
+  dark mode: what was built, why, and the full manual verification evidence
 - **`models/model_card.md`** — both trained models' training data, performance, and limitations
 
 ## Contributors

@@ -82,6 +82,11 @@ class WearableReadingResponse(BaseModel):
     hrv_rmssd_ms: float
 
 
+class WearableHistoryResponse(BaseModel):
+    patient_id: str
+    readings: list[WearableReadingResponse]
+
+
 # ---- Shared risk payload pieces ----
 
 RISK_CAVEATS_DESCRIPTION = (

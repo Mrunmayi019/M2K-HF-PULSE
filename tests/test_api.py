@@ -266,6 +266,23 @@ class TestHistory:
         assert len(r.json()["assessments"]) == 1
 
 
+class TestWearableHistory:
+    def test_unknown_patient_404(self, client):
+        assert client.get("/patients/does-not-exist/wearable-history").status_code == 404
+
+    def test_returns_readings_in_chronological_order(self, client):
+        patient_id = _create_patient(client)
+        _fill_wearable_window(client, patient_id, n=3)
+
+        r = client.get(f"/patients/{patient_id}/wearable-history")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["patient_id"] == patient_id
+        dates = [reading["recorded_date"] for reading in body["readings"]]
+        assert dates == sorted(dates)
+        assert len(dates) == 3
+
+
 class TestProjection:
     def test_unknown_patient_404(self, client):
         assert client.get("/patients/does-not-exist/projection").status_code == 404
