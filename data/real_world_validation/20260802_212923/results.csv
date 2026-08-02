@@ -1,0 +1,2 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s
+1,71.0,Male,21,2023-12-18..2024-01-07,True,False,68342523-0fb5-4d10-a273-4795e5fb2812,stable,0.07828333333333337,0.0057,LOW,I,stable,complete,,694.4

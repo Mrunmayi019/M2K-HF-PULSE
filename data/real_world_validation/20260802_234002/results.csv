@@ -1,0 +1,9 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,attempt,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s
+22,82.0,Male,21,2023-09-04..2023-10-01,True,True,9a22f425-9163-40dc-b17b-ad7af701dfea,1,cardiac_stress,0.11005333333333331,0.3643,MODERATE,I,stable,complete,,584.7
+24,78.0,Female,21,2023-09-20..2023-10-12,True,True,abb9c690-2f8e-4061-b35d-163cc3565e7a,1,cardiac_stress,0.10949666666666653,0.4443,MODERATE,I,stable,complete,,594.7
+19,77.0,Male,21,2023-08-14..2023-09-04,True,False,dc4fcc3b-501a-412c-9978-12128ecd93e6,1,stable,0.0995699999999999,0.0054,LOW,I,stable,complete,,523.7
+21,75.0,Female,21,2023-09-05..2023-09-29,True,False,1e4b1546-0dee-48a1-8310-21a7b104f1f7,1,cardiac_stress,0.13608333333333308,0.4832,MODERATE,I,stable,complete,,594.0
+18,74.0,Female,21,2023-08-08..2023-08-30,True,True,c40dc764-046e-49fe-976a-687e9a71b361,1,cardiac_stress,0.11233666666666654,0.4488,MODERATE,I,stable,complete,,635.0
+17,80.0,Female,21,2023-08-11..2023-08-31,True,False,4ebbe9c1-72e7-417c-9388-710793c2b1fc,1,cardiac_stress,0.11484666666666662,0.4635,MODERATE,I,stable,complete,,614.8
+16,83.0,Male,21,2023-08-14..2023-09-03,True,False,2693ac3f-ffe6-44a7-8eef-6d701aff85d7,1,cardiac_stress,0.10226666666666669,0.376,MODERATE,I,stable,complete,,523.8
+15,77.0,Male,21,2023-08-07..2023-08-29,True,False,46f79153-3e65-4daa-872a-2045f0154273,1,cardiac_stress,0.10393333333333327,0.3588,MODERATE,I,stable,complete,,533.9

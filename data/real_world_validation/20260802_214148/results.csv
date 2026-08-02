@@ -1,0 +1,5 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s
+1,71.0,Male,21,2023-12-18..2024-01-07,True,False,ccced5a2-e917-4c9c-982b-f52404b11e95,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/ccced5a2-e917-4c9c-982b-f52404b11e95/scenario.json,192.4
+2,75.0,Male,21,2023-10-24..2023-11-18,True,False,2ec25bd1-5f69-46e8-8a20-dff87268e03e,cardiac_stress,0.12715333333333312,0.437,MODERATE,I,stable,complete,,633.5
+4,81.0,Male,21,2023-12-08..2024-01-02,True,False,d5b5f4a9-5c33-4185-b85e-dcc78aebd23d,cardiac_stress,0.13440333333333324,0.4325,MODERATE,I,stable,complete,,714.0
+5,83.0,Female,21,2023-12-07..2023-12-31,True,False,dd068ea9-31f2-4424-9360-1b5ce0900b37,cardiac_stress,0.14753666666666676,0.5,MODERATE,I,stable,complete,,694.0

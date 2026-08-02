@@ -1,0 +1,12 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,attempt,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s
+17,80.0,Female,21,2023-08-11..2023-08-31,True,False,,2,,,,,,,harness_error,ReadTimeout: ,31.6
+16,83.0,Male,21,2023-08-14..2023-09-03,True,False,,2,,,,,,,harness_error,ReadTimeout: ,32.2
+15,77.0,Male,21,2023-08-07..2023-08-29,True,False,,2,,,,,,,harness_error,ReadTimeout: ,32.2
+27,88.0,Male,21,2023-10-30..2023-11-23,True,False,,2,,,,,,,harness_error,ReadTimeout: ,32.2
+25,85.0,Male,21,2023-09-22..2023-10-12,True,False,,2,,,,,,,harness_error,ReadTimeout: ,32.2
+21,75.0,Female,21,2023-09-05..2023-09-29,True,False,4a2e7522-db96-4446-842e-65d138abb156,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/4a2e7522-db96-4446-842e-65d138abb156/scenario.json,183.3
+23,77.0,Male,21,2023-09-13..2023-10-03,True,False,21631709-91cb-4e3e-af55-c1ae91aeb1ee,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/21631709-91cb-4e3e-af55-c1ae91aeb1ee/scenario.json,183.7
+24,78.0,Female,21,2023-09-20..2023-10-12,True,True,11de3992-bc1b-45d9-a967-82689a21eb31,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/11de3992-bc1b-45d9-a967-82689a21eb31/scenario.json,183.9
+19,77.0,Male,21,2023-08-14..2023-09-04,True,False,48a59612-9f54-4a87-8191-79193d1d5859,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/48a59612-9f54-4a87-8191-79193d1d5859/scenario.json,193.4
+22,82.0,Male,21,2023-09-04..2023-10-01,True,True,c0a2c182-7dee-4ff3-902b-184dba9e5018,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/c0a2c182-7dee-4ff3-902b-184dba9e5018/scenario.json,193.3
+18,74.0,Female,21,2023-08-08..2023-08-30,True,True,79e85935-a89b-4893-893f-103104c99411,2,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/79e85935-a89b-4893-893f-103104c99411/scenario.json,193.4

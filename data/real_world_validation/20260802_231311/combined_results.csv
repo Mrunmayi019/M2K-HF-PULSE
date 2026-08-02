@@ -1,0 +1,17 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s,attempt
+1,71.0,Male,21,2023-12-18..2024-01-07,True,False,3a9be39d-5b79-42a1-8f02-58377bb5395f,stable,0.0782833333333333,0.0057,LOW,I,stable,complete,,494.0,1.0
+2,75.0,Male,21,2023-10-24..2023-11-18,True,False,2ec25bd1-5f69-46e8-8a20-dff87268e03e,cardiac_stress,0.1271533333333331,0.437,MODERATE,I,stable,complete,,633.5,
+4,81.0,Male,21,2023-12-08..2024-01-02,True,False,d5b5f4a9-5c33-4185-b85e-dcc78aebd23d,cardiac_stress,0.1344033333333332,0.4325,MODERATE,I,stable,complete,,714.0,
+5,83.0,Female,21,2023-12-07..2023-12-31,True,False,dd068ea9-31f2-4424-9360-1b5ce0900b37,cardiac_stress,0.1475366666666667,0.5,MODERATE,I,stable,complete,,694.0,
+6,90.0,Male,21,2023-12-09..2024-01-03,True,False,185eb3ad-3772-4dd0-b807-aea77ff33b10,cardiac_stress,0.1155166666666666,0.4419,MODERATE,I,stable,complete,,554.1,1.0
+15,77.0,Male,21,2023-08-07..2023-08-29,True,False,8fcfbd7e-74bc-4320-b940-7c7a3864968f,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/8fcfbd7e-74bc-4320-b940-7c7a3864968f/scenario.json,182.6,2.0
+16,83.0,Male,21,2023-08-14..2023-09-03,True,False,3df293a1-6008-4459-8beb-69071dae45d3,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/3df293a1-6008-4459-8beb-69071dae45d3/scenario.json,182.5,2.0
+17,80.0,Female,21,2023-08-11..2023-08-31,True,False,f38e2e5e-2db0-4a12-be79-2e2f1edce526,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/f38e2e5e-2db0-4a12-be79-2e2f1edce526/scenario.json,183.1,2.0
+18,74.0,Female,21,2023-08-08..2023-08-30,True,True,3583405e-1e33-4382-ad3e-f443f39e26dd,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/3583405e-1e33-4382-ad3e-f443f39e26dd/scenario.json,183.1,2.0
+19,77.0,Male,21,2023-08-14..2023-09-04,True,False,86a2124c-185e-4039-925c-87cc2953dde5,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/86a2124c-185e-4039-925c-87cc2953dde5/scenario.json,192.7,2.0
+21,75.0,Female,21,2023-09-05..2023-09-29,True,False,e499e72e-10f1-4d23-878c-cf64dc7af442,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/e499e72e-10f1-4d23-878c-cf64dc7af442/scenario.json,192.5,2.0
+22,82.0,Male,21,2023-09-04..2023-10-01,True,True,62e7704b-cda9-47a0-a806-2cb9ac1bd76f,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/62e7704b-cda9-47a0-a806-2cb9ac1bd76f/scenario.json,182.3,2.0
+23,77.0,Male,21,2023-09-13..2023-10-03,True,False,cda645b8-c3ea-4fcd-9734-cf89fb97789c,stable,0.0941199999999999,0.0059,LOW,I,stable,complete,,716.4,1.0
+24,78.0,Female,21,2023-09-20..2023-10-12,True,True,4503e464-33c6-476d-802e-b264fc24fd30,,,,,,,failed,PulseScenarioDriver timed out after 180s on /workspace/scenarios/api/4503e464-33c6-476d-802e-b264fc24fd30/scenario.json,182.4,2.0
+25,85.0,Male,21,2023-09-22..2023-10-12,True,False,4e37afd0-47f4-456f-91d5-d34026eab637,stable,0.0919233333333333,0.0049,LOW,I,stable,complete,,726.5,1.0
+27,88.0,Male,21,2023-10-30..2023-11-23,True,False,9e309430-a60a-4544-8e7a-5c879bb3ceeb,cardiac_stress,0.1154133333333333,0.3706,MODERATE,I,worsening,complete,,453.4,1.0

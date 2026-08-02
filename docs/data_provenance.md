@@ -36,6 +36,27 @@ patients" doesn't match what's actually in it. Decision: skip it; the synthetic
 `data/synthetic/wearable_trends.csv` (generator-produced, see Phase 1) remains the actual labeled
 wearable training source for now.
 
+**Also considered and skipped:** Kaggle "FitBit Fitness Tracker Data" (`arashnic/fitbit`, CC0, 30
+users, daily activity/HR/sleep from Amazon Mechanical Turk respondents, 03–05.2016). Real,
+easy-to-access consumer data, but general healthy population, not heart-failure patients, and it
+never measures SpO2 or HRV. Skipped in favor of `perheart_zenodo` below, which is both
+HF-patient-specific and ethics-approved clinical-grade device data, even though it also can't
+cover every wearable field (see `docs/real_world_data_integration.md` §4).
+
+## Real-world validation dataset (2026-08-02)
+
+| Key | What it is | Access | Rows | Location |
+|---|---|---|---|---|
+| `perheart_zenodo` | PerHeart Pilot Dataset — real in-home physiological measurements (pulse oximeter HR/SpO2, bathroom scale weight, BP cuff) from 27 heart-failure patients, ages 67–94, one-month home trials in Poland. Ethics-approved (Jagiellonian University, ref. 1072.6120.17.2023). Kolakowski et al., *Data* 2026, 11(5):106. | Open access, Zenodo `10.5281/zenodo.17143199`, CC-licensed (see `docs/real_world_data_integration.md` §2.1 for a license-statement discrepancy found and how it's handled) | 27 patients (16 with ≥21-day usable windows); `medical.zip` = 32,561 bytes, 5 CSVs | `data/raw/perheart/` (gitignored, per this file's own rule above) |
+
+Used for pipeline validation, not for training/synthesis inputs — see
+`docs/real_world_data_integration.md` for the full field-by-field real-vs-imputed mapping, the
+Pulse age/BMI-capping caveat (this cohort's real ages fall entirely outside Pulse's native 18–65
+range), and results. `scripts/perheart_real_data_replay.py` reuses this file's own existing
+`wearable_baseline`/height/EF/BNP `assumed_default` values (below and in `reference_stats.yaml`)
+for the fields this dataset doesn't measure — no new imputed numbers were introduced for this
+integration.
+
 ## Reference Table
 
 | Parameter | Value / Range | Source Key | Citation | Status |
