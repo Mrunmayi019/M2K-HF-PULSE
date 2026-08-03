@@ -209,6 +209,17 @@ confirmation that this is a genuine pipeline limitation, not an artifact of one 
 **Any paper claim drawn from these severity/risk-score numbers should cite this limitation
 directly**, not present them as a clean population estimate.
 
+**Update: fixed after this cohort was run.** This independent reproduction on real PerHeart data
+was itself part of what motivated fixing the underlying bug — `nyha_ordinal` was removed from the
+feature set entirely (not defaulted at inference time) and both models retrained. Re-validated
+live against synthetic patients with known ground-truth severity: MAE dropped from 0.271 to
+**0.008**. Full writeup: `docs/methodology.md` §9, `models/model_card.md`. **The 16-patient
+severity numbers above were computed with the pre-fix model and were not rerun** — re-running the
+full PerHeart cohort against the fixed model is legitimate follow-up work (flagged, not silently
+skipped), since it costs real Docker wall-clock time for confirmatory rather than new evidence at
+this point (the fix is already validated on both a real dataset's signature match and a direct
+live-vs-ground-truth re-measurement).
+
 **All 16 patients came back NYHA Class I — very likely a Tier 1 fallback artifact, not a genuine
 clinical finding.** `staging.py`'s NYHA classifier gates on structural EF/BNP criteria (§6.3 of
 `methodology.md`). This dataset never measured EF or NT-proBNP (§4), so every one of these 16

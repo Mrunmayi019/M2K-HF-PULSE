@@ -16,30 +16,41 @@ regenerate with `python3 -m src.scenario_classifier.train`); full report in
 (synthetic, never real patient data — see `docs/data_provenance.md`), n=2000 patients,
 patient-level stratified 70/15/15 split.
 
-**Features:** clinical snapshot (age, sex, BMI, ejection fraction, NT-proBNP, NYHA class) +
-21-day wearable-trend aggregates (first/last-7-day mean, delta, slope per vital). See
-`docs/methodology.md` §5 for the full feature list and leakage guards.
+**Features:** clinical snapshot (age, sex, BMI, ejection fraction, NT-proBNP) + 21-day
+wearable-trend aggregates (first/last-7-day mean, delta, slope per vital). See
+`docs/methodology.md` §5 for the full feature list and leakage guards. (NYHA class was removed
+from the feature set — see "Fixed" below.)
 
-**Performance (held-out test set, n=300):** 92.3% scenario accuracy (macro F1 0.92), severity MAE
-0.048 / RMSE 0.063. Per-class and confusion-matrix detail in `phase3_eval_report.txt`.
+**Performance (held-out test set, n=300):** 90.7% scenario accuracy (macro F1 0.91), severity MAE
+0.047 / RMSE 0.061. Per-class and confusion-matrix detail in `phase3_eval_report.txt`. (Previously
+92.3%/0.048/0.063 with `nyha_ordinal` included — see "Fixed" below for why it was removed and the
+small, accepted offline accuracy cost.)
 
 **Known limitation:** trained and evaluated entirely on synthetic data whose generative process
 makes `scenario_type`/`severity` close to deterministic functions of the input features (see the
 discussion in `docs/methodology.md` §5) — high accuracy here reflects a correctly-wired pipeline
-more than validated real-world diagnostic performance. No real clinical validation yet.
+more than validated real-world diagnostic performance. No real clinical outcome validation yet
+(the real-world PerHeart replay, `docs/real_world_data_integration.md`, validates that the
+pipeline runs correctly on real inputs — not that its output correlates with real outcomes).
 
-**Live-pipeline severity performance is materially worse than the table above, with a diagnosed
-cause.** A 25-patient batch validation run through the actual API (`scripts/validate_phase8.py`,
-full writeup in `docs/methodology.md` §7/§8) measured severity MAE 0.271 in the live pipeline vs.
-0.048 offline — `scenario_type` classification was unaffected (100% live agreement). Root cause:
-`build_inference_features()` always defaults the `nyha_ordinal` feature to the most-benign class
-(`"I"`) at live-inference time, since a genuinely new patient's NYHA class isn't known until this
-pipeline itself computes it downstream, whereas offline training used each patient's real, varied
-class. This is a train/inference feature-availability mismatch, not a data-generation artifact —
-see `docs/methodology.md` §9 for the concrete fix (retrain the severity regressor without
-`nyha_ordinal`). Any severity number this system reports live should currently be read as directional,
-not precise — the scenario classification and the primary risk score (§6.1, `risk_score.py`) are
-not affected by this specific gap.
+**Fixed: the live-pipeline severity gap.** A 25-patient batch validation run through the actual
+API (`scripts/validate_phase8.py`, full writeup in `docs/methodology.md` §7/§8) had measured
+severity MAE 0.271 in the live pipeline vs. 0.048 offline — `scenario_type` classification was
+unaffected (100% live agreement). Root cause: `build_inference_features()` always defaulted the
+`nyha_ordinal` feature to the most-benign class (`"I"`) at live-inference time, since a genuinely
+new patient's NYHA class isn't known until this pipeline itself computes it downstream, whereas
+offline training used each patient's real, varied class — a train/inference feature-availability
+mismatch. This was independently reproduced on real PerHeart data
+(`docs/real_world_data_integration.md` §8.2) before being fixed.
+
+**Fix applied:** `nyha_ordinal` removed entirely from `CLINICAL_FEATURE_COLUMNS`
+(`src/scenario_classifier/features.py`), both models retrained. Offline cost was small (test
+accuracy 92.3% → 90.7%, severity MAE unchanged: 0.048 → 0.047). Re-validated live, against 5 real
+synthetic patients with known ground-truth severity (one per scenario type, replayed through the
+live API exactly as a real deployment would see them): **live severity MAE 0.008** (max abs error
+0.014), scenario classification 5/5 correct — closing the previously-documented 0.271 gap
+entirely, landing in the same range as the offline benchmark. Full data:
+`data/validation_runs/nyha_fix_live_revalidation.csv`.
 
 ## Model 2 — Risk Scorer (Phase 5)
 

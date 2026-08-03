@@ -1,0 +1,6 @@
+patient_id,true_scenario_type,true_severity,predicted_scenario_type,predicted_severity,severity_abs_error,simulation_status
+P0728,acute_deterioration,0.484,acute_deterioration,0.4832899999999999,0.0007100000000000994,complete
+P1767,cardiac_stress,0.302,cardiac_stress,0.2924333333333345,0.009566666666665502,complete
+P0404,deconditioning,0.141,deconditioning,0.1273899999999994,0.013610000000000594,complete
+P1644,fluid_overload,0.766,fluid_overload,0.7621599999999984,0.00384000000000162,complete
+P1227,stable,0.099,stable,0.08669666666666669,0.012303333333333319,complete

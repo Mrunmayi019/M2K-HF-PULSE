@@ -4,33 +4,33 @@ Train/val/test sizes: 1400/300/300
 
 -- Validation set --
 Scenario accuracy: 0.910
-Severity MAE: 0.048  RMSE: 0.063
+Severity MAE: 0.046  RMSE: 0.058
 
 -- Test set --
-Scenario accuracy: 0.923
+Scenario accuracy: 0.907
                      precision    recall  f1-score   support
 
-             stable       0.91      0.97      0.94        60
-     fluid_overload       0.95      0.90      0.92        59
-     cardiac_stress       0.96      0.92      0.94        60
-     deconditioning       0.90      0.90      0.90        62
-acute_deterioration       0.90      0.93      0.92        59
+             stable       0.92      0.95      0.93        60
+     fluid_overload       0.90      0.90      0.90        59
+     cardiac_stress       0.95      0.90      0.92        60
+     deconditioning       0.88      0.90      0.89        62
+acute_deterioration       0.90      0.88      0.89        59
 
-           accuracy                           0.92       300
-          macro avg       0.92      0.92      0.92       300
-       weighted avg       0.92      0.92      0.92       300
+           accuracy                           0.91       300
+          macro avg       0.91      0.91      0.91       300
+       weighted avg       0.91      0.91      0.91       300
 
-Severity MAE: 0.048  RMSE: 0.063
+Severity MAE: 0.047  RMSE: 0.061
 Severity MAE by scenario_type:
-  acute_deterioration: 0.049
-  cardiac_stress: 0.048
-  deconditioning: 0.054
-  fluid_overload: 0.054
-  stable: 0.035
+  acute_deterioration: 0.053
+  cardiac_stress: 0.046
+  deconditioning: 0.063
+  fluid_overload: 0.037
+  stable: 0.037
 
 Confusion matrix (rows=actual, cols=predicted), order = stable, fluid_overload, cardiac_stress, deconditioning, acute_deterioration
-[[58  0  0  2  0]
+[[57  0  0  3  0]
  [ 0 53  0  1  5]
- [ 2  0 55  3  0]
- [ 4  0  1 56  1]
- [ 0  3  1  0 55]]
+ [ 2  0 54  4  0]
+ [ 3  0  2 56  1]
+ [ 0  6  1  0 52]]

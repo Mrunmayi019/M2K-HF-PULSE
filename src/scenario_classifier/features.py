@@ -17,10 +17,17 @@ import pandas as pd
 
 VITALS = ["resting_hr_bpm", "spo2_pct", "weight_kg", "steps_per_day", "sleep_hours", "hrv_rmssd_ms"]
 
-NYHA_ORDINAL = {"I": 0, "II": 1, "III": 2, "IV": 3}
-
+# nyha_ordinal was dropped from this list (see docs/methodology.md Sec 9 / models/model_card.md):
+# build_inference_features() below could never populate it with a real value at live-inference
+# time (a new patient's NYHA class is what src/analytics/staging.py computes *from* this model's
+# own output, not an input available beforehand) and always defaulted it to the most-benign class
+# ("I"), while build_features() (offline training) used each synthetic patient's real, varied
+# class -- a train/inference mismatch that measurably hurt live severity regression (MAE 0.271
+# live vs. 0.048 offline, Phase 8 validation) without helping scenario classification (100% live
+# agreement even with the mismatch). Removing it closes that gap; see
+# docs/real_world_data_integration.md Sec 8.2 for this bug's independent reproduction on real data.
 CLINICAL_FEATURE_COLUMNS = [
-    "age", "sex_male", "bmi", "ejection_fraction_pct", "nt_probnp_pg_ml", "nyha_ordinal",
+    "age", "sex_male", "bmi", "ejection_fraction_pct", "nt_probnp_pg_ml",
 ]
 
 TARGET_COLUMNS = ["scenario_type", "severity"]
@@ -53,7 +60,6 @@ def build_features(patients_df: pd.DataFrame, trends_df: pd.DataFrame) -> pd.Dat
     """
     clinical = patients_df.copy()
     clinical["sex_male"] = (clinical["sex"] == "Male").astype(int)
-    clinical["nyha_ordinal"] = clinical["nyha_class"].map(NYHA_ORDINAL)
 
     wearable = _wearable_features(trends_df)
 
@@ -77,14 +83,11 @@ def build_inference_features(patient_row: dict, trends_df: pd.DataFrame) -> pd.D
     KeyError otherwise). This returns feature columns only, no targets.
 
     `patient_row` needs `patient_id`, `age`, `sex`, `bmi`, `ejection_fraction_pct`,
-    `nt_probnp_pg_ml`. `nyha_class` is optional -- a brand-new patient won't have one yet (it's
-    what `src/analytics/staging.py` computes *from* the simulation this feature vector feeds into),
-    so it defaults to "I" if absent, the same kind of explicit Tier-1-style fallback used elsewhere
-    in the API (see docs/data_provenance.md).
+    `nt_probnp_pg_ml`. (No NYHA class needed here -- see CLINICAL_FEATURE_COLUMNS' comment for why
+    it was removed from the feature set entirely, rather than defaulted at inference time.)
     """
     clinical = pd.DataFrame([patient_row])
     clinical["sex_male"] = (clinical["sex"] == "Male").astype(int)
-    clinical["nyha_ordinal"] = clinical.get("nyha_class", pd.Series(["I"])).fillna("I").map(NYHA_ORDINAL)
 
     wearable = _wearable_features(trends_df)
     merged = clinical.merge(wearable, on="patient_id", how="inner")

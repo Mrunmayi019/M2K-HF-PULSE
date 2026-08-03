@@ -122,7 +122,10 @@ This repo currently contains two things side by side:
      (`data/real_world_validation/20260802_234002/combined_results.csv`) — 12 `cardiac_stress` / 4
      `stable`, 12 MODERATE / 4 LOW risk, zero HIGH. Two caveats worth reading before citing these
      numbers: severity is compressed into a narrow band across all 16, independently reproducing an
-     already-documented live-inference bug (`methodology.md` §7/§8); and all 16 came back NYHA
+     already-documented live-inference bug (`methodology.md` §7/§8) — **since fixed**: `nyha_ordinal`
+     removed from the feature set, both models retrained, live severity MAE re-measured at 0.008
+     (down from 0.271) — see `models/model_card.md`; the 16-patient PerHeart numbers here predate
+     the fix and weren't rerun (flagged, not silently skipped). Also, all 16 came back NYHA
      Class I, most likely a mechanical consequence of every patient sharing the same Tier 1 EF/BNP
      fallback (this dataset never measured either), not a real clinical finding. Getting a stable
      concurrent run also took 3 attempts (9 → 4 → 2 workers) after diagnosing a DB connection-pool

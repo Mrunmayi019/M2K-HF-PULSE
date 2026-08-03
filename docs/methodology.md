@@ -132,13 +132,13 @@ compiled source inside the Docker image rather than assuming from the planning d
   `cardiac_stress`, `deconditioning`, `acute_deterioration`).
 - `RandomForestRegressor` → `severity` (continuous, 0–1).
 
-**Features** (one row per patient, 30 columns total): the clinical snapshot from
-`patients.csv` (`age`, `sex`, `bmi`, `ejection_fraction_pct`, `nt_probnp_pg_ml`, `nyha_class` as
-an ordinal), plus per-vital wearable-trend aggregates from the 21-day window in
-`wearable_trends.csv` — first-7-day mean, last-7-day mean, delta, and linear slope, for each of
-`resting_hr_bpm, spo2_pct, weight_kg, steps_per_day, sleep_hours, hrv_rmssd_ms`. This mirrors the
-real deployment input (a clinical report + a rolling wearable window), not raw simulation
-internals.
+**Features** (one row per patient, 29 columns total): the clinical snapshot from
+`patients.csv` (`age`, `sex`, `bmi`, `ejection_fraction_pct`, `nt_probnp_pg_ml`), plus per-vital
+wearable-trend aggregates from the 21-day window in `wearable_trends.csv` — first-7-day mean,
+last-7-day mean, delta, and linear slope, for each of `resting_hr_bpm, spo2_pct, weight_kg,
+steps_per_day, sleep_hours, hrv_rmssd_ms`. This mirrors the real deployment input (a clinical
+report + a rolling wearable window), not raw simulation internals. (`nyha_class` as an ordinal was
+originally included here too; removed after diagnosis in §7/§8 below — see §9 "done" items.)
 
 **Leakage guard:** `wearable_trends.csv`'s `trend_mode` column is derived directly from the
 label and is dropped before feature construction; `scenario_type` is obviously excluded too.
@@ -531,8 +531,9 @@ structural gap between the modeling assumption ("nyha_ordinal is a fair feature"
 deployment constraint ("nyha_ordinal doesn't exist yet at prediction time") that batch offline
 evaluation on `patients.csv` alone could never have surfaced — only running the real pipeline did.
 Notably, this did **not** measurably hurt scenario-type classification (100% agreement above),
-only the continuous severity regression — see §9 for the concrete fix this suggests (retraining
-the severity regressor without `nyha_ordinal`).
+only the continuous severity regression. **Fixed** — see §9 ("done" items): `nyha_ordinal` was
+removed from the feature set entirely and both models retrained; live severity MAE re-measured at
+0.008 post-fix (`models/model_card.md`), closing this gap.
 
 **Risk bucket distribution vs. §6.1's offline expectations** — 4 of 5 scenario types reproduced the
 documented pattern closely: `stable` and `deconditioning` were 5/5 `LOW` as expected;
@@ -619,14 +620,18 @@ either an explicit Phase 9 stretch goal from the original roadmap that Phases 0-
 didn't need to solve, or a next step toward the team's stated goal of turning this system into a
 research paper once the pipeline is validated end-to-end (§7/§8).
 
-**Directly motivated by the Phase 8 validation findings (§7, §8) — both held, not started:**
-- **Retrain the severity regressor without `nyha_ordinal` as a feature** (or with it only when
-  genuinely available, e.g. on reassessment after a first NYHA class exists) — the diagnosed
-  0.271-vs-0.048 MAE gap is a train/inference feature-availability mismatch, not noise, and this is
-  a concrete, scoped fix rather than an open research question. Re-run
-  `scripts/validate_phase8.py` afterward to confirm the gap closes. **Not done yet because
-  retraining and re-shipping Model 1 changes a result already reported in this document and the
-  model card — held pending team sign-off rather than silently updated.**
+**Directly motivated by the Phase 8 validation findings (§7, §8):**
+- **DONE — retrained the severity regressor (and classifier — one shared feature matrix, see §5)
+  without `nyha_ordinal`.** The diagnosed 0.271-vs-0.048 MAE gap was a train/inference
+  feature-availability mismatch, not noise; removing the feature entirely (rather than defaulting
+  it at inference time) closed it. Offline cost was small: test accuracy 92.3% → 90.7%, severity
+  MAE unchanged (0.048 → 0.047). Re-validated live against 5 real synthetic patients with known
+  ground-truth severity (one per scenario type): **live severity MAE 0.008** (down from 0.271),
+  scenario classification 5/5 correct — see `models/model_card.md` and
+  `data/validation_runs/nyha_fix_live_revalidation.csv`. This was independently motivated by, and
+  fixes, the same signature reproduced on real PerHeart data
+  (`docs/real_world_data_integration.md` §8.2). Done with the repo owner's explicit sign-off,
+  satisfying the hold noted in the previous revision of this section.
 - **Expand the batch validation beyond n=5/scenario** — `acute_deterioration`'s risk-bucket
   distribution didn't cleanly reproduce the offline pattern at this sample size (§7); a larger
   batch (e.g. matching Phase 4's n=30/scenario) would distinguish real signal from small-sample
