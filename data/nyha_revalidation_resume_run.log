@@ -1,0 +1,79 @@
+Resuming from data/validation_runs/20260812_172214_nyha_fix_revalidation/results.csv: 13 already complete, skipping those.
+Patients to run this pass: 17 (of 30 total sampled), concurrency=2
+=== P1123 (acute_deterioration, true severity=0.126) ===
+=== P1810 (fluid_overload, true severity=0.891) ===
+  -> P1810: complete, predicted severity=0.9008066666666656, abs_error=0.009806666666665631
+=== P1043 (fluid_overload, true severity=0.637) ===
+  -> P1123: complete, predicted severity=0.0887466666666667, abs_error=0.037253333333333305
+=== P0346 (acute_deterioration, true severity=0.276) ===
+  -> P1043: failed, predicted severity=None, abs_error=None
+=== P1644 (fluid_overload, true severity=0.766) ===
+  -> P0346: failed, predicted severity=None, abs_error=None
+=== P0247 (acute_deterioration, true severity=0.264) ===
+  -> P1644: failed, predicted severity=None, abs_error=None
+=== P1553 (deconditioning, true severity=0.498) ===
+  -> P0247: failed, predicted severity=None, abs_error=None
+=== P1347 (fluid_overload, true severity=0.471) ===
+  -> P1553: failed, predicted severity=None, abs_error=None
+=== P1978 (acute_deterioration, true severity=0.675) ===
+  -> P1347: failed, predicted severity=None, abs_error=None
+=== P0404 (deconditioning, true severity=0.141) ===
+  -> P1978: failed, predicted severity=None, abs_error=None
+=== P1035 (cardiac_stress, true severity=0.914) ===
+  -> P1035: failed, predicted severity=None, abs_error=None
+=== P0455 (stable, true severity=0.001) ===
+  -> P0404: complete, predicted severity=0.1273899999999994, abs_error=0.013610000000000594
+=== P0728 (acute_deterioration, true severity=0.484) ===
+  -> P0455: complete, predicted severity=0.01933333333333336, abs_error=0.018333333333333358
+=== P1622 (cardiac_stress, true severity=0.213) ===
+  -> P0728: failed, predicted severity=None, abs_error=None
+=== P1191 (fluid_overload, true severity=0.109) ===
+  -> P1622: complete, predicted severity=0.24595666666666635, abs_error=0.03295666666666636
+=== P0268 (cardiac_stress, true severity=0.232) ===
+  -> P1191: complete, predicted severity=0.14043666666666738, abs_error=0.031436666666667376
+=== P1476 (cardiac_stress, true severity=0.602) ===
+  -> P1476: failed, predicted severity=None, abs_error=None
+  -> P0268: complete, predicted severity=0.24253666666666637, abs_error=0.010536666666666361
+Wrote C:\Users\sange\Downloads\M2K-HF-PULSE-repo\data\validation_runs\20260812_184726_nyha_fix_revalidation\combined_results.csv (30 total patients)
+
+
+=== SUMMARY ===
+patient_id  true_scenario_type  true_severity predicted_scenario_type  predicted_severity  severity_abs_error simulation_status  wall_clock_s  error_message
+     P0246 acute_deterioration          0.163     acute_deterioration            0.263867            0.100867          complete         473.4            NaN
+     P0247 acute_deterioration          0.264                     NaN                 NaN                 NaN            failed         183.9            NaN
+     P0268      cardiac_stress          0.232          cardiac_stress            0.242537            0.010537          complete         383.3            NaN
+     P0346 acute_deterioration          0.276                     NaN                 NaN                 NaN            failed         183.2            NaN
+     P0396              stable          0.128                  stable            0.108463            0.019537          complete         403.2            NaN
+     P0404      deconditioning          0.141          deconditioning            0.127390            0.013610          complete         665.0            NaN
+     P0413      deconditioning          0.098          deconditioning            0.094940            0.003060          complete         500.0            NaN
+     P0414      cardiac_stress          0.458          cardiac_stress            0.443347            0.014653          complete         463.1            NaN
+     P0455              stable          0.001                  stable            0.019333            0.018333          complete         656.5            NaN
+     P0715      deconditioning          0.905          deconditioning            0.836920            0.068080          complete         717.1            NaN
+     P0728 acute_deterioration          0.484                     NaN                 NaN                 NaN            failed         183.7            NaN
+     P1035      cardiac_stress          0.914                     NaN                 NaN                 NaN            failed          81.9            NaN
+     P1043      fluid_overload          0.637                     NaN                 NaN                 NaN            failed         183.2            NaN
+     P1123 acute_deterioration          0.126     acute_deterioration            0.088747            0.037253          complete         718.0            NaN
+     P1191      fluid_overload          0.109          fluid_overload            0.140437            0.031437          complete         554.3            NaN
+     P1227              stable          0.099                  stable            0.086697            0.012303          complete         461.2            NaN
+     P1248              stable          0.041                  stable            0.054123            0.013123          complete         676.5            NaN
+     P1291              stable          0.142                  stable            0.107267            0.034733          complete         523.7            NaN
+     P1345      deconditioning          0.777          deconditioning            0.827773            0.050773          complete         654.7            NaN
+     P1347      fluid_overload          0.471                     NaN                 NaN                 NaN            failed         183.0            NaN
+     P1415      deconditioning          0.598          deconditioning            0.573733            0.024267          complete         705.0            NaN
+     P1476      cardiac_stress          0.602                     NaN                 NaN                 NaN            failed          61.8            NaN
+     P1553      deconditioning          0.498                     NaN                 NaN                 NaN            failed         183.0            NaN
+     P1622      cardiac_stress          0.213          cardiac_stress            0.245957            0.032957          complete         573.5            NaN
+     P1644      fluid_overload          0.766                     NaN                 NaN                 NaN            failed         183.8            NaN
+     P1745      fluid_overload          0.026          fluid_overload            0.045703            0.019703          complete         503.2            NaN
+     P1767      cardiac_stress          0.302          cardiac_stress            0.292433            0.009567          complete         563.9            NaN
+     P1810      fluid_overload          0.891          fluid_overload            0.900807            0.009807          complete         707.9            NaN
+     P1858              stable          0.119                  stable            0.094227            0.024773          complete         594.4            NaN
+     P1978 acute_deterioration          0.675                     NaN                 NaN                 NaN            failed          92.1            NaN
+
+Completed: 20/30
+Live severity MAE (post-fix): 0.0275  [95% bootstrap CI 0.0188, 0.0394]  (n=20, 2000 resamples)
+Live scenario accuracy (post-fix): 1.0000  [95% bootstrap CI 1.0000, 1.0000]
+Compare against: 0.048 offline MAE (this session's retrain), 0.271 live pre-fix (Phase 8, methodology.md Sec 7/8)
+
+Wrote C:\Users\sange\Downloads\M2K-HF-PULSE-repo\data\validation_runs\20260812_184726_nyha_fix_revalidation\summary.md
+Wrote C:\Users\sange\Downloads\M2K-HF-PULSE-repo\data\validation_runs\20260812_184726_nyha_fix_revalidation\results.csv

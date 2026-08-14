@@ -228,6 +228,69 @@ diastolic-filling-time effect, not a bug — the continuous `stroke_volume_start
 columns are still in the dataset for Phase 5 to use directly if a graded signal is preferred over
 this binary flag.
 
+### Missingness — mechanism, not just a completion rate
+
+Every completion-rate number in this document (Phase 4's 117/150, Phase 8's 25/25, PerHeart's
+16/16 then 13/16 post-fix, §8.3's concurrency-escalation failures) has so far been reported as a
+rate. That undersells what four independent runs, across three different datasets and two
+different execution paths (direct in-process `run_pulse()` calls and HTTP calls against the live
+API), consistently show: **Pulse failures here are not one phenomenon, they're two, with opposite
+statistical character and opposite practical implications.**
+
+**Mechanism 1 — engine-level crash (`PulseScenarioDriver exited 1`), MNAR with respect to
+severity.** In Phase 4's 150-run batch, 33 failed; the *dominant* failure signature was a crash
+(30/33), not the 180s timeout (3/33) that gets most of this document's attention. Crashes
+concentrate almost entirely in `cardiac_stress` (15/30 failed) and `acute_deterioration` (18/30
+failed) — the only two scenarios with an `Exercise` action (§4) — and *within* those two scenario
+types, the failed patients' own severity is high: mean 0.75 (`cardiac_stress`) and 0.72
+(`acute_deterioration`) vs. a dataset-wide mean around 0.4-0.5. This is missing-not-at-random
+(MNAR), not missing-at-random (MAR): the probability a run is missing depends on the value that
+run *would have produced* (high severity), even after conditioning on the observed covariate
+(scenario_type) — not just on scenario_type alone, which would be MAR. Three later, independent
+runs reproduce the identical signature: PerHeart's post-fix re-run (§8.4) lost 3 previously-clean
+patients to the exact same `exited 1` crash after a severity-model retrain changed their predicted
+severity; and this session's expanded live re-validation's one failure so far (`P1978`,
+`acute_deterioration`, true severity 0.675 — squarely in Phase 4's documented 0.6-0.85 crash
+range) failed in 61.6s, far short of the 900s poll ceiling — a fast subprocess crash, not a slow
+timeout, consistent with Mechanism 1 rather than Mechanism 2 below.
+
+**Mechanism 2 — resource contention (`httpx.ReadTimeout`, 180s Pulse timeout), MAR with respect to
+concurrency, not severity.** §8.3's concurrency escalation (9 workers → 4 → 2) found a completely
+different failure driver: at 9 workers, 5/11 patients hit `ReadTimeout` (SQLAlchemy connection-pool
+exhaustion) and 6/11 hit the 180s timeout (genuine CPU contention, independent of the pool issue);
+at 4 workers, the pool failures vanished but 8/11 still hit the timeout; at 2 workers, zero
+failures across every patient processed at that level since (30+ across both PerHeart runs, plus
+this session's live re-validation to date). Whether a given patient's run failed here depended on
+how many *other* patients were concurrently in flight — an observed system-state covariate — not
+on that patient's own severity or scenario type. This is MAR (conditional on concurrency level),
+arguably closer to MCAR once concurrency is held fixed at a safe level, and it is why 2-worker
+concurrency was adopted as the standing default for every subsequent real-data run in this project
+(`scripts/perheart_real_data_replay.py`, `scripts/nyha_fix_live_revalidation.py`).
+
+**Why the distinction matters for any paper claim drawn from a completion rate:**
+
+1. **They call for different fixes.** Mechanism 2 is already solved (cap concurrency at 2 — an
+   infrastructure/scheduling fix). Mechanism 1 is not: it is a property of the Pulse engine itself
+   at high `Exercise` intensity, present even at the lowest concurrency tested (Phase 4 ran
+   in-process with no HTTP/DB layer at all and still saw it). Fixing it would mean either
+   root-causing the engine instability directly (out of scope — see `PUBLICATION_TODO.md` P2's
+   180s-timeout item, which this extends to non-timeout crashes too) or explicitly bounding paper
+   claims to the severity range Pulse can reliably simulate for these two scenario types.
+2. **MNAR missingness biases held-out evaluation, not just shrinks it.** Because Mechanism 1's
+   missingness depends on the target variable itself, the *observed* `cardiac_stress`/
+   `acute_deterioration` training and test rows are not a random sample of those scenarios' true
+   severity distributions — they are skewed toward the lower-to-moderate end by construction. A
+   held-out test accuracy/MAE computed only on the patients that happened to complete (as every
+   metric in this document necessarily is) should not be assumed to generalize to the
+   underrepresented high-severity population for these two scenario types specifically. This is a
+   stronger and more precise claim than "the sample is small" (§8's existing bullet on this) — it
+   is a directional bias, not just added variance.
+3. **A bare completion rate conflates the two.** PerHeart's post-fix "13/16 (81%)" is entirely
+   Mechanism 1 (3 crashes, 2-worker concurrency held constant, §8.4) — reporting it next to, say, a
+   9-worker run's failure rate without noting the mechanism difference would misleadingly suggest
+   a single "real-world reliability" number, when the two failure sources have nothing in common
+   except both surfacing as `simulation_status="failed"`.
+
 ## 6. Risk Scoring Logic, With Clinical Citations
 
 Per the locked decision in CLAUDE.md, the primary risk scorer is a hand-tuned, interpretable
@@ -278,6 +341,19 @@ features), is structurally blind to a chronically-shifted-but-acutely-stable pre
 this** — it only sees change *during* one simulated encounter, not a baseline state that's already
 abnormal going in. This is a real scope limitation of the current feature set, not an
 implementation bug; see §8.
+
+**Fixed.** `compute_risk_score()` gained a 6th input, `map_start` (already computed by
+`analyze_simulation()` for every run, just not previously passed through), and a new
+`baseline_deficit_score` sub-score using the same MAP anchors as `map_drop`. The final score is
+`max(acute_score, baseline_deficit_score)` — a deliberate design choice (risk is driven by
+whichever mechanism, acute or chronic, is worse) that leaves the 5 acute weights above completely
+unchanged rather than diluting them into a 6-term reweight. Post-fix, `fluid_overload`'s mean
+`risk_score` rose from 0.000 to 0.501 (close to its mean true severity of 0.580) and `risk_bucket`
+shifted from 30/30 `LOW` to 29/30 `MODERATE`. Fine-grained ranking *within* `fluid_overload` is
+still weak (r=−0.05) because Pulse's own scenario generation barely varies `map_start` with
+severity for this scenario type — a separate, smaller, scenario-generation-level limitation, not a
+regression of this fix. Full writeup: `models/model_card.md`,
+`src/analytics/risk_score.py`'s module docstring.
 
 ### 6.2 Secondary/experimental — XGBoost
 

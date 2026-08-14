@@ -26,6 +26,14 @@ from the feature set — see "Fixed" below.)
 92.3%/0.048/0.063 with `nyha_ordinal` included — see "Fixed" below for why it was removed and the
 small, accepted offline accuracy cost.)
 
+**Statistical rigor (bootstrap CIs + ROC/AUC, added for publication):** percentile-bootstrap 95%
+CIs (2000 resamples) on the n=300 test fold: accuracy 0.907 [0.873, 0.940], severity MAE 0.047
+[0.043, 0.052]. One-vs-rest ROC/AUC per scenario class: macro-average 0.990, weighted-average
+0.990, per-class range 0.983–0.994 — consistent with the accuracy figure and confirming the
+classifier discriminates well across all 5 classes, not just the majority ones. Full numbers and
+ROC plot in `models/phase3_extended_eval_report.txt` / `models/roc_curves.png`
+(`scripts/model1_extended_eval.py`).
+
 **Known limitation:** trained and evaluated entirely on synthetic data whose generative process
 makes `scenario_type`/`severity` close to deterministic functions of the input features (see the
 discussion in `docs/methodology.md` §5) — high accuracy here reflects a correctly-wired pipeline
@@ -52,6 +60,17 @@ live API exactly as a real deployment would see them): **live severity MAE 0.008
 entirely, landing in the same range as the offline benchmark. Full data:
 `data/validation_runs/nyha_fix_live_revalidation.csv`.
 
+**Expanded to n=20 with bootstrap CIs (`scripts/nyha_fix_live_revalidation.py`, 6 per scenario
+type sampled, 30 attempted):** **live severity MAE 0.0275 [95% bootstrap CI 0.0188, 0.0394]**,
+scenario accuracy **1.0000 [95% CI 1.0000, 1.0000]**, n=20 completed. Consistent with the original
+n=5 result at 4x the sample size — both comfortably below the pre-fix 0.271 and in the same range
+as the offline 0.047 benchmark. Only 20/30 (67%) completed; the 10 failures are a genuine
+environmental finding (per-patient wall-clock climbed mid-run to 700+s and an increasing share hit
+the 180s Pulse ceiling, across every scenario type/severity — not the usual severity-linked crash
+pattern), most likely Docker Desktop/WSL2-level degradation after hours of sustained Pulse load
+earlier the same session, not a defect in the fix itself. Full writeup, including the degradation
+diagnosis: `data/validation_runs/20260812_184726_nyha_fix_revalidation/summary.md`.
+
 ## Model 2 — Risk Scorer (Phase 5)
 
 Two models exist for the same task (predicting `severity`/risk from one Pulse simulation run's
@@ -75,6 +94,38 @@ a doctor can act on. A black-box prediction is not.
 
 **Validation:** applied to all 117 rows of `data/simulation_runs/features_dataset.csv`; see
 `docs/methodology.md` §6 for the severity-correlation check.
+
+**Fixed: the `fluid_overload` blind spot.** The finding below was originally: `risk_score` was a
+constant 0.000 across all 30 `fluid_overload` patients regardless of true severity (mean true
+severity 0.58 — moderately-high — scored as zero risk every time), confirming on real per-run data
+what `docs/methodology.md` §6.1 predicted on structural grounds (the score only saw hemodynamic
+*change* during an encounter, never an already-abnormal resting baseline — exactly
+`fluid_overload`'s presentation). Fix: `compute_risk_score()` gained a `map_start` parameter and a
+new `baseline_deficit_score` sub-score (same NEWS2-style MAP anchors as the existing `map_drop`
+term); the final `risk_score` is `max(acute_score, baseline_deficit_score)`, not a reweighted
+6-term blend — the existing 5 acute weights and their citations are unchanged. Post-fix,
+`fluid_overload`'s mean `risk_score` rose from 0.000 to **0.501** (close to its mean true severity
+of 0.580), and `risk_bucket` shifted from 30/30 `LOW` to 29/30 `MODERATE`. See
+`src/analytics/risk_score.py`'s module docstring for the design rationale.
+
+**Per-scenario reliability, post-fix (`scripts/model1_extended_eval.py`; Pearson r, matching
+`docs/methodology.md` §6.1's original statistic):** the *pooled* correlation between `risk_score`
+and synthetic ground-truth severity across all 117 rows is near-zero and non-significant (r=−0.06,
+p=0.52) — a Simpson's-paradox-style confound across scenario types, not evidence the score is
+broken (§6.1). Per `scenario_type`: `acute_deterioration` r=0.69 (p=0.014, n=12, significant),
+`cardiac_stress` r=0.30 (p=0.28, n=15), `deconditioning` r=0.35 (p=0.06, n=30) — all positive and
+in the direction the formula's design predicts, but only `acute_deterioration` reaches
+significance at these small per-scenario sample sizes (plausibly underpowered rather than a true
+null for the other two). `stable` is r=−0.19 (p=0.31, expected noise around a severity floor <0.15
+by design). `fluid_overload`'s *within-group* correlation is still weak/non-significant (r=−0.05,
+p=0.79) — but that's a different, smaller, and honestly-scoped residual limitation than the
+original blind spot: `map_start` barely varies across `fluid_overload` patients in this dataset
+(std=2.9mmHg, clustered 77-79mmHg) because Pulse's own `fluid_overload` scenario generation
+doesn't scale starting congestion with severity — a scenario-generation-level limitation, out of
+scope for a risk-scoring-formula fix. Plot: `models/risk_score_reliability_proxy.png`. Scope note
+carried through to that report: this is an internal-consistency check against this project's own
+synthetic labels, not a clinical calibration curve — no real outcome labels exist yet
+(`PUBLICATION_TODO.md` P1).
 
 ### 2b. Secondary/experimental — XGBoost regressor (`src/ml_models/train_risk_scorer.py`)
 

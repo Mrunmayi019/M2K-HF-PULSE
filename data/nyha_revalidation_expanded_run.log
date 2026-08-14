@@ -1,0 +1,99 @@
+Sampled 30 patients (6 per scenario type), concurrency=2
+=== P0246 (acute_deterioration, true severity=0.163) ===
+=== P0396 (stable, true severity=0.128) ===
+  -> P0396: complete, predicted severity=0.10846333333333341, abs_error=0.01953666666666659
+=== P1745 (fluid_overload, true severity=0.026) ===
+  -> P0246: complete, predicted severity=0.2638666666666666, abs_error=0.10086666666666658
+=== P0414 (cardiac_stress, true severity=0.458) ===
+  -> P1745: complete, predicted severity=0.04570333333333322, abs_error=0.019703333333333222
+=== P1978 (acute_deterioration, true severity=0.675) ===
+  -> P0414: complete, predicted severity=0.44334666666666567, abs_error=0.01465333333333435
+=== P1227 (stable, true severity=0.099) ===
+  -> P1978: failed, predicted severity=None, abs_error=None
+=== P0413 (deconditioning, true severity=0.098) ===
+  -> P1227: complete, predicted severity=0.08669666666666669, abs_error=0.012303333333333319
+=== P1767 (cardiac_stress, true severity=0.302) ===
+  -> P0413: complete, predicted severity=0.0949399999999999, abs_error=0.0030600000000001043
+=== P1291 (stable, true severity=0.142) ===
+  -> P1767: complete, predicted severity=0.2924333333333345, abs_error=0.009566666666665502
+=== P1810 (fluid_overload, true severity=0.891) ===
+  -> P1291: complete, predicted severity=0.10726666666666643, abs_error=0.03473333333333356
+=== P1035 (cardiac_stress, true severity=0.914) ===
+  -> P1035: failed, predicted severity=None, abs_error=None
+=== P0247 (acute_deterioration, true severity=0.264) ===
+  -> P1810: failed, predicted severity=None, abs_error=None
+=== P1248 (stable, true severity=0.041) ===
+  -> P0247: failed, predicted severity=None, abs_error=None
+=== P1415 (deconditioning, true severity=0.598) ===
+  -> P1248: complete, predicted severity=0.0541233333333335, abs_error=0.0131233333333335
+=== P1476 (cardiac_stress, true severity=0.602) ===
+  -> P1476: failed, predicted severity=None, abs_error=None
+=== P1043 (fluid_overload, true severity=0.637) ===
+  -> P1415: complete, predicted severity=0.5737333333333339, abs_error=0.024266666666666104
+=== P0404 (deconditioning, true severity=0.141) ===
+  -> P1043: failed, predicted severity=None, abs_error=None
+=== P0346 (acute_deterioration, true severity=0.276) ===
+  -> P0404: failed, predicted severity=None, abs_error=None
+=== P1858 (stable, true severity=0.119) ===
+  -> P0346: failed, predicted severity=None, abs_error=None
+=== P1345 (deconditioning, true severity=0.777) ===
+  -> P1858: complete, predicted severity=0.09422666666666654, abs_error=0.024773333333333453
+=== P0268 (cardiac_stress, true severity=0.232) ===
+  -> P1345: complete, predicted severity=0.8277733333333293, abs_error=0.05077333333332923
+=== P0728 (acute_deterioration, true severity=0.484) ===
+  -> P0268: failed, predicted severity=None, abs_error=None
+=== P1347 (fluid_overload, true severity=0.471) ===
+  -> P0728: failed, predicted severity=None, abs_error=None
+=== P0715 (deconditioning, true severity=0.905) ===
+  -> P1347: failed, predicted severity=None, abs_error=None
+=== P1123 (acute_deterioration, true severity=0.126) ===
+  -> P1123: failed, predicted severity=None, abs_error=None
+=== P0455 (stable, true severity=0.001) ===
+  -> P0455: failed, predicted severity=None, abs_error=None
+=== P1644 (fluid_overload, true severity=0.766) ===
+  -> P1644: failed, predicted severity=None, abs_error=None
+=== P1622 (cardiac_stress, true severity=0.213) ===
+  -> P0715: complete, predicted severity=0.8369199999999998, abs_error=0.06808000000000025
+=== P1191 (fluid_overload, true severity=0.109) ===
+  -> P1622: failed, predicted severity=None, abs_error=None
+=== P1553 (deconditioning, true severity=0.498) ===
+  -> P1191: harness_error, predicted severity=None, abs_error=None
+  -> P1553: harness_error, predicted severity=None, abs_error=None
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\sange\Downloads\M2K-HF-PULSE-repo\scripts\nyha_fix_live_revalidation.py", line 219, in <module>
+    main()
+  File "C:\Users\sange\Downloads\M2K-HF-PULSE-repo\scripts\nyha_fix_live_revalidation.py", line 215, in main
+    asyncio.run(main_async())
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\sange\Downloads\M2K-HF-PULSE-repo\scripts\nyha_fix_live_revalidation.py", line 177, in main_async
+    results_df = pd.read_csv(checkpoint_path) if checkpoint_path.exists() else pd.DataFrame()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py", line 873, in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py", line 306, in _read
+    return parser.read(nrows)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py", line 1947, in read
+    ) = self._engine.read(  # type: ignore[attr-defined]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\sange\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py", line 215, in read
+    chunks = self._reader.read_low_memory(nrows)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/parsers.pyx", line 832, in pandas._libs.parsers.TextReader.read_low_memory
+  File "pandas/_libs/parsers.pyx", line 897, in pandas._libs.parsers.TextReader._read_rows
+  File "pandas/_libs/parsers.pyx", line 868, in pandas._libs.parsers.TextReader._tokenize_rows
+  File "pandas/_libs/parsers.pyx", line 885, in pandas._libs.parsers.TextReader._check_tokenize_status
+  File "pandas/_libs/parsers.pyx", line 2084, in pandas._libs.parsers.raise_parser_error
+pandas.errors.ParserError: Error tokenizing data. C error: Expected 8 fields in line 30, saw 9
+

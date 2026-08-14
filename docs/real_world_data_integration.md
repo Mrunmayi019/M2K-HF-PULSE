@@ -165,15 +165,18 @@ proxy-aged simulated body, not literally these patients' own physiology inside P
 
 ## 8. Results
 
-**Status: done — 16/16 eligible real patients completed.** Canonical file:
+**Status: done, and re-run post-fix — 13/16 eligible real patients completed against the fixed
+severity model.** Canonical file for citing post-fix severity/risk numbers:
+`data/real_world_validation/20260812_162112/results.csv` (§8.4). The original pre-fix run,
 `data/real_world_validation/20260802_234002/combined_results.csv` (merged across every run in this
-section's history via `--resume-from`; every intermediate run directory below is kept on disk as
-raw audit trail, not the citation target). Full pipeline (ML classification → Pulse → risk scoring
-→ staging → projection) executed successfully, with zero mocking, on real physiological data from
-27 real heart-failure patients, 16 of whom had enough real daily coverage to fill a genuine 21-day
-window (§5).
+section's history via `--resume-from`), is kept as historical record — its severity/risk-score
+numbers are pre-fix and superseded, but its 16/16 completion rate and demographic/coverage
+findings (§8.1) are unaffected by the fix and still stand. Full pipeline (ML classification →
+Pulse → risk scoring → staging → projection) executed successfully, with zero mocking, on real
+physiological data from 27 real heart-failure patients, 16 of whom had enough real daily coverage
+to fill a genuine 21-day window (§5).
 
-### 8.1 Aggregate results
+### 8.1 Aggregate results (pre-fix — completion rate/demographics still valid, severity/risk numbers superseded by §8.4)
 
 | Metric | Value |
 |---|---|
@@ -209,16 +212,14 @@ confirmation that this is a genuine pipeline limitation, not an artifact of one 
 **Any paper claim drawn from these severity/risk-score numbers should cite this limitation
 directly**, not present them as a clean population estimate.
 
-**Update: fixed after this cohort was run.** This independent reproduction on real PerHeart data
-was itself part of what motivated fixing the underlying bug — `nyha_ordinal` was removed from the
-feature set entirely (not defaulted at inference time) and both models retrained. Re-validated
-live against synthetic patients with known ground-truth severity: MAE dropped from 0.271 to
-**0.008**. Full writeup: `docs/methodology.md` §9, `models/model_card.md`. **The 16-patient
-severity numbers above were computed with the pre-fix model and were not rerun** — re-running the
-full PerHeart cohort against the fixed model is legitimate follow-up work (flagged, not silently
-skipped), since it costs real Docker wall-clock time for confirmatory rather than new evidence at
-this point (the fix is already validated on both a real dataset's signature match and a direct
-live-vs-ground-truth re-measurement).
+**Update: fixed, and the full cohort has since been re-run against the fixed model.** This
+independent reproduction on real PerHeart data was itself part of what motivated fixing the
+underlying bug — `nyha_ordinal` was removed from the feature set entirely (not defaulted at
+inference time) and both models retrained. Re-validated live against synthetic patients with known
+ground-truth severity: MAE dropped from 0.271 to **0.008** (`docs/methodology.md` §9,
+`models/model_card.md`). The severity numbers in §8.1 above are from the pre-fix model; see §8.4
+for the post-fix re-run and its own numbers (severity is no longer compressed into a narrow low
+band) and completion-rate finding.
 
 **All 16 patients came back NYHA Class I — very likely a Tier 1 fallback artifact, not a genuine
 clinical finding.** `staging.py`'s NYHA classifier gates on structural EF/BNP criteria (§6.3 of
@@ -251,3 +252,61 @@ either of those two shared-config limits was deliberately **not** done as part o
 script — see `scripts/perheart_real_data_replay.py`'s module docstring and `MAX_SAFE_WORKERS`
 comment for the full reasoning — but both are now concretely scoped, evidenced future-work items
 for the project (not just "make it faster somehow").
+
+### 8.4 Post-fix re-run (fixed severity model, `data/real_world_validation/20260812_162112/`)
+
+Full cohort re-run at the same empirically-safe 2-worker concurrency (§8.3), fresh (not
+`--resume-from` — the `nyha_ordinal` fix changes every prediction, so reusing pre-fix rows would
+have silently carried stale numbers forward).
+
+| Metric | Pre-fix (§8.1) | Post-fix (this run) |
+|---|---|---|
+| Patients completed | 16/16 (100%) | **13/16 (81%)** |
+| `severity` | mean 0.112, range 0.078–0.148 (compressed — the bug) | mean 0.231, range 0.093–0.516 (wide — expected post-fix) |
+| `risk_score` | mean 0.321, range 0.005–0.500 | mean 0.439, range 0.000–0.800 |
+| `risk_bucket` | MODERATE 12, LOW 4, **HIGH 0** | HIGH 5, MODERATE 4, LOW 4 |
+| `scenario_type` | `cardiac_stress` 12, `stable` 4 | `cardiac_stress` 9, `stable` 3, `fluid_overload` 1 |
+
+**Severity is no longer compressed.** Post-fix range (0.093–0.516) is roughly 5x wider than
+pre-fix (0.078–0.148), and 5 patients now land in `risk_bucket=HIGH` where before none did — the
+expected, correct consequence of removing the always-benign `nyha_ordinal` default (§8.2). This is
+independent, real-data confirmation of the fix beyond the synthetic re-validation in
+`docs/methodology.md` §9.
+
+**Completion rate dropped from 100% to 81% — three patients (user_id 6, 18, 22) that succeeded
+pre-fix now fail with `PulseScenarioDriver exited 1` (an engine-level crash, not the usual 180s
+timeout).** Worth being precise about what is and isn't established here:
+
+- This is **not** a bug in the fix's own code path. `src/api/services.py`'s pipeline order is
+  classifier inference (`clf.predict`/`reg.predict`, lines ~172–176) **before** Pulse execution
+  (`run_pulse`, line ~205) — the classifier only decides `scenario_type`/`severity`, which then
+  parameterize the Pulse scenario file `build_scenario_file()` generates. The crash happens inside
+  the Pulse engine subprocess itself, strictly downstream of anything the fix touched.
+- However, the fix **did** change what severity value gets fed into `build_scenario_file()` for
+  every patient, including these three — pre-fix all three predicted `cardiac_stress` at
+  severity≈0.11–0.12 (borderline-low within that scenario's range) and completed cleanly; a
+  retrained model plausibly now predicts different severity for the same three patients, which
+  could move their generated Pulse scenario into a numerically less stable parameter region. The
+  live API's `/status` endpoint does not surface the classifier's prediction for a run that fails
+  before completion, so **the actual post-fix severity value fed to Pulse for these three patients
+  was not captured** and this causal link is plausible, not confirmed.
+- This reads as consistent with, not contradictory to, this project's already-documented Pulse
+  instability (§8.3's timeout findings; `docs/methodology.md` §5's Phase 4 finding that Pulse
+  failures cluster by scenario/severity rather than occurring randomly) — engine-level crashes at
+  particular parameter combinations are an existing, known characteristic of this dependency, not
+  a new problem introduced here.
+
+Root-causing this precisely (capturing the failed run's actual severity/scenario parameters,
+determining whether it's reproducible at that exact input) is scoped as follow-up work — see
+`PUBLICATION_TODO.md` P2 "Diagnose the 180s Pulse timeout ceiling properly," which this finding
+extends to cover non-timeout engine crashes too.
+
+**Update: the `risk_score` values in the table above predate the `fluid_overload` blind-spot fix**
+(`compute_risk_score()` gained a `map_start`-based `baseline_deficit_score` term shortly after this
+run — `models/model_card.md`, `docs/methodology.md` §6.1). The one `fluid_overload` patient in
+this cohort (§8.1) would score materially differently post-fix (mean shift 0.000→0.501 on the
+117-row Phase 4 batch, §6.1). Re-running this cohort a third time against the newest fix is
+legitimate follow-up work, flagged rather than silently skipped, same as §8.2's precedent — not
+done in this pass to avoid stacking a third ~90-minute Docker run against the same 2-worker
+concurrency ceiling (§8.3) the expanded live re-validation (`docs/methodology.md` §9) was already
+using concurrently.

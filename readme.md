@@ -173,8 +173,10 @@ python3 -m src.scenario_classifier.train
 ### Compute risk scores + train the Phase 5 secondary XGBoost model (no Docker needed)
 
 The primary risk score (`src/analytics/risk_score.py`) is a pure function — call
-`compute_risk_score(hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag)` directly
-on any row from `data/simulation_runs/features_dataset.csv`, no training required. The
+`compute_risk_score(hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag,
+map_start)` directly on any row from `data/simulation_runs/features_dataset.csv`, no training
+required (`map_start` was added to fix a documented `fluid_overload` blind spot — see the module
+docstring). The
 secondary/experimental XGBoost comparison model does need training:
 
 ```bash

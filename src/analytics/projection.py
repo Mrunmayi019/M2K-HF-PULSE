@@ -71,6 +71,7 @@ def _run_at_severity(
         co_drop_pct=features["co_drop_pct"],
         compensation_flag=features["compensation_flag"],
         instability_flag=features["instability_flag"],
+        map_start=features["map_start"],
     )
     return {"status": "ok", **features, **risk}
 

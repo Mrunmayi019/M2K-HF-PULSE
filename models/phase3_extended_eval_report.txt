@@ -1,0 +1,56 @@
+Phase 3 extended evaluation -- ROC/AUC, bootstrap CIs, risk_score reliability proxy
+==============================================================================
+
+Test set size: 300 patients (same 70/15/15 patient-level split as train.py, seed=42)
+
+-- Scenario classifier: one-vs-rest ROC/AUC --
+Macro-average AUC: 0.9904
+Weighted-average AUC: 0.9903
+Per-class AUC:
+  acute_deterioration: 0.9927
+  cardiac_stress: 0.9829
+  deconditioning: 0.9897
+  fluid_overload: 0.9941
+  stable: 0.9924
+Plot: models/roc_curves.png
+
+-- Bootstrap 95% CIs (percentile method, 2000 resamples, seed=42) --
+Scenario accuracy: 0.9067  [95% CI 0.8733, 0.9400]
+Severity MAE: 0.0473  [95% CI 0.0430, 0.0520]
+
+-- risk_score reliability vs. synthetic ground-truth severity (PROXY, not real outcomes) --
+Source: data/simulation_runs/features_dataset.csv (Phase 4 batch, n=117 real Pulse runs)
+Pooled Pearson r (all scenario types mixed -- NOT the headline number, see below): 0.3307 (p=0.000)
+Per-scenario_type breakdown (the actually-interpretable result):
+  acute_deterioration: n=12, r=0.685 (p=0.014), mean risk_score=0.655, mean true_severity=0.385
+  cardiac_stress: n=15, r=0.301 (p=0.276), mean risk_score=0.526, mean true_severity=0.193
+  deconditioning: n=30, r=0.346 (p=0.061), mean risk_score=0.115, mean true_severity=0.541
+  fluid_overload: n=30, r=-0.050 (p=0.791), mean risk_score=0.501, mean true_severity=0.580
+  stable: n=30, r=-0.193 (p=0.307), mean risk_score=0.005, mean true_severity=0.063
+
+FINDING (post fluid_overload-fix, risk_score.py's baseline_deficit_score term):
+risk_score correlates positively with synthetic severity in every scenario type whose
+presentation involves acute hemodynamic change during the encounter (the acute_score's 5
+inputs), reaching significance in acute_deterioration (r=0.69, p=0.014, n=12) but not in
+cardiac_stress (r=0.30, p=0.28, n=15) or deconditioning (r=0.35, p=0.06, n=30) -- likely
+underpowered at these small per-scenario n's rather than a true null, given the consistent
+positive direction. fluid_overload's within-scenario correlation is still weak/non-
+significant (r=-0.05, p=0.79) -- but the actual blind spot this was fixed for wasn't fine-
+grained ranking, it was risk_score being a CONSTANT 0.000 regardless of true severity
+(false-negative risk classification). That's fixed: mean risk_score for fluid_overload rose
+from 0.000 to 0.501 (now close to its mean true_severity of 0.580), and risk_bucket shifted
+from 30/30 LOW to 29/30 MODERATE. The residual weak within-group correlation has a clean
+explanation, not a new bug: map_start barely varies across fluid_overload patients in this
+dataset (std=2.9mmHg, clustered 77-79mmHg) because Pulse's own fluid_overload scenario
+generation doesn't scale the starting congestion with severity -- a scenario-generation-
+level limitation, out of scope for a risk-scoring-formula fix. See
+src/analytics/risk_score.py's module docstring for the baseline_deficit_score design
+(max(acute_score, baseline_deficit_score), not a reweighted blend) and
+docs/methodology.md Sec 6.1 for the original blind-spot finding this fixes.
+Plot: models/risk_score_reliability_proxy.png
+
+SCOPE NOTE: this section is an internal-consistency check (does risk_score rank patients
+consistently with this project's own synthetic ground-truth severity?), not a clinical
+calibration curve. This project has no real clinical outcome labels yet -- see
+PUBLICATION_TODO.md P1 'Real clinical outcome validation'. Do not cite this as evidence
+risk_score predicts real hospitalization/deterioration events.

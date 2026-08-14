@@ -7,8 +7,24 @@ docs/data_provenance.md; weights themselves are clinically *motivated*, not stat
 data (there isn't enough data to fit them defensibly -- see model_card.md for why that reasoning
 applies even harder to the secondary model).
 
-Inputs are exactly the 5 features src/analytics/simulation_features.py extracts from one Pulse
-run: hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag.
+Inputs are the 5 features src/analytics/simulation_features.py extracts from one Pulse run
+(hr_rise, map_drop, co_drop_pct, compensation_flag, instability_flag) plus map_start, added to fix
+a documented blind spot -- see "Baseline-deviation term" below.
+
+Baseline-deviation term (fluid_overload blind-spot fix, PUBLICATION_TODO.md P2): the original 5
+acute-change features only capture hemodynamic *change during* one simulated encounter, so a
+patient whose danger is an already-abnormal resting baseline that stays roughly flat during the
+encounter -- exactly fluid_overload's presentation (map_start ~77-79mmHg vs. a healthy ~90-95mmHg,
+per docs/methodology.md Sec 6.1/Sec 4's Phase 2 table) -- scored a constant near-zero risk
+regardless of true severity, confirmed empirically on 30/30 real fluid_overload runs
+(models/model_card.md). `analyze_simulation()` already computed `map_start` for every run; it was
+simply never passed to this function. Fix: a second sub-score, `baseline_deficit_score`, evaluates
+how congested `map_start` already is (same NEWS2-style anchors as `map_drop`: healthy ~92.5mmHg
+down to the MAP<65 instability threshold), and the final `risk_score` is
+`max(acute_score, baseline_deficit_score)` -- not a reweighted blend. This is a deliberate design
+choice: risk is driven by whichever mechanism (acute decompensation *or* chronic-baseline
+congestion) is worse, and max() leaves the existing 5 acute weights and their citations completely
+unchanged rather than diluting them to make room for a 6th term.
 """
 from __future__ import annotations
 
@@ -76,18 +92,32 @@ def _co_drop_pct_component(co_drop_pct: float) -> float:
     return max(0.0, min(co_drop_pct / CO_DROP_FULL_SCALE_PCT, 1.0))
 
 
+def _baseline_deficit_component(map_start: float) -> float:
+    """How congested map_start already is, independent of anything that happens *during* the
+    encounter -- the fluid_overload blind-spot fix (see module docstring). Same anchors as
+    map_drop: 0 at the healthy baseline (~92.5mmHg), 1 at or below the MAP<65 instability
+    threshold. A patient whose resting MAP is already near-shock-range scores high here even if it
+    barely moves during the simulated window.
+    """
+    return max(0.0, min((ASSUMED_HEALTHY_MAP_MMHG - map_start) / _MAP_DROP_FULL_SCALE, 1.0))
+
+
 def compute_risk_score(
     hr_rise: float,
     map_drop: float,
     co_drop_pct: float,
     compensation_flag: int,
     instability_flag: int,
+    map_start: float,
 ) -> dict:
-    """Returns {"risk_score": 0-1, "risk_bucket": LOW|MODERATE|HIGH, "component_scores": {...}}.
+    """Returns {"risk_score": 0-1, "risk_bucket": LOW|MODERATE|HIGH, "component_scores": {...},
+    "acute_score": 0-1, "baseline_deficit_score": 0-1, "dominant_mechanism": "acute"|"baseline"}.
 
-    component_scores exposes each weighted contribution so a clinician (or a caller building an
-    explanation) can see exactly which signal(s) drove the score -- the interpretability that is
-    the entire point of this being the primary model instead of the XGBoost one.
+    component_scores exposes each weighted contribution to the *acute* sub-score so a clinician
+    (or a caller building an explanation) can see exactly which signal(s) drove it -- the
+    interpretability that is the entire point of this being the primary model instead of the
+    XGBoost one. risk_score = max(acute_score, baseline_deficit_score) -- see module docstring for
+    why this is max(), not a blend.
     """
     components = {
         "hr_rise": _hr_rise_component(hr_rise),
@@ -97,7 +127,9 @@ def compute_risk_score(
         "instability_flag": 1.0 if instability_flag else 0.0,
     }
     weighted_contributions = {k: components[k] * WEIGHTS[k] for k in WEIGHTS}
-    risk_score = sum(weighted_contributions.values())
+    acute_score = sum(weighted_contributions.values())
+    baseline_deficit_score = _baseline_deficit_component(map_start)
+    risk_score = max(acute_score, baseline_deficit_score)
 
     if risk_score < LOW_HIGH_BOUNDARY:
         risk_bucket = "LOW"
@@ -110,4 +142,7 @@ def compute_risk_score(
         "risk_score": round(risk_score, 4),
         "risk_bucket": risk_bucket,
         "component_scores": {k: round(v, 4) for k, v in weighted_contributions.items()},
+        "acute_score": round(acute_score, 4),
+        "baseline_deficit_score": round(baseline_deficit_score, 4),
+        "dominant_mechanism": "acute" if acute_score >= baseline_deficit_score else "baseline",
     }

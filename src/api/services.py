@@ -224,6 +224,7 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         co_drop_pct=sim_features["co_drop_pct"],
         compensation_flag=sim_features["compensation_flag"],
         instability_flag=sim_features["instability_flag"],
+        map_start=sim_features["map_start"],
     )
     nyha_class = classify_nyha(
         ejection_fraction_pct=ejection_fraction_pct,

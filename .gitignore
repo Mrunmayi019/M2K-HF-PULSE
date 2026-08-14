@@ -12,5 +12,6 @@ data/raw/
 data/db/
 data/validation_runs/*/work/
 *.env
+PUBLICATION_TODO.md
 models/*.joblib
 models/*.png

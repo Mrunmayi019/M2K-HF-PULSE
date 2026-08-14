@@ -1,0 +1,20 @@
+user_id,age,sex,n_real_days,real_date_range,pulse_age_capped,pulse_bmi_capped,patient_id,attempt,scenario_type,severity,risk_score,risk_bucket,nyha_class,deterioration_direction,simulation_status,error_message,wall_clock_s
+18,74.0,Female,21,2023-08-08..2023-08-30,True,True,e3c94eb9-e6a0-4e13-a9c2-1e23bf1c4588,2,,,,,,,failed,"PulseScenarioDriver exited 1 on /workspace/scenarios/api/e3c94eb9-e6a0-4e13-a9c2-1e23bf1c4588/scenario.json
+stderr: ",51.5
+19,77.0,Male,21,2023-08-14..2023-09-04,True,False,7a070153-1d85-488a-b64b-80b85aec2033,1,stable,0.12548333333333347,0.0054,LOW,I,stable,complete,,352.8
+17,80.0,Female,21,2023-08-11..2023-08-31,True,False,cb2b4e27-92c1-4bea-9741-00f22cf7b49a,1,cardiac_stress,0.3734366666666668,0.8,HIGH,I,stable,complete,,392.2
+16,83.0,Male,21,2023-08-14..2023-09-03,True,False,d463f93f-cf90-4014-ad2b-d1aed76cf1e4,1,cardiac_stress,0.0932466666666666,0.373,MODERATE,I,stable,complete,,382.6
+6,90.0,Male,21,2023-12-09..2024-01-03,True,False,c1e021bf-163b-436a-9311-65685afefb87,2,,,,,,,failed,"PulseScenarioDriver exited 1 on /workspace/scenarios/api/c1e021bf-163b-436a-9311-65685afefb87/scenario.json
+stderr: ",71.5
+15,77.0,Male,21,2023-08-07..2023-08-29,True,False,9dce787c-eacb-44fd-bee6-41f83580be25,1,cardiac_stress,0.11269333333333331,0.3674,MODERATE,I,stable,complete,,442.5
+5,83.0,Female,21,2023-12-07..2023-12-31,True,False,b97e407c-b7d7-4678-bc6c-cd2a73754238,1,cardiac_stress,0.2097766666666667,0.8,HIGH,I,stable,complete,,482.6
+4,81.0,Male,21,2023-12-08..2024-01-02,True,False,4d9976f8-7708-4fc7-8eab-29b03526c79c,1,cardiac_stress,0.2538866666666669,0.8,HIGH,I,stable,complete,,503.0
+2,75.0,Male,21,2023-10-24..2023-11-18,True,False,288f3c1a-c753-4772-8025-da8ce760b111,1,cardiac_stress,0.26133333333333364,0.5,MODERATE,I,stable,complete,,655.9
+1,71.0,Male,21,2023-12-18..2024-01-07,True,False,1129a6de-3aa6-4379-ae03-dc62650a72f1,1,stable,0.09536666666666678,0.0057,LOW,I,stable,complete,,576.5
+27,88.0,Male,21,2023-10-30..2023-11-23,True,False,a818ebb3-48bc-4831-bd21-39925ff25cc2,1,fluid_overload,0.5160800000000002,0.0,LOW,I,worsening,complete,,432.6
+25,85.0,Male,21,2023-09-22..2023-10-12,True,False,80a78932-32aa-47b3-9595-e2a68d55a216,1,cardiac_stress,0.1495633333333333,0.4471,MODERATE,I,stable,complete,,472.7
+23,77.0,Male,21,2023-09-13..2023-10-03,True,False,7e2107dc-6827-4b43-aa8c-d5c216478ed5,1,stable,0.13972333333333356,0.0059,LOW,I,stable,complete,,422.4
+24,78.0,Female,21,2023-09-20..2023-10-12,True,True,211d7135-17dd-4ab5-b8c6-31e50f2e3e37,1,cardiac_stress,0.3141500000000004,0.8,HIGH,I,stable,complete,,492.9
+22,82.0,Male,21,2023-09-04..2023-10-01,True,True,9607fc3a-fc26-4e9e-821f-cebabd1d8e4b,2,,,,,,,failed,"PulseScenarioDriver exited 1 on /workspace/scenarios/api/9607fc3a-fc26-4e9e-821f-cebabd1d8e4b/scenario.json
+stderr: ",61.5
+21,75.0,Female,21,2023-09-05..2023-09-29,True,False,30674c95-d92e-4c32-a223-d789e6f30534,1,cardiac_stress,0.3594800000000001,0.8,HIGH,I,stable,complete,,512.3
