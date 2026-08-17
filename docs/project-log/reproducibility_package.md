@@ -9,7 +9,7 @@ this doc's job is to make that easy to find and cite, not to rebuild anything.
 | Reproducibility need | Where it already exists in this repo |
 |---|---|
 | Full system architecture, current + target | `docs/architecture.md` |
-| Why each design/modeling decision was made, phase-by-phase | `docs/methodology.md` (69KB — the single most load-bearing doc; §5-§9 cover training protocol, risk-scoring formula + citations, API/pipeline design, and an honest limitations + failure-mechanism analysis) |
+| Why each design/modeling decision was made, phase-by-phase | `docs/methodology.md` ( ~97KB — the single most load-bearing doc; §5-§9 cover training protocol, risk-scoring formula + citations, API/pipeline design, and an honest limitations + failure-mechanism analysis) |
 | Every clinical number traced to a source | `docs/data_provenance.md` |
 | Both trained models' training data, performance, limitations | `models/model_card.md` |
 | Real-world (non-synthetic) validation methodology + results | `docs/real_world_data_integration.md` |
