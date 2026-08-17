@@ -90,12 +90,15 @@ class WearableHistoryResponse(BaseModel):
 # ---- Shared risk payload pieces ----
 
 RISK_CAVEATS_DESCRIPTION = (
-    "Populated when the detected scenario_type is fluid_overload. Phase 5 validation "
-    "(docs/methodology.md §6.1) found risk_score is structurally blind to this scenario's "
-    "shifted-baseline presentation (chronically congested but acutely stable at rest) -- the "
-    "5-feature delta-based formula only sees change *during* one simulated encounter, not an "
-    "already-abnormal starting state. risk_score should not be relied on alone for "
-    "fluid_overload patients; this field surfaces that caveat directly in the API response."
+    "Populated when the detected scenario_type is fluid_overload. risk_score.py's "
+    "baseline_deficit_score term (docs/methodology.md §6.1) fixes this scenario's shifted-baseline "
+    "blind spot (chronically congested but acutely stable at rest) when a real, measured "
+    "ejection_fraction_pct is available -- in that case this field carries the general "
+    "fluid_overload caveat (the fix is a hand-tuned approximation, not a guarantee). When EF is "
+    "unmeasured and Tier-1-fallback-defaulted instead, the fix has no congested baseline to "
+    "detect and risk_score can still understate severity for a different, specific reason -- this "
+    "field then carries that mechanism-specific caveat instead (docs/real_world_data_integration.md "
+    "§8.5). Either way, risk_score should not be relied on alone for fluid_overload patients."
 )
 
 

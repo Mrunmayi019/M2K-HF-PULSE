@@ -71,13 +71,28 @@ pattern), most likely Docker Desktop/WSL2-level degradation after hours of susta
 earlier the same session, not a defect in the fix itself. Full writeup, including the degradation
 diagnosis: `data/validation_runs/20260812_184726_nyha_fix_revalidation/summary.md`.
 
+**Two findings from a later session (2026-08-17) affect how to read some of the above, without
+changing either model's own performance numbers** — cross-referenced here rather than restated:
+(1) the 180s-timeout/degradation explanation in the paragraph directly above has since been
+root-caused more precisely — it's not primarily session-length degradation, but a tight timing
+margin between real Pulse call durations and the 180s ceiling on at least one host; see
+`docs/methodology.md`'s "Known Engine Constraints" (the 180s-timeout subsection) for the full
+evidence. (2) The `cardiac_stress`/`acute_deterioration` engine crashes referenced throughout this
+card (Phase 4 batch failures, PerHeart run failures) were root-caused and four interventions
+tested against them that session — see the same "Known Engine Constraints" section's
+Exercise-action-instability subsection for the mechanism, the intervention results, and why no
+fix was implemented. Separately, the risk-scorer `fluid_overload` fix's real-world limitation
+(unmeasured EF masking `baseline_deficit_score`) and the `risk_caveats` messaging fix for it are
+documented in that same "Known Engine Constraints" section and in
+`docs/real_world_data_integration.md` §8.5/§8.5.1.
+
 ## Model 2 — Risk Scorer (Phase 5)
 
 Two models exist for the same task (predicting `severity`/risk from one Pulse simulation run's
 extracted features: `hr_rise`, `map_drop`, `co_drop_pct`, `compensation_flag`,
-`instability_flag`). **They are not peers** — per the locked decision in
-`/Users/prakul/Desktop/Pulse-dock/CLAUDE.md` ("Risk scorer"), one is primary and one is
-secondary/experimental, and that ordering is load-bearing, not incidental.
+`instability_flag`). **They are not peers** — per this project's own locked decision
+(`src/analytics/risk_score.py`'s module docstring, `docs/methodology.md` §6), one is primary and
+one is secondary/experimental, and that ordering is load-bearing, not incidental.
 
 ### 2a. Primary — hand-tuned weighted score (`src/analytics/risk_score.py`)
 
@@ -150,8 +165,9 @@ trustworthy point estimate. CV gives a defensible generalization estimate instea
 
 **⚠️ Why this is secondary/experimental only, not primary:**
 
-1. **n=117 is too small for a reliable black-box model.** This is the exact reasoning CLAUDE.md's
-   locked decision is built on. A tree ensemble with this little data can fit noise as easily as
+1. **n=117 is too small for a reliable black-box model.** This is the same reasoning behind this
+   project's decision to keep the hand-tuned score primary (§2a above). A tree ensemble with this
+   little data can fit noise as easily as
    signal, and unlike the primary score, there's no way to independently sanity-check *why* it
    produced a given number — only whether it happened to score well on this run's folds.
 

@@ -223,6 +223,47 @@ class TestFluidOverloadCaveat:
         assert status["latest_assessment"]["risk_caveats"] is not None
         assert "fluid_overload" in status["latest_assessment"]["risk_caveats"]
 
+    def test_ef_fallback_masking_gets_specific_caveat(self, client):
+        """A clinical report IS submitted, with ejection_fraction_pct explicitly null -- matching
+        scripts/perheart_real_data_replay.py's real submission shape, not just an absent report
+        (a real bug: create_clinical_report() resolves and stores the fallback value at submission
+        time, so a naive second apply_tier1_fallback() call downstream always sees a concrete
+        number; must reuse the already-stored ef_is_fallback column instead -- see
+        docs/real_world_data_integration.md §8.5). A healthy-baseline Pulse df (map_start=95, no
+        acute deltas, the _fake_pulse_df default) gives risk_score=0/LOW -> this is the diagnosed
+        EF-fallback-masks-the-fix case, not the generic fluid_overload caveat."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": None, "nt_probnp_pg_ml": None})
+
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
+             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
+             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        assessment = status["latest_assessment"]
+        assert assessment["risk_bucket"] == "LOW"
+        assert "ejection_fraction_pct was not measured" in assessment["risk_caveats"]
+        assert "healthy-population-mean fallback" in assessment["risk_caveats"]
+
+    def test_real_ef_still_gets_generic_caveat_not_the_fallback_one(self, client):
+        """Same congested-but-flat Pulse response as test_risk_caveats_populated_for_fluid_overload
+        (a real, measured EF submitted) -> must stay on the generic message; the fallback-specific
+        one requires ef_is_fallback, which is False here."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 1500})
+
+        flat_df = _fake_pulse_df(hr_start=72, hr_end=70, map_start=78, map_end=78, co_start=4800, co_end=5400, sv_start=67, sv_end=67)
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
+             patch("src.api.services.run_pulse", return_value=flat_df), \
+             patch("src.analytics.projection.run_pulse", return_value=flat_df):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        caveats = status["latest_assessment"]["risk_caveats"]
+        assert "risk_score is known to underestimate severity for this presentation" in caveats
+        assert "ejection_fraction_pct was not measured" not in caveats
+
     def test_no_caveat_for_non_fluid_overload_scenario(self, client):
         patient_id = _create_patient(client)
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 60, "nt_probnp_pg_ml": 150})

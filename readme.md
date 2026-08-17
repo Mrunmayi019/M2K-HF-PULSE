@@ -107,32 +107,17 @@ This repo currently contains two things side by side:
      and `docs/frontend_extension_validation.md` for the full design rationale and the manual,
      real-browser verification evidence (including one real dark-mode rendering bug found and
      fixed).
-   - **Real-world data validation (done):** every prior validation used synthetic or hand-typed
-     input; this replays real physiological data from a published, ethics-approved dataset — the
-     PerHeart Pilot Dataset (27 real heart-failure patients, ages 67-94, real pulse-oximeter/scale
-     readings from one-month home trials, Kolakowski et al., *Data* 2026, Zenodo
-     `10.5281/zenodo.17143199`) — through the real pipeline via `scripts/perheart_real_data_replay.py`.
-     16 of 27 real patients have enough real daily coverage (HR, SpO2, weight) to fill a genuine
-     21-day window; fields the dataset doesn't measure (height, sleep, HRV, steps, EF, NT-proBNP)
-     are filled from this project's own existing, already-cited `assumed_default` constants
-     (`reference_stats.yaml`) or the existing Tier 1 fallback — never new invented numbers. Every
-     one of these real patients falls outside Pulse's native 18-65 age range, so results reflect
-     the existing age/BMI proxy-clamp (`methodology.md` §4/§8), not these patients' literal bodies
-     — flagged per-patient in the results, not buried. **Result: 16/16 real patients completed**
-     (`data/real_world_validation/20260802_234002/combined_results.csv`) — 12 `cardiac_stress` / 4
-     `stable`, 12 MODERATE / 4 LOW risk, zero HIGH. Two caveats worth reading before citing these
-     numbers: severity is compressed into a narrow band across all 16, independently reproducing an
-     already-documented live-inference bug (`methodology.md` §7/§8) — **since fixed**: `nyha_ordinal`
-     removed from the feature set, both models retrained, live severity MAE re-measured at 0.008
-     (down from 0.271) — see `models/model_card.md`; the 16-patient PerHeart numbers here predate
-     the fix and weren't rerun (flagged, not silently skipped). Also, all 16 came back NYHA
-     Class I, most likely a mechanical consequence of every patient sharing the same Tier 1 EF/BNP
-     fallback (this dataset never measured either), not a real clinical finding. Getting a stable
-     concurrent run also took 3 attempts (9 → 4 → 2 workers) after diagnosing a DB connection-pool
-     exhaustion and separately a real Pulse-level contention ceiling — see
-     `docs/real_world_data_integration.md` §8.3 for the full breakdown. That same doc has the full
-     dataset citation, field-by-field real-vs-imputed mapping, and the license-statement discrepancy
-     found in the source and how it's handled.
+   - **Real-world data validation (done, iterated 3 times as the model was fixed):** every prior
+     validation used synthetic or hand-typed input; this replays real physiological data from a
+     published, ethics-approved dataset — the PerHeart Pilot Dataset (27 real heart-failure
+     patients, ages 67-94, real pulse-oximeter/scale readings from one-month home trials, Kolakowski
+     et al., *Data* 2026, Zenodo `10.5281/zenodo.17143199`) — through the real pipeline via
+     `scripts/perheart_real_data_replay.py`. 16 of 27 real patients have enough real daily coverage
+     to fill a genuine 21-day window. Results, full methodology, and a documented real-world
+     limitation of the `fluid_overload` fix (it doesn't transfer to a patient whose ejection
+     fraction is unmeasured) all live in one place, not restated here since they change as the
+     pipeline is fixed: **see `docs/real_world_data_integration.md` for the current numbers and
+     complete history across all 3 runs.**
 
 ## Running Individual Components (Manual Setup)
 
@@ -362,16 +347,9 @@ datasets and aggregate statistics are committed.
 
 ## Documentation
 
-- **`CLAUDE.md`** — architecture conventions, locked Phase 0 decisions, known gotchas
-- **`docs/architecture.md`** — system diagrams (current prototype + target pipeline)
-- **`docs/methodology.md`** — the "why" behind each phase, validation results, honest limitations
-- **`docs/data_provenance.md`** — every clinical threshold/statistic, traced to a source
-- **`docs/running_the_stack.md`** — step-by-step guide to `docker compose up --build`, verifying
-  each service, the Pulse-in-container smoke test, and troubleshooting (Node/Vite version, missing
-  shared libraries, missing trained models on a fresh build)
-- **`docs/frontend_extension_validation.md`** — the Trends/Simulation Lab/Reports/Settings tabs and
-  dark mode: what was built, why, and the full manual verification evidence
-- **`models/model_card.md`** — both trained models' training data, performance, and limitations
+Full index of every doc in this repo, what each covers, and the reproduction commands:
+**`docs/project-log/reproducibility_package.md`** — start there rather than this list, which is
+kept short on purpose so it doesn't drift out of sync with that index.
 
 ## Contributors
 

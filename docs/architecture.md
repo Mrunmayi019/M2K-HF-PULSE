@@ -19,9 +19,10 @@ Patient vitals (HR, SpO2, BP, RR, Age)
 ```
 
 Two frontends (`streamlit_app.py`, `app.py`) share this pipeline. Runs only inside the Kitware
-Pulse Docker container. See CLAUDE.md for full module responsibilities, hardcoded paths, and known
-gotchas (Pulse crash detection not yet implemented in `run.py`; condition names here are a
-prototyping shortcut, not the locked 5-scenario taxonomy). `src/analytics.py` was renamed to
+Pulse Docker container. (Pulse crash detection not yet implemented in `run.py`; condition names
+here are a prototyping shortcut, not the locked 5-scenario taxonomy — `stable`/`fluid_overload`/
+`cardiac_stress`/`deconditioning`/`acute_deterioration`, `src/data_synthesis/reference_stats.yaml`.)
+`src/analytics.py` was renamed to
 `src/legacy_analytics.py` in Phase 5 to free up `src/analytics/` for the target-path package —
 no logic changes, see "Known naming collisions" below.
 

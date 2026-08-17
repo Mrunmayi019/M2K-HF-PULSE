@@ -2,18 +2,20 @@
 
 Single source of truth for every clinical threshold / distribution parameter used anywhere in this
 codebase. Every number used in `src/data_synthesis/`, `src/rules.py`, or later ML/analytics code
-must trace back to a row here. No magic numbers in code (see CLAUDE.md "Known Gotchas").
+must trace back to a row here. No magic numbers in code.
 
 Never real patient data in anything committed to git — real datasets live under `data/raw/`
 (gitignored) and only their *aggregate statistics* (mean/SD/range) are written into
 `src/data_synthesis/reference_stats.yaml` and this file. Synthetic patient/wearable data generated
-from those statistics is what actually ships in the repo (see CLAUDE.md "Locked Phase 0 Decisions").
+from those statistics is what actually ships in the repo — this project's real/synthetic
+separation policy, applied consistently throughout (raw real data never committed, only derived
+synthetic data and aggregate statistics).
 
 ## Real datasets acquired (2026-07-07)
 
 | Key | What it is | Access | Rows | Location |
 |---|---|---|---|---|
-| `mimic_bigquery_extract` | Real MIMIC-IV HF admissions: age, gender, mean HR/SBP/DBP, creatinine, sodium, aggregated per admission | PhysioNet-credentialed, queried via Google BigQuery (`physionet-data` project); pre-extracted CSV supplied by user | 11,837 admissions / 9,293 unique patients | `data/raw/mimic/hf_patient_features_clean.csv` (gitignored) |
+| `mimic_bigquery_extract` | Real MIMIC-IV HF admissions: age, gender, mean HR/SBP/DBP, creatinine, sodium, aggregated per admission | PhysioNet-credentialed, dataset-wide (not table-restricted) access via Google BigQuery, source project `physionet-data`, billing/query project `ai-inventory-project`. Confirmed 2026-08-17 via a schema-only `INFORMATION_SCHEMA.COLUMNS` check (no data pulled) that this access covers three datasets: `physionet-data.mimiciv_3_1_hosp` (admissions/patients/labs — this is where the existing extract's `admissions`-level fields came from, and where `admissions.deathtime`/`dischtime`/`discharge_location`/`hospital_expire_flag` and `patients.dod` live, confirmed present and queryable via `INFORMATION_SCHEMA.COLUMNS`, no patient data pulled — see `HANDOFF.md`'s real-clinical-outcome-validation item), `physionet-data.mimiciv_3_1_icu` (ICU-stay-level tables, not yet used by this project), and `physionet-data.mimiciv_3_1_derived` (Beth Israel's own derived/concept tables, not yet used). The existing extract itself was a pre-extracted CSV supplied by the repo owner, not queried live in this repo's own code. | 11,837 admissions / 9,293 unique patients | `data/raw/mimic/hf_patient_features_clean.csv` (gitignored) |
 | `andrewmvd_kaggle` | Chicco & Jurman (2020) heart failure clinical records — the canonical, most-cited HF Kaggle dataset (184k+ downloads, CC BY 4.0). Only source we have with ejection fraction. | Kaggle API (`andrewmvd/heart-failure-clinical-data`) | 299 patients | `data/raw/kaggle/andrewmvd_clinical/` (gitignored) |
 | `fedesoriano_kaggle` | General cardiovascular risk dataset (combined Cleveland/Hungarian/Switzerland/VA + Statlog cohorts). **Not HF-specific** — used only as a general age/BP/HR cross-check, never for EF/BNP. | Kaggle API (`fedesoriano/heart-failure-prediction`) | 918 patients | `data/raw/kaggle/fedesoriano_prediction/` (gitignored) |
 | `nhanes_kaggle` | Official CDC NHANES survey (`demographic.csv` joined with `examination.csv` on SEQN, filtered to adults ≥18 with valid height+weight). **Not HF-specific** — general US population — but the only source we have with any anthropometrics at all. | Kaggle API (`cdc/national-health-and-nutrition-examination-survey`, files `demographic.csv` + `examination.csv` only) | 5,847 adults (2,791 male / 3,056 female) | `data/raw/kaggle/cdc_nhanes/` (gitignored) |

@@ -65,6 +65,15 @@ two differently-named copies of this project on disk again (e.g. an old zip extr
 fresh clone), assume they've diverged and don't build Docker from the stale one without diffing
 first.
 
+**`CLAUDE.md` is not present in this repo** (confirmed 2026-08-17 — a documentation audit found 10
+citations to it across `readme.md`/`model_card.md`/`data_provenance.md`/`architecture.md`/
+`medication_modeling_feasibility.md`/`methodology.md`, but the file itself doesn't exist here).
+`model_card.md`'s own citation happened to include its original absolute path —
+`/Users/prakul/Desktop/Pulse-dock/CLAUDE.md` — confirming it really existed, just on a different,
+uncommitted machine copy per this section's own "-main vs -repo drift" story above. If it turns up
+later, restore it and re-check the inline rewrites made to those 6 files against its actual
+content (see the doc-audit citation list from that session for exactly what was rewritten and why).
+
 ---
 
 ## 3. What's done — status as of this handoff (2026-08-14)
@@ -141,49 +150,84 @@ authoritative current list.
 - [ ] **Real clinical outcome validation.** Everything validated so far (synthetic + PerHeart
       real data) shows the pipeline runs correctly on real inputs — not that its risk predictions
       correlate with actual outcomes (hospitalization, real deterioration events). This is the
-      single biggest gap between "systems demo" and "clinical research paper." Not solvable in
-      code. Needs a clinical partnership: identify a cardiology department/HF clinic contact,
-      scope what outcome data they could share, check IRB requirements at Kaveri's institution.
-      **Not started.** This is the long pole — start the conversation early and do the other
-      items in parallel while it's in progress.
+      single biggest gap between "systems demo" and "clinical research paper."
+      **Partially solvable in code after all, as of 2026-08-17**: a *retrospective* slice of this
+      is now in progress using MIMIC-IV's own outcome fields (`admissions.deathtime`/
+      `dischtime`/`discharge_location`/`hospital_expire_flag`, `patients.dod`) — this project's
+      existing PhysioNet credentialing is dataset-wide (project `ai-inventory-project`, source
+      `physionet-data`, confirmed via a schema-only check against `mimiciv_3_1_hosp` covering
+      `mimiciv_3_1_hosp`/`mimiciv_3_1_icu`/`mimiciv_3_1_derived`, no patient data pulled yet — see
+      `docs/data_provenance.md`'s `mimic_bigquery_extract` row). This does NOT replace the
+      original ask here: MIMIC-IV is a retrospective, ICU-population dataset, not a prospective
+      validation of this project's own wearable-trend/digital-twin pipeline against real
+      deterioration events in the target outpatient/home-monitoring population, and MIMIC
+      patients were never run through this pipeline. A genuine clinical partnership (cardiology
+      department/HF clinic contact, IRB requirements at Kaveri's institution) is still the
+      long-pole item for a prospective validation claim — keep that conversation going in
+      parallel. Status of the MIMIC-IV retrospective slice: access confirmed, linkage/outcome
+      plan in design (see the in-progress write-up this will land in, once done, as a new
+      `docs/methodology.md` subsection distinct from the PerHeart section).
 
-- [ ] **Diagnose the Pulse failure/timeout behavior properly**, combining two related open
-      questions:
-      (a) Is the ~180s Pulse-subprocess ceiling itself a Docker Desktop/WSL2-specific
-      characteristic of this host, or universal? Real Pulse calls have been observed landing
-      right at 170-190s repeatedly. If host-specific, this belongs in the paper's
-      reproducibility section as an environment caveat, not presented as a universal figure.
-      (b) **New and higher-priority**: root-cause the session-degradation finding in §3 item 6
-      above. Try a full Docker Desktop restart (not just `docker compose restart`) before the
-      next long real-data run and see if it recovers full-speed performance — this is the
-      concrete, cheap next experiment. If it does, that confirms VM-level degradation and the
-      practical mitigation is "restart Docker Desktop between long runs, not just containers."
-      If it doesn't, the degradation may be host-level (thermal, memory fragmentation over
-      session length) and worth a full machine reboot test instead.
+- [x] **Diagnose the Pulse failure/timeout behavior — done, 2026-08-17, but the answer is
+      neither of the two hypotheses this item originally posed.** A clean Docker Desktop restart
+      (app fully quit, confirmed via `docker ps` failing mid-shutdown, not just a container
+      restart) was tried on a fresh (~1h-old) session, then two known-timed-out patients were
+      re-attempted: both completed, but at 180.3-180.4s — within 3s of their original 183.2-183.9s
+      *failures*, not a meaningful speedup. **This rules out (a) session-length
+      degradation as the dominant mechanism on this host** (a fresh session should have recovered
+      much faster if that were it) **and (b) the known high-severity `cardiac_stress`/
+      `acute_deterioration`+`Exercise` crash pattern** (one re-attempt, `fluid_overload`, has no
+      `Exercise` action at all). The actual finding: at least some scenario/severity combinations
+      simply take close to 180s of real wall-clock time on this host's `arm64`→`amd64` emulation,
+      so the 180s ceiling has almost no margin — corroborated by 20 further data points across
+      Steps 2/3 of this session's batch (every successful PerHeart-cohort completion and every
+      successfully-retried revalidation patient landed in a 170-200s band). Full evidence in
+      `docs/methodology.md`'s new "Known Engine Constraints" section. **Still open**: whether the
+      *original* WSL2-specific degradation finding (a different host, Windows) is real on its own
+      platform — this session's Mac can't test that. Practical mitigation for now: expect a
+      nonzero failure rate near the 180s ceiling regardless of session freshness; raising
+      `timeout_sec` in `src/api/services.py`'s `run_pulse()` call, or profiling why these specific
+      calls run this close to the edge, are the next concrete options, not attempted here.
 
-- [ ] **Re-run the PerHeart cohort a third time**, now against the `fluid_overload`-fixed risk
-      scorer (item 3 in §3 above was validated offline against the 117-row Phase 4 batch, not
-      re-validated against PerHeart or the live API). `docs/real_world_data_integration.md` §8.4
-      flags this explicitly. Cheap in code terms
-      (`python -m scripts.perheart_real_data_replay --resume-from data/real_world_validation/20260812_162112/results.csv`
-      — note: since only `severity`/`scenario_type` changed with the nyha fix and this new fix
-      only changes `risk_score`, you may want a fresh full run rather than `--resume-from`, which
-      skips patients already marked `complete` and would carry forward stale `risk_score` values
-      for them; check `scripts/perheart_real_data_replay.py`'s own docstring for the exact
-      resume semantics before choosing). Budget ~90-150 min real Docker time at 2-worker
-      concurrency, more if the degradation pattern in §3 item 6 recurs.
+- [x] **Re-run the PerHeart cohort a third time, against the `fluid_overload` fix — done,
+      2026-08-17.** Completion rate held at 13/16 (81%, identical to the pre-fix run, same 3
+      patients failing the same way). **Headline finding: the fix had zero measurable effect on
+      this cohort's one real `fluid_overload` patient** — root-caused to a real, specific
+      interaction (not a bug in the fix): the patient's EF is unmeasured (PerHeart never measures
+      it) and Tier-1-fallback-defaulted to a healthy population mean, which tells the Pulse
+      simulation to build a structurally normal heart regardless of scenario/severity, so the
+      fix's `baseline_deficit_score` mechanism has nothing to detect. Confirmed not silently
+      narrow: this is PerHeart's *only* `fluid_overload` case across all 3 runs, and the
+      2,000-patient synthetic batch has zero null-EF rows, so this specific condition can't occur
+      elsewhere in current data. **Follow-up fix also done this session**: `risk_caveats` now
+      names this exact mechanism instead of the stale, generic pre-fix warning
+      (`src/api/services.py`'s `EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE`) — messaging
+      only, verified against a live re-run of the real patient (which also caught and fixed a real
+      bug: `ef_is_fallback` was being wrongly re-derived downstream instead of reusing the
+      already-stored value). Full detail: `docs/real_world_data_integration.md` §8.5/§8.5.1.
+      **Still open, not solved by the caveat fix**: a real EF measurement or validated proxy is
+      the actual fix for the underlying limitation — flagged in `docs/methodology.md` §8, not
+      attempted here.
 
-- [ ] **Increase the live re-validation completion rate**, or explicitly document why n=20 (not
-      n=30) is the reportable number. Options, cheapest first: (a) just re-run
-      `scripts/nyha_fix_live_revalidation.py --resume-from <path to 20260812_184726 run's
-      combined_results.csv>` after a full Docker Desktop restart, to top up the remaining ~10
-      patients; (b) if the degradation recurs, accept n=20 and write the methods section to be
-      explicit that a real environmental constraint, not sample availability, set the final n.
+- [x] **Increase the live re-validation completion rate — attempted, landed at n=27/30 (90%),
+      not the full 30, 2026-08-17.** Topped up from n=20 via
+      `python -m scripts.nyha_fix_live_revalidation 6 --resume-from
+      data/validation_runs/20260812_184726_nyha_fix_revalidation/combined_results.csv` (7 of the
+      10 previously-failed patients completed this pass). **Stats recomputed fresh at the actual
+      n=27, not reused from n=20**: severity MAE 0.0247 [95% bootstrap CI 0.0171, 0.0336] —
+      consistent with, and a tighter CI than, the n=20 figure (0.0275 [0.0188, 0.0394]); scenario
+      accuracy remains 1.0000 [1.0, 1.0]. The 3 new failures (P1035, P1476, P1978) all failed fast
+      (30.1s, the engine-crash signature) at high severity in `cardiac_stress`/
+      `acute_deterioration` — consistent with the already-known Exercise-action crash mechanism,
+      not the timeout-margin issue above. **n=27, not n=30, is the reportable number for this
+      pass** — report it as such rather than assuming the target was hit; closing the remaining 3
+      would mean addressing the known crash mechanism itself, not just retrying.
 
 ### P2 — known, scoped gaps worth closing before submission
 
 - [ ] **Quantify statistical power more explicitly for the small real-world samples.** n=16
-      (PerHeart) and n=20 (live re-validation) are still small. Before treating either as a
+      (PerHeart) and n=27 (live re-validation, topped up from n=20 on 2026-08-17 — still short of
+      the n=30 target, see above) are still small. Before treating either as a
       population-level result: consider widening the live re-validation further (the script
       supports any `n_per_scenario` argument — `python -m scripts.nyha_fix_live_revalidation 10`
       for n=50, budget accordingly), and/or explicitly report power/precision limitations in the
@@ -225,14 +269,21 @@ authoritative current list.
 
 ### Suggested order of attack
 
-1. Try the Docker Desktop restart experiment (P1, cheap, directly unblocks re-runs).
-2. Re-run PerHeart against the `fluid_overload` fix (P1).
-3. Top up the live re-validation sample (P1).
-4. Start the real clinical outcome validation conversation *now*, even though it's slow
-   (institutional timelines are the long pole — start early, keep doing P2/P3/P4 in parallel).
-5. Benchmark comparison + medication-modeling feasibility check (P2).
-6. Related-work/ethics writing (P3).
-7. Journal scaffolding (P4) — do last, once the results section is stable.
+1. ~~Try the Docker Desktop restart experiment~~ — **done 2026-08-17**, see P1 above. Answer
+   wasn't a clean fix; it's a timing-margin characteristic of this host, not something a restart
+   resolves.
+2. ~~Re-run PerHeart against the `fluid_overload` fix~~ — **done 2026-08-17**, see P1 above.
+   Surfaced and closed a caveat-messaging gap; the underlying EF-fallback limitation is still open.
+3. ~~Top up the live re-validation sample~~ — **attempted 2026-08-17**, landed at n=27/30, see
+   P1 above.
+4. Start the real clinical outcome validation conversation with a clinical partner — **still not
+   started** (the MIMIC-IV retrospective slice, done 2026-08-17, is a real but partial substitute
+   — see P1's first item — not a replacement for this). Institutional timelines are the long
+   pole — start early, keep doing P2/P3/P4 in parallel.
+5. ~~Benchmark comparison + medication-modeling feasibility check~~ — **done** (P2, prior session).
+6. ~~Related-work/ethics writing~~ — **first drafts done** (P3, prior session) — needs Kaveri's
+   read before treating as final.
+7. Journal scaffolding (P4) — do last, once the results section is stable. Still not started.
 
 ---
 

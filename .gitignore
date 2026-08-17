@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+.venv/
 scenarios/*.json
 scenarios/*.log
 scenarios/*.csv
@@ -10,6 +11,10 @@ scenarios/projection/
 scenarios/api/
 data/raw/
 data/db/
+# Real MIMIC-IV subject_id/hadm_id per row -- PhysioNet's DUA prohibits redistributing row-level
+# data even de-identified (unlike PerHeart's Zenodo CC license). summary.md (aggregate-only, no
+# per-patient rows) is fine to keep committed.
+data/mimic_outcome_validation/results.csv
 data/validation_runs/*/work/
 *.env
 PUBLICATION_TODO.md

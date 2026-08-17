@@ -3,9 +3,10 @@
 **Personalised Digital Twin for Early Heart Failure Deterioration Detection**
 
 Status: skeleton — filled in incrementally as each roadmap phase completes, not written
-retroactively before submission. See CLAUDE.md for the decisions already locked (personalization
-tiers, scenario taxonomy, dataset strategy, primary risk scorer choice) — this document explains
-*why* those decisions were made and how each phase was executed, not what the decisions are.
+retroactively before submission. The decisions already locked (personalization tiers, scenario
+taxonomy, dataset strategy, primary risk scorer choice) are stated where each is used below (§3,
+§6) and in `docs/data_provenance.md` — this document explains *why* those decisions were made and
+how each phase was executed, not just what the decisions are.
 
 ## 1. Problem Statement
 
@@ -53,7 +54,7 @@ See `docs/data_provenance.md` for the full parameter-level table. Summary:
 
 ## 3. Personalization Tier Design and Justification
 
-See CLAUDE.md "Locked Phase 0 Decisions" — Tier 1 (demographics + EF + BNP + wearables) is core,
+This project's locked Phase 0 decision: Tier 1 (demographics + EF + BNP + wearables) is core,
 Tier 2 (echo PPG) optional/stretch, Tier 3 (ECG-derived BP/contractility) permanently cut.
 
 **Why Tier 2 stayed unbuilt, not just deprioritized:** Tier 2 was scoped as an *optional* add-on
@@ -293,7 +294,7 @@ concurrency was adopted as the standing default for every subsequent real-data r
 
 ## 6. Risk Scoring Logic, With Clinical Citations
 
-Per the locked decision in CLAUDE.md, the primary risk scorer is a hand-tuned, interpretable
+Per this project's locked Phase 0 decision, the primary risk scorer is a hand-tuned, interpretable
 weighted score (`src/analytics/risk_score.py`); a secondary/experimental XGBoost regressor
 (`src/ml_models/train_risk_scorer.py`) exists only as a comparison point, trained on the same
 117-row Phase 4 dataset. Both consume the same 5 features:
@@ -629,8 +630,350 @@ is flagged rather than smoothed over.
 elapsed wall-clock for the whole run was shorter than that sum, since `--workers 4` (the default)
 ran 4 patients' pipelines concurrently.
 
+### 7.X MIMIC-IV real-outcome test — baseline-deficit mechanism only, 2026-08-17
+
+**Scope, stated up front so this cannot be misread as broader than it is: this tests exactly one
+mechanism — `risk_score.py`'s `baseline_deficit_score` term, a pure function of `map_start` — against
+real in-hospital mortality in a real MIMIC-IV cohort. It does NOT validate the full `risk_score.py`
+output, the wearable-trend ML scenario classifier (Model 1), or the Pulse simulation layer. Those
+remain untested against real-world outcomes** — this is additive to, not a substitute for, that
+larger gap (§8/§9's "real clinical validation" item, still open for anything beyond this narrow
+slice).
+
+**Why the scope is this narrow, not broader.** This project's PhysioNet/BigQuery MIMIC-IV access
+was confirmed dataset-wide (`physionet-data.mimiciv_3_1_hosp`/`mimiciv_3_1_icu`/
+`mimiciv_3_1_derived`, project `ai-inventory-project`) via a schema-only `INFORMATION_SCHEMA`
+check, no patient data pulled at that stage — see `docs/data_provenance.md`'s
+`mimic_bigquery_extract` row. Checking what's actually derivable before building anything ruled
+out the full pipeline:
+- **Ejection fraction has no usable structured source.** A chartevents item exists
+  (`mimiciv_3_1_icu.d_items.itemid = 227008`, "Ejection Fraction") but an aggregate count found
+  **zero patients** with it actually charted. Real EF only exists in free-text echo reports, which
+  live in the separate MIMIC-IV-Note resource (its own PhysioNet credentialing, not confirmed
+  available here).
+- **The 21-day ambulatory wearable-trend window Model 1 was trained on has no equivalent.**
+  `steps_per_day`/`sleep_hours`/`hrv_rmssd_ms` are consumer-wearable metrics never captured in an
+  EHR at all. And decisively: median hospital stay in this cohort is 3 days; only 2.9% of all
+  546,028 hospital admissions even reach 21 days — so even HR/SpO2/weight can't honestly fill a
+  21-day *ambulatory pre-crisis* window; what exists is a few days of *acute inpatient* vitals, a
+  different measurement regime and a different population state entirely.
+
+Running Model 1 → Pulse → the full `risk_score.py` on this data would have meant fabricating EF
+(100% fallback) and most of the wearable-trend features on a windowing assumption the data
+structurally can't support — rejected as exactly the "inventing proxies" this project's citation
+discipline exists to avoid (`docs/data_provenance.md`). What MAP alone offers instead: it's a
+single real, directly measured vital, available for essentially any ICU-admitted patient, and
+`baseline_deficit_score` is a pure function of it — no Pulse simulation, no EF, no wearable window
+required. That's the entire reason this specific mechanism, and only this one, was chosen for a
+real-outcome test in this pass.
+
+**Cohort** (`scripts/mimic_outcome_extraction.sql`, full query and inclusion criteria there):
+HF admissions (ICD-9 `428.x` / ICD-10 `I50.x`) with ≥1 real MAP reading strictly within the first
+24h of admission (the `map_start` guardrail — no later-stay vitals, to avoid predicting an
+admission's outcome from data recorded after the fact). NT-proBNP was deliberately excluded
+(diagnostic, not predictive, in an inpatient context — including it would confound a
+single-mechanism test) and `discharge_location` was never selected as a feature (outcome-adjacent).
+Not filtered by outcome. Because `mimiciv_3_1_derived.vitalsign` is an ICU-derived table, this
+cohort is implicitly ICU-admitted HF patients, not every HF admission hospital-wide.
+
+**Result** (`scripts/mimic_outcome_validation.py`, full output in
+`data/mimic_outcome_validation/summary.md`):
+
+- **n = 17,129 admissions, 13,047 unique patients** — exact count, no extrapolation. In-hospital
+  mortality (event) rate 14.2% (2,430 deaths).
+- **AUC = 0.596 (95% CI 0.585–0.608, percentile bootstrap, 2,000 resamples, seed=42)** for
+  `baseline_deficit_score` alone predicting `hospital_expire_flag`. Modest, real, and clearly above
+  chance (0.5) — for one hand-tuned component evaluated in isolation, not the full risk scorer.
+- **Calibration is monotonic across score deciles**: observed mortality rises from 8.9% in the
+  lowest-`baseline_deficit_score` decile to 21.2% in the highest, without inversions —
+  directionally consistent behavior, not just a summary-statistic artifact.
+
+**Honest limitations of this specific test** (see the summary doc for the full list):
+population mismatch (an acutely ill, already-hospitalized ICU cohort — not this project's target
+outpatient/home-monitoring population; a first-24h ICU MAP reflects that acute presentation, not a
+stable ambulatory baseline); `map_start` here is a real measured value, whereas everywhere else in
+this project it's a Pulse-simulated patient's baseline — same formula, different data-generating
+process; admission-level rather than patient-level sampling (13,047 patients across 17,129
+admissions mildly violates the AUC CI's independence assumption, uncorrected in this pass); and
+only in-hospital mortality was tested — post-discharge mortality (`patients.dod`) and 30/90-day HF
+readmission are flagged as future work, not pursued here.
+
 ## 8. Limitations
 
+### Known Engine Constraints — the 180s Pulse-subprocess timeout, diagnosed 2026-08-17
+
+**Finding: on this host, the timeout is not cleanly explained by either of the two hypotheses this
+project previously had for it — session-length degradation, or the known high-severity
+`Exercise`-action crash pattern. A third, more mundane explanation fits the evidence better: for
+at least some scenario/severity combinations, the underlying Pulse call's real execution time
+lands right at the 180s ceiling regardless of session freshness, making success/failure a matter
+of small timing jitter rather than a deeper fault.**
+
+**Method.** `src/api/services.py` calls `run_pulse(..., timeout_sec=180)` — this is the exact
+ceiling being tested. Two admissions that failed with this timeout in the prior n=30 live
+re-validation run (`data/validation_runs/20260812_184726_nyha_fix_revalidation/combined_results.csv`)
+were re-attempted, one at a time, immediately after a **clean Docker Desktop restart** (the app
+fully quit — confirmed by `docker ps` returning a connection error mid-shutdown, not just
+`docker compose restart`ing containers — then relaunched and the stack brought back up healthy)
+on a session that had only been running ~1 hour (not the multi-hour sustained load the original
+degradation finding required):
+
+| Patient | Scenario | Severity | Prior run (same session as the degradation finding) | This session, post-clean-restart |
+|---|---|---|---|---|
+| P0247 | `acute_deterioration` | 0.264 | **failed**, wall_clock_s=183.9 | **complete**, wall_clock_s=180.4 |
+| P1043 | `fluid_overload` | 0.637 | **failed**, wall_clock_s=183.2 | **complete**, wall_clock_s=180.3 |
+
+(Timestamps: this session's re-attempts ran 2026-08-17 ~13:41:50–13:45:00 IST (P0247) and
+~13:45:26–13:48:26 IST (P1043); `scripts/reattempt_single_patient.py`'s per-10s status-poll log is
+the source for the exact `wall_clock_s` figures above, and both runs' `error_message` was `None`.)
+
+**Interpretation.** Neither original hypothesis fits cleanly:
+- **Not (a) "resolved by the restart"** — if the prior failures were caused by resource
+  degradation accumulated over a long session, a clean restart on a fresh (~1h-old) session should
+  have produced a large timing improvement. It didn't: 180.3–180.4s here vs. 183.2–183.9s before —
+  a ~3s difference, well within normal run-to-run jitter, not a meaningful recovery.
+- **Not (b) "the known high-severity `Exercise`-action crash pattern"** — that mechanism
+  (`docs/methodology.md`'s missingness section) is a **crash** (`PulseScenarioDriver exited 1`),
+  concentrated in `cardiac_stress`/`acute_deterioration` scenarios *with an `Exercise` action*
+  above ~0.45-0.6 severity, and fails fast. `P1043` is `fluid_overload` — a scenario type with no
+  `Exercise` action at all (`src/patient_builder/scenario_file.py`) — and neither patient failed
+  fast; both ran the full ~180s before resolving one way or the other. This is a different
+  mechanism from the crash pattern, not a re-confirmation of it.
+- **(c) — the actual finding**: both re-attempts landed within 0.1s of each other (180.3s,
+  180.4s), and within ~3s of the original failures (183.2s, 183.9s) — a tight cluster right at the
+  180s ceiling across two different scenario types and severities. This is consistent with these
+  specific scenario/severity combinations simply taking close to 180s of real wall-clock time to
+  simulate under this host's `arm64`→`amd64` emulation, independent of session freshness — meaning
+  `timeout_sec=180` has very little margin here, and whether a given call lands on the "complete"
+  or "failed" side of that line is sensitive to ordinary host-load jitter, not a sign of
+  progressive degradation or a scenario-specific engine crash.
+- **Not the same host as the original degradation finding, worth stating explicitly**: the
+  original WSL2-level degradation observation (`data/validation_runs/20260812_184726_nyha_fix_revalidation/summary.md`)
+  was made on a Windows/WSL2 Docker Desktop host; this session's host is macOS (Apple Silicon,
+  Docker Desktop's native virtualization, not WSL2). This re-attempt neither confirms nor refutes
+  the WSL2-specific degradation hypothesis on its original platform — it only establishes that on
+  *this* platform, timeouts occur even on a fresh session, which is a related but distinct finding.
+
+**n=2 caveat, stated plainly**: this is two re-attempts, not a powered experiment. It's enough to
+rule out "clean restart reliably fixes it" as a strong effect on this host, and enough to show the
+failure isn't confined to the known crash-prone scenario/severity combinations — but not enough to
+rule out degradation being a *contributing* factor at a smaller magnitude, or to fully characterize
+the timing distribution. Treat this as a diagnosis of the dominant mechanism on this host, not a
+closed investigation.
+
+**Practical consequence for Steps 2/3 of this session's batch**: timeouts should be expected to
+recur at a low but nonzero rate during the PerHeart re-run and live-revalidation top-up — not
+because Docker/the session is degraded, but because at least some scenario/severity combinations
+are intrinsically close to the 180s ceiling on this host. This is flagged explicitly per your
+instruction not to let a partial run's cause go unstated: any failures in Steps 2/3 with
+`wall_clock_s` in the ~178-190s range should be attributed to this timing-margin issue, not
+assumed to indicate degradation or a data problem.
+
+### Known Engine Constraints — Exercise-action instability at high severity, root-caused 2026-08-17
+
+**This is a characterized, root-caused limitation, not an unexamined observation.** Every prior
+mention of this failure mode in this project (Phase 4's batch results, the missingness analysis
+above) described it structurally — which scenario types and severities it clusters in — without
+tracing the actual failure mechanism or testing whether it was something this project's own
+scenario-construction code controlled. This session did both: pulled the real Pulse engine logs
+for independent crashes, and tested four concrete interventions against a reproducible control.
+The conclusion is a genuine, evidenced boundary characterization, not a restated guess.
+
+#### Mechanism
+
+Pulled the live `.log` file Pulse itself writes on failure (`src/pulse_runner/runner.py`'s
+`_expected_paths()` — a file this project's own crash-detection code already scans for fatal
+markers, but had not previously been read for the actual causal chain) for three independent
+crashes. All three show the identical sequence:
+
+```
+t=60s   CardiovascularMechanicsModification (disease/severity modifiers) fires
+t=60s   Exercise fires -- SAME simulated instant, zero AdvanceTime gap between them
+t=60.02-84.6s   Fatigue -> Hypoxia + Hypoglycemia -> Tachycardia -> Tachypnea
+t=~148-150s     Renal Hypoperfusion -> CardiovascularCollapse ("low blood pressure and the
+                vasculature has collapsed") -> BrainOxygenDeficit
+t=~154s   FATAL: "Can't transport with a negative volume included. Node = [Left|Right]Heart.
+          Volume = [-1769.85 | -3825.99 | -4541.67] mL"
+t=~154s   [Event IrreversibleState 1] Patient has entered irreversible state
+```
+
+**This is explicitly a hard numerical divergence in Pulse's own circulatory transport solver, not
+a soft warning or a data-quality artifact.** The engine's own `[FATAL]`-tagged log line reports a
+simulated heart chamber's blood volume going thousands of milliliters *negative* — a physically
+impossible state the solver cannot recover from, immediately followed by the engine's own
+`IrreversibleState` event and process termination (`PulseScenarioDriver exited 1`, the exact
+signature `src/pulse_runner/runner.py`'s crash detection already catches, just without previously
+knowing *why*).
+
+#### Reproducibility — deterministic, not stochastic
+
+Three independent crashes (different patients, different exact severities: 0.582, 0.731, 0.884;
+scenario types `cardiac_stress` and `acute_deterioration`) all reached `IrreversibleState` within a
+**154.1-154.32s** window — a 0.22-second spread across independently-run simulations. This tight
+clustering is evidence of a deterministic failure given these inputs, not stochastic/numerical
+noise that happens to fail sometimes — consistent with a real physiological boundary being
+crossed at a repeatable point in the simulated timeline, not a flaky engine.
+
+#### Hypotheses tested and ruled out
+
+Using one fully reproducible crashing case as a control (a `acute_deterioration`, severity=0.731
+patient — `StrokeVolumeMultiplier=0.817`, `SystemicResistanceMultiplier=SystemicComplianceMultiplier=0.89`,
+`VenousComplianceMultiplier=0.634`, `HeartRateMultiplier=1.293`, `Exercise Intensity=0.439`), four
+interventions were tested by directly constructing and running modified Pulse scenario JSON
+(`PulseScenarioDriver` invoked directly inside the container, bypassing the API, for controlled
+single-variable tests):
+
+| Intervention | Result |
+|---|---|
+| Control (exact reproduction) | crashes @ 154.32s |
+| 60s stabilization gap inserted between disease modifiers and Exercise | **still crashes**, @ 212.02s — delayed by ~60s, i.e. by ~exactly the gap length |
+| 120s gap | **still crashes**, @ 272.92s — delayed by ~120s, same pattern |
+| Exercise intensity ramped gradually in 4 steps (0.11→0.22→0.33→0.439 over 2 min, after a 60s gap) | **still crashes**, @ 301.14s |
+| Exercise action alone, same intensity (0.439), disease modifiers and `ChronicVentricularSystolicDysfunction` condition both removed | **completes clean**, full 660s |
+| Disease modifiers + condition alone, no Exercise action | **completes clean**, full 660s |
+| Exercise intensity halved (0.439→0.2195), disease modifiers unchanged, same simultaneous timing as control | **completes clean**, full 660s |
+
+**Ruled out: timing/stabilization gaps.** Both the 60s and 120s gaps only postponed the crash by
+almost exactly the gap length (212.02s ≈ 154.32s + 60s minus a few seconds; 272.92s ≈ 154.32s +
+120s minus a few seconds), not prevented it. This rules out an instantaneous step-change "shock" as
+the cause — the system doesn't fail because the two stressors arrive simultaneously, it fails
+because it cannot *sustain* their combined steady-state demand, however gently that demand is
+approached.
+
+**Ruled out: gradual ramping.** The 4-step ramp (which combines a gap AND gradual intensity
+increase) also just delayed the crash further (301.14s) rather than preventing it — reinforcing the
+same conclusion: this is a sustained-load problem, not an onset-shock problem.
+
+**Ruled out: either stressor alone.** Exercise at the *exact* crash-causing intensity (0.439) runs
+cleanly on a structurally normal heart (no disease modifiers). The disease-modified state runs
+cleanly with no exertion at all. **Only the combination — a moderately-reduced-EF-driven
+cardiovascular state plus a nontrivial sustained exercise demand — is unsustainable.** This
+directly confirms the compounding-stressors hypothesis, with an actual isolation experiment behind
+it rather than an assumption.
+
+**Confirmed (not ruled out): intensity-dependence, but not via a fixed constant.** Halving Exercise
+intensity at the control patient's exact disease severity did prevent the crash. But testing the
+same intervention on a second, independently-crashing patient (`cardiac_stress`, severity=0.582,
+`StrokeVolumeMultiplier=0.767`, `SystemicResistanceMultiplier=SystemicComplianceMultiplier=0.86`,
+`HeartRateMultiplier=1.175`, original `Exercise Intensity=0.5`) found a **different, lower**
+threshold:
+
+| Patient | Severity | Scenario | Crashes at | Safe at |
+|---|---|---|---|---|
+| 1 (control) | 0.731 | `acute_deterioration` | 0.439 (original) | 0.2195 (half) |
+| 2 | 0.582 | `cardiac_stress` | 0.5 (original), 0.35, **0.25** | 0.125 (quarter) |
+
+**Patient 1's safe threshold is approximately 0.22; patient 2's is somewhere between 0.125 and
+0.25 — clearly lower than patient 1's, despite patient 2's disease modifiers being nominally less
+aggressive** (higher `StrokeVolumeMultiplier`, less-reduced resistance/compliance). **The safe
+Exercise intensity threshold is patient/severity-dependent, not a single fixed constant** — this
+project's actual `MAX_EXERCISE_INTENSITY=0.5` cap (`src/patient_builder/scenario_file.py`) sits
+above both patients' crash points, and no single lower constant tested is confirmed safe for both.
+
+**This is evidence of the shape of the constraint, not a complete map of it.** n=2 patients, 2
+severities, 2 scenario types (of the 2 that use `Exercise` at all) is enough to establish that the
+threshold moves with severity/patient body in a nontrivial way, and enough to rule out the simpler
+hypotheses above — it is not enough to derive a safe universal constant or a validated
+severity-adaptive formula. A systematic sweep (below) would be needed for that, and was not
+attempted here per the explicit scope of this session's investigation.
+
+#### Practical handling for the batch pipeline — no cap currently applied beyond `MAX_EXERCISE_INTENSITY=0.5`
+
+**No additional intensity cap or crash-avoidance logic has been added as a result of this
+investigation** — per the explicit instruction this section was written under, no fix was
+attempted or implemented this session. The existing `MAX_EXERCISE_INTENSITY=0.5` constant already
+in `scenario_file.py` predates this investigation and was set for a different reason (engine
+stability at a coarser level, per that constant's own existing comment) — it is not a validated
+safe threshold in light of this session's finding that both test patients crashed at or below it.
+
+**Current failure handling, unchanged by this investigation**: `src/pulse_runner/batch_runner.py`
+catches `PulseExecutionError` per-run, records `status="failed"` with the error string, and
+continues the batch (`failed_runs.csv`) — no retry, no intensity adjustment. The live API path
+(`src/api/services.py`) does the same per-patient (`SimulationRun.status="failed"`). Validation
+scripts that do retry once (e.g. `scripts/perheart_real_data_replay.py`'s `attempt=2` pattern)
+retry the *identical* scenario — given this session's finding that the failure is deterministic
+(three independent crashes landing within a 0.22s window), **that retry is not expected to help for
+this specific failure mode**, and empirically hasn't: every crash observed this session that fits
+this pattern failed identically on retry. This is a real gap between what the retry logic assumes
+(transient failure) and what this investigation found (deterministic failure) — worth knowing, not
+itself a fix.
+
+**If a conservative cap is applied in the future**, it must be labeled explicitly as an
+**operational mitigation** (a value chosen to reduce crash *frequency* in practice), **not a
+derived safe threshold** — this investigation did not establish one. The known tradeoff: any cap
+low enough to sit safely below patient 2's proven-unsafe 0.25 (i.e., informed by this session's
+data, something meaningfully below 0.125 for real margin) would compress the Exercise-driven
+HR/CO signal across the entire top end of the `cardiac_stress`/`acute_deterioration` severity
+range — weakening exactly the signal these two scenarios exist to provide, since severity
+discrimination in both partly relies on the magnitude of exercise-driven hemodynamic response.
+
+#### Future work — a well-scoped systematic sweep, not attempted here
+
+To actually characterize the safe boundary (rather than two anecdotes) would need a sweep across:
+**severity** (the affected range is roughly 0.45-1.0 per the missingness analysis above, e.g. 6
+points), **scenario type** (`cardiac_stress` and `acute_deterioration`, the only 2 with `Exercise`
+— 2 values), **patient profile** (age/sex/BMI combinations affect body composition and therefore
+the crash threshold, per this session's n=2 finding that nominally-milder modifiers didn't mean a
+higher threshold — at least 4-6 representative profiles), and **intensity** (a binary-search-style
+sweep per severity/scenario/profile combination, ~4-5 Pulse calls to bracket a threshold to
+reasonable precision). Rough scope: 6 severities × 2 scenarios × 5 profiles × ~5 calls to bracket
+≈ 300 Pulse calls. At this session's observed per-call timing (~150-300s for a completing run, up
+to ~300s for one that crashes), that's roughly **12-25 hours of real Docker/Pulse wall-clock time**
+at the empirically-safe low concurrency this project already uses for batch work — a real,
+schedulable follow-up, not a vague "someday," but deliberately out of scope for this session's
+diagnostic pass.
+
+### `fluid_overload` Risk-Score Limitation — EF Tier-1 Fallback Masking, diagnosed 2026-08-17
+
+**The `fluid_overload` fix (`baseline_deficit_score`, §6.1) doesn't transfer to a real patient
+whose ejection fraction is unmeasured and Tier-1-fallback-defaulted.** Root-caused, not just
+observed, via a live re-run of the one real PerHeart `fluid_overload` case (`docs/
+real_world_data_integration.md` §8.5) — not inferred from the code alone.
+
+#### Mechanism
+
+`baseline_deficit_score` (§6.1) needs the Pulse-simulated body to reflect a congested, diseased
+structural state, which needs a real, disease-appropriate `ejection_fraction_pct` input
+(`ef_to_cardiovascular_modifiers()`, `src/patient_builder/patient_file.py`). When EF is unmeasured
+and Tier-1-fallback-defaults to the healthy-population mean (`apply_tier1_fallback()`,
+`src/api/services.py`), Pulse simulates a structurally *normal* heart instead — so `map_start`
+comes out at/near the healthy baseline regardless of what the wearable-trend classifier assigns as
+`scenario_type`/`severity`, and `baseline_deficit_score` has nothing to detect.
+
+#### Evidence
+
+Confirmed directly against the live API's `/report` output for PerHeart's user_27
+(`fluid_overload`, severity 0.518): `ejection_fraction_pct: 62.0` — an exact match to
+`reference_stats.yaml`'s `ejection_fraction.healthy.mean` (62), not a coincidence. `risk_score`
+and every `component_scores` entry read exactly `0.0`. Cross-run comparison confirmed zero change
+from the pre-fix baseline: run 2 (pre-fix) and run 3 (post-fix) both show this same patient at
+`risk_score=0.000`/`LOW`, to 4 decimal places — the fix had no measurable effect on this real case
+(`docs/real_world_data_integration.md` §8.5).
+
+#### Boundary characterization — confirmed narrow, not assumed
+
+Checked against both real-world and synthetic data, not asserted: PerHeart's cohort has exactly
+**one** `fluid_overload` case across all 3 runs to date (user_27) — every other completed patient
+is `cardiac_stress`/`stable`, scenarios this mechanism doesn't touch. The 2,000-patient synthetic
+batch has **zero** null-EF rows (synthetic patients always carry a real, generated EF), so this
+masking condition cannot occur there via the normal pipeline. This is the honest current shape of
+the data, not an artificially narrow check.
+
+#### Practical handling — messaging fix applied, underlying limitation still open
+
+**What was fixed this session (§8.5.1 of `docs/real_world_data_integration.md`): the
+`risk_caveats` message now names this exact mechanism** (`src/api/services.py`'s
+`EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE`) instead of showing the stale, generic pre-fix
+warning — verified firing correctly against a live re-run of user_27. **This is messaging only, an
+operational mitigation for interpretability, not a fix for the underlying limitation.** A real bug
+was found and fixed in the process (`ef_is_fallback` was being wrongly re-derived downstream
+instead of reusing the already-stored value — full account in that same section).
+
+#### Future work
+
+The underlying limitation remains open: a real EF measurement (echocardiogram) or a validated
+non-invasive EF proxy is the actual fix, and was not attempted here — scope and feasibility not
+assessed as part of this pass.
 - **The live-pipeline severity regressor underperforms its offline benchmark by a diagnosed, real
   margin: MAE 0.271 live vs. 0.048 offline (§7, Phase 8 batch validation).** Root cause:
   `build_inference_features()` (`src/scenario_classifier/features.py`) always defaults
@@ -740,12 +1083,22 @@ research paper once the pipeline is validated end-to-end (§7/§8).
   HF physiology and are not represented in any current Pulse scenario; nearly all real HF patients
   are on at least one of these, so this is one of the more consequential gaps for real-world
   applicability (see also the medication-modeling Limitation in §8).
-- **Real clinical validation** — every result documented in §5-§7 is validated against synthetic
-  data, offline batch simulation, or a single manually-run live pipeline, never against real
-  patient outcomes. A partnership with a cardiology department to compare the twin's risk/staging
-  output against actual clinician assessments and real deterioration events is the single most
-  important next step before any claim in this project could support a peer-reviewed research
-  paper rather than a systems-engineering demonstration.
+- **Real clinical validation** — every result documented in §5-§7 (aside from §7.X's narrow
+  MIMIC-IV baseline-deficit test, 2026-08-17) is validated against synthetic data, offline batch
+  simulation, or a single manually-run live pipeline, never against real patient outcomes. §7.X
+  closes a real slice of this for one mechanism, using a retrospective ICU cohort — it does not
+  close the rest: the full risk scorer, the wearable-trend ML classifier, and the Pulse simulation
+  layer remain untested against real-world outcomes, and even §7.X's own population (retrospective,
+  already-hospitalized ICU patients) doesn't match this project's target outpatient/home-monitoring
+  use case. A partnership with a cardiology department to compare the twin's risk/staging output
+  against actual clinician assessments and real deterioration events *in that target population,
+  prospectively* is still the single most important next step before any claim in this project
+  could support a peer-reviewed research paper rather than a systems-engineering demonstration.
+  Two concrete extensions of the MIMIC-IV angle specifically, not pursued in this pass: (a)
+  post-discharge mortality via `patients.dod` (needs confirming MIMIC-IV's per-patient date-shifting
+  preserves valid day-deltas before relying on it) and (b) 30/90-day HF-cause readmission via
+  repeat `hadm_id`s per `subject_id` (needs an ICD-based definition of "HF-caused" readmission,
+  more design work than the in-hospital-mortality outcome used here).
 - **Extending beyond heart failure** — the same wearable-trend → scenario-classification →
   Pulse-simulation → risk-scoring architecture is not HF-specific in its mechanics; COPD,
   post-surgical recovery monitoring, and diabetes management were identified as plausible targets

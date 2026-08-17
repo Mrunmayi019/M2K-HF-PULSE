@@ -310,3 +310,114 @@ legitimate follow-up work, flagged rather than silently skipped, same as §8.2's
 done in this pass to avoid stacking a third ~90-minute Docker run against the same 2-worker
 concurrency ceiling (§8.3) the expanded live re-validation (`docs/methodology.md` §9) was already
 using concurrently.
+
+### 8.5 Third re-run, against the `fluid_overload` fix (`data/real_world_validation/20260817_141634/`)
+
+Full cohort re-run, fresh (not `--resume-from`, same reasoning as §8.4 — only `risk_score` changed
+between §8.4's model and this fix, but reusing pre-fix rows would still carry stale `risk_score`
+values forward for the one scenario type the fix touches). Run immediately after a clean Docker
+Desktop restart (see `docs/methodology.md`'s "Known Engine Constraints" section) at the same
+empirically-safe 2-worker concurrency.
+
+**Headline finding, and it corrects §8.4's own prediction above: the fix had zero measurable
+effect on this cohort's one real `fluid_overload` patient.**
+
+| Metric | §8.4 (pre-fluid_overload-fix) | This run (post-fix) |
+|---|---|---|
+| Patients completed | 13/16 (81%) | **13/16 (81%) — identical** |
+| Failed patients | user_id 6, 18, 22 | **user_id 6, 18, 22 — identical set, identical `PulseScenarioDriver exited 1` crash** |
+| `fluid_overload` patients | user_id 27 only | user_id 27 only (same patient, same scenario classification) |
+| user_27 `severity` | 0.516 | 0.518 (noise-level difference, not a real change) |
+| user_27 `risk_score` / `risk_bucket` | **0.000 / LOW** | **0.000 / LOW — unchanged** |
+| Every other completed patient's `risk_score` | — | unchanged to 4 decimal places for 11/12; one `cardiac_stress` patient (user_25) shifted by -0.0011, consistent with ordinary Pulse re-simulation noise, not a fix effect |
+
+**Root cause, confirmed via the live API's own `/report` output for user_27's patient record**:
+`ejection_fraction_pct: 62.0` — this is not a measured value. PerHeart never measures EF (§4), so
+the Tier 1 fallback fired (`src/api/services.py`'s `apply_tier1_fallback()`), defaulting EF to
+`reference_stats.yaml`'s `ejection_fraction.healthy.mean` (62%) — confirmed by the exact match.
+The `fluid_overload` fix's `baseline_deficit_score` term depends on the Pulse-simulated patient's
+`map_start` reflecting a congested baseline, which in turn depends on
+`ef_to_cardiovascular_modifiers()` (`src/patient_builder/patient_file.py`) constructing a
+structurally-diseased body from a real, disease-appropriate EF. A healthy-mean EF fallback tells
+Pulse to simulate a structurally normal heart, so `map_start` comes out at/near the healthy
+baseline regardless of what the wearable-trend classifier assigned as `scenario_type`/`severity` —
+`component_scores` and `baseline_deficit_score` are both exactly 0.0, and the API's own
+`risk_caveats` field is still emitting its pre-fix warning text ("risk_score is known to
+underestimate severity for this presentation") for this patient, confirming the underestimate the
+fix was built to close is still present here.
+
+**This is a real, specific limitation of the fix's transferability, not a bug in the fix itself.**
+The fix was validated and fitted entirely against the 117-row Phase 4 *synthetic* batch, where EF
+is always a real, disease-appropriate simulated input (§6.1). It works as designed there. For a
+real-world patient whose EF is unmeasured and Tier-1-defaulted to a population-healthy mean, the
+mechanism the fix relies on (a congested simulated baseline) has no way to fire — this is a gap
+between "validated on synthetic data" and "transfers to real data with missing EF," worth stating
+plainly rather than letting §8.4's un-verified prediction (this patient "would score materially
+differently post-fix") stand uncorrected.
+
+**n=1 caveat**: this cohort has exactly one real `fluid_overload` patient. This finding is
+specific, well-evidenced, and mechanistically explained — but it is not a statistically powered
+statement about the fix's real-world performance in general, only about this one patient and the
+EF-fallback interaction it surfaces. The 29/30-of-30 bucket shift documented on the synthetic batch
+(§6.1) remains the fix's primary validated evidence; this real-world n=1 is a targeted stress-test
+of one specific failure mode (unmeasured EF), not a contradiction of that synthetic result.
+
+**Failed patients (user_id 6, 18, 22) — same set, same mechanism as §8.4, not new.** Identical
+three patients failed with the identical crash signature in both runs; this is unrelated to the
+`fluid_overload` fix (§8.4 already established the crash happens inside the Pulse subprocess,
+downstream of anything either fix touches). Consistent, reproducible evidence for the
+severity-shift-triggers-instability hypothesis §8.4 proposed but couldn't confirm — the same three
+patients crashing identically across two independent runs, months apart, on two different fix
+states, points toward *something about these three patients' post-nyha-fix severity/scenario
+inputs specifically* (not random flakiness) as the trigger, though the exact severity value fed to
+Pulse before the crash remains uncaptured (§8.4's same limitation).
+
+**Timing note, corroborating `docs/methodology.md`'s "Known Engine Constraints" finding**: every
+one of the 13 successful completions in this run landed in a tight 170.2-200.4s wall-clock band
+(170.2, 170.3, 180.2, 180.3, 180.4, 180.4, 190.2, 190.2, 190.2, 190.4, 200.3, 200.3, 200.4) — this
+emerged naturally from PerHeart's own real, diverse cohort (not selected for this), and is
+consistent with that section's finding that at least some scenario/severity combinations on this
+host simply take close to the 180s ceiling regardless of session state. The 3 failed patients, by
+contrast, failed fast (30.1s each) — the known engine-crash signature, not the timeout one.
+
+#### 8.5.1 Caveat-text gap closed (messaging only — the underlying limitation is still open)
+
+Following the finding above, `risk_caveats` now distinguishes the two reasons a `fluid_overload`
+patient can show a misleadingly-LOW `risk_score`: the general "the fix is a hand-tuned
+approximation" caveat (unchanged), vs. a new, mechanism-specific message for exactly the condition
+diagnosed here — unmeasured EF, Tier-1-fallback-defaulted, masking `baseline_deficit_score`
+(`src/api/services.py`'s `EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE`). **Scope: messaging
+only** — the EF Tier-1 fallback's value and logic are unchanged, and it deliberately stays
+scenario-unaware (making it scenario-aware would leak the label being predicted into an input
+feature).
+
+**A real bug surfaced verifying this against user_27's live output, not just unit tests**: the
+first implementation computed `ef_is_fallback` by calling `apply_tier1_fallback()` a *second* time
+inside `_run_assessment_pipeline`, on the value already read back from the stored
+`ClinicalReport` row. But `create_clinical_report()` (`src/api/routes.py`) already resolves and
+*stores* the fallback value at submission time (never `NULL`, even when it was defaulted) —
+alongside its own `ef_is_fallback` column, computed correctly once at that point. Re-deriving it
+downstream from an already-concrete number always evaluated to `False`, so the very first live
+re-attempt on user_27 still showed the stale, generic caveat text despite the code being deployed
+and unit tests passing. The unit test that should have caught this didn't, because it never
+submitted a clinical report at all (a valid but different path — no `ClinicalReport` row means the
+pipeline's own `apply_tier1_fallback()` fallback path runs, which was never broken); fixed by
+reusing `latest_report.ef_is_fallback` directly and updating the test to submit a report with a
+null EF, matching `scripts/perheart_real_data_replay.py`'s actual request shape. Re-verified
+against a fresh live run of user_27 after the fix — confirmed firing correctly (this section's own
+evidence trail includes the corrected `risk_caveats` text).
+
+**Checked whether this condition is narrow to just user_27, so the fix isn't presented as broader
+than it is**: it genuinely is narrow, for two different, independently-confirmed reasons —
+(a) PerHeart's 27-patient cohort produced exactly one `fluid_overload` case (user_27) across all
+three runs so far; every other completed patient is `cardiac_stress` or `stable`, scenarios this
+caveat logic doesn't touch. (b) The synthetic batch (`data/synthetic/patients.csv`, 2,000 patients,
+392 of them `fluid_overload`) has **zero** null-EF rows — synthetic patients always carry a real,
+generated EF value, so this masking condition structurally cannot occur there via the normal
+pipeline. This isn't a gap in the check; it's the honest current shape of the data.
+
+**What remains open, and belongs in Future Work / Limitations, not solved here**: the EF-fallback
+limitation itself — that a real fluid_overload patient with unmeasured EF gets an unreliable
+`risk_score` regardless of how clearly the caveat names the reason. Naming the mechanism correctly
+doesn't fix the mechanism; a real EF measurement (echo) or a validated non-invasive EF proxy would
+be the actual fix, and isn't attempted here.

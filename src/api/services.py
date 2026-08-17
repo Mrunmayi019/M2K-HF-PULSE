@@ -45,6 +45,28 @@ FLUID_OVERLOAD_CAVEAT_MESSAGE = (
     "this presentation (see docs/methodology.md §6.1). Do not rely on risk_score alone."
 )
 
+# Diagnosed 2026-08-17 (docs/real_world_data_integration.md §8.5): the fluid_overload fix's
+# baseline_deficit_score term needs the Pulse-simulated patient to reflect a congested, diseased
+# state, which needs a real, disease-appropriate ejection_fraction_pct. When EF is unmeasured and
+# Tier-1-fallback-defaulted to the healthy-population mean (apply_tier1_fallback()), Pulse
+# simulates a structurally normal heart regardless of scenario_type/severity, so map_start comes
+# out healthy and baseline_deficit_score has nothing to detect -- the FLUID_OVERLOAD_CAVEAT_MESSAGE
+# above is stale and technically inaccurate for this specific failure mode (it describes the
+# pre-fix blind spot; this is a different, still-open one). This message names the actual
+# mechanism instead. Caveat/messaging only -- does NOT change the EF fallback value or logic, and
+# deliberately does NOT make the fallback scenario-aware (that would leak the label being
+# predicted into an input feature).
+EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE = (
+    "Detected scenario is fluid_overload, but risk_score is LOW for a different reason than the "
+    "general fluid_overload caveat: ejection_fraction_pct was not measured for this patient and "
+    "defaulted to the Tier 1 healthy-population-mean fallback (docs/data_provenance.md), so the "
+    "Pulse-simulated patient has a structurally normal heart -- risk_score.py's "
+    "baseline_deficit_score term (the fluid_overload fix, docs/methodology.md §6.1) has no "
+    "congested baseline to detect, regardless of the wearable-trend-derived severity. Do not rely "
+    "on risk_score alone; a measured ejection fraction would materially change this assessment "
+    "(docs/real_world_data_integration.md §8.5)."
+)
+
 _model_cache: dict[str, object] = {}
 
 
@@ -139,11 +161,18 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         .order_by(models.ClinicalReport.reported_at.desc())
         .first()
     )
-    ejection_fraction_pct = latest_report.ejection_fraction_pct if latest_report else None
-    nt_probnp_pg_ml = latest_report.nt_probnp_pg_ml if latest_report else None
-    ejection_fraction_pct, nt_probnp_pg_ml, _, _ = apply_tier1_fallback(
-        ejection_fraction_pct, nt_probnp_pg_ml
-    )
+    if latest_report is not None:
+        # create_clinical_report() (src/api/routes.py) already resolved and stored the fallback
+        # at submission time -- ejection_fraction_pct is never NULL here even when it was a
+        # fallback, so re-deriving ef_is_fallback via a second apply_tier1_fallback() call would
+        # always see a concrete number and wrongly compute False. Reuse the already-stored flag
+        # instead (bug found and fixed 2026-08-17 verifying the EF-fallback caveat against a real
+        # patient -- docs/real_world_data_integration.md §8.5).
+        ejection_fraction_pct = latest_report.ejection_fraction_pct
+        nt_probnp_pg_ml = latest_report.nt_probnp_pg_ml
+        ef_is_fallback = latest_report.ef_is_fallback
+    else:
+        ejection_fraction_pct, nt_probnp_pg_ml, ef_is_fallback, _ = apply_tier1_fallback(None, None)
 
     trends_df = get_wearable_window(db, patient_id)
     if trends_df is None:
@@ -254,7 +283,12 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         for horizon, r in projection.items()
     }
 
-    risk_caveats = FLUID_OVERLOAD_CAVEAT_MESSAGE if scenario_type == "fluid_overload" else None
+    if scenario_type != "fluid_overload":
+        risk_caveats = None
+    elif ef_is_fallback and risk["risk_bucket"] == "LOW":
+        risk_caveats = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
+    else:
+        risk_caveats = FLUID_OVERLOAD_CAVEAT_MESSAGE
 
     db.add(
         models.RiskAssessment(
