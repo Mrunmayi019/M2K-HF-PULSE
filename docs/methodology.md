@@ -247,13 +247,20 @@ types, the failed patients' own severity is high: mean 0.75 (`cardiac_stress`) a
 (`acute_deterioration`) vs. a dataset-wide mean around 0.4-0.5. This is missing-not-at-random
 (MNAR), not missing-at-random (MAR): the probability a run is missing depends on the value that
 run *would have produced* (high severity), even after conditioning on the observed covariate
-(scenario_type) — not just on scenario_type alone, which would be MAR. Three later, independent
-runs reproduce the identical signature: PerHeart's post-fix re-run (§8.4) lost 3 previously-clean
-patients to the exact same `exited 1` crash after a severity-model retrain changed their predicted
-severity; and this session's expanded live re-validation's one failure so far (`P1978`,
-`acute_deterioration`, true severity 0.675 — squarely in Phase 4's documented 0.6-0.85 crash
-range) failed in 61.6s, far short of the 900s poll ceiling — a fast subprocess crash, not a slow
-timeout, consistent with Mechanism 1 rather than Mechanism 2 below.
+(scenario_type) — not just on scenario_type alone, which would be MAR. Later, independent runs
+reproduce the identical signature repeatedly: PerHeart's post-fix re-run (§8.4) lost 3
+previously-clean patients to the exact same `exited 1` crash after a severity-model retrain
+changed their predicted severity; and the live re-validation sample, expanded across three
+sessions to n=50 attempted (**n=45 completed**, §9 "Statistical power" update below), now has
+**5 confirmed deterministic failures** — `P1035` (`cardiac_stress`, severity 0.914), `P1476`
+(`cardiac_stress`, 0.602), `P1646` (`acute_deterioration`, 0.765), `P1840` (`cardiac_stress`,
+0.626), `P1978` (`acute_deterioration`, 0.675) — every one high-severity
+`cardiac_stress`/`acute_deterioration`, every one failing in ~30-62s (far short of the 900s poll
+ceiling), a fast subprocess crash, not a slow timeout, consistent with Mechanism 1 rather than
+Mechanism 2 below. **These 5 are additional observed instances of the exact mechanism already
+root-caused in "Known Engine Constraints" (§8) — not a new or different failure pattern**; that
+section has the full causal trace (the actual engine log evidence, not just this statistical
+signature), which this paragraph doesn't repeat.
 
 **Mechanism 2 — resource contention (`httpx.ReadTimeout`, 180s Pulse timeout), MAR with respect to
 concurrency, not severity.** §8.3's concurrency escalation (9 workers → 4 → 2) found a completely
@@ -1051,12 +1058,24 @@ research paper once the pipeline is validated end-to-end (§7/§8).
   fixes, the same signature reproduced on real PerHeart data
   (`docs/real_world_data_integration.md` §8.2). Done with the repo owner's explicit sign-off,
   satisfying the hold noted in the previous revision of this section.
-- **Expand the batch validation beyond n=5/scenario** — `acute_deterioration`'s risk-bucket
-  distribution didn't cleanly reproduce the offline pattern at this sample size (§7); a larger
-  batch (e.g. matching Phase 4's n=30/scenario) would distinguish real signal from small-sample
-  noise before this becomes a claim in a paper. **Not done yet because it costs several more hours
-  of Docker wall-clock time (Phase 4's 150-run batch took ~90 min even parallelized) for a
-  confirmatory result, not a new finding — worth scheduling deliberately rather than run ad hoc.**
+- **DONE — expanded the batch validation from n=5/scenario to n=10/scenario (n=50 attempted),
+  across three sessions (2026-08-12, 2026-08-17, 2026-08-18), using
+  `scripts/nyha_fix_live_revalidation.py`'s `--resume-from` to top up incrementally rather than
+  re-running from scratch each time (n=5→n=20→n=27→n=45 completed).** Final, current numbers —
+  recomputed fresh at the actual achieved n each time, never reused from a smaller prior run:
+  **n=45/50 completed (90%)**, live severity MAE **0.0264** [95% bootstrap CI 0.0194, 0.0352,
+  2000 resamples], scenario accuracy **1.0000** [95% CI 1.0000, 1.0000]. Consistent across every
+  expansion step (n=20: MAE 0.0275 [0.0188, 0.0394]; n=27: MAE 0.0247 [0.0171, 0.0336]; n=45: MAE
+  0.0264 [0.0194, 0.0352]) — the point estimate has stayed in a tight ~0.025-0.028 band the whole
+  way, well below the pre-fix 0.271 and in the same range as the 0.047 offline benchmark, so this
+  reads as a stable, real result rather than one that happened to look good at a smaller n.
+  **n=45, not n=50, is the reportable number** — 5 of the 50 sampled patients failed
+  deterministically. **These failures are consistent with, not additional to, the
+  Exercise-action instability already characterized in "Known Engine Constraints" (§8)** — same
+  mechanism, same crash signature, not a new bug (see the Mechanism 1 discussion above for the
+  specific 5 patient IDs, and §8 for the full root-cause trace). Full run data:
+  `data/validation_runs/20260818_104827_nyha_fix_revalidation/` (this session's top-up) and
+  `combined_results.csv` there for the full merged n=50-attempted set.
 
 **Deferred engineering (Phase 9, roadmap-defined):**
 - **Tier 2 personalization** (echo/PPG-derived vascular compliance) — see §3 for exactly why it
