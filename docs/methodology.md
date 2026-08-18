@@ -978,9 +978,39 @@ instead of reusing the already-stored value — full account in that same sectio
 
 #### Future work
 
-The underlying limitation remains open: a real EF measurement (echocardiogram) or a validated
-non-invasive EF proxy is the actual fix, and was not attempted here — scope and feasibility not
-assessed as part of this pass.
+The underlying limitation remains open: a real EF measurement (echocardiogram) is the actual
+fix. **A non-invasive BNP-based EF proxy was specifically investigated as a possible substitute
+(2026-08-18) and ruled out — not for lack of searching, but because no defensible relationship
+exists to build one from.** Constraint on the investigation: any proxy had to use only signals
+measured independent of the scenario classification (age, BNP, other Tier 1 vitals) — never
+`scenario_type` or anything derived from it, which would leak the label this pipeline predicts.
+
+Checked this project's own already-cited literature first: `sinha_2024` (age cross-check only,
+nothing EF/BNP-related), `bhosale_2024` (age-adjusted NT-proBNP *diagnostic* cutoffs — whether BNP
+is elevated enough to indicate HF at all, not a continuous EF estimate), and Ohte et al.
+(`docs/data_provenance.md`'s citation table, listed as `TODO — not yet extracted`, zero usable
+content in this repo). None support a proxy formula.
+
+Then checked the broader cardiology literature independently (JACC, PMC, several HFrEF/HFpEF
+cohort studies), not just this project's citations. **Consistent finding across every source
+checked: EF category is treated as the known, given input used to stratify or explain NT-proBNP
+findings — never the reverse.** No paper offers a formula predicting continuous EF *from* BNP.
+This directionality is not incidental — BNP is independently driven by age, renal function,
+atrial fibrillation, and obesity (the same confounders that make BNP-EF correlations loose at the
+individual level, §6.1/data_provenance.md), which is exactly why the literature never inverts the
+relationship into an EF-predicting formula. **This is a structural feature of the clinical
+literature — the relationship clinicians actually use runs EF→BNP, not BNP→EF — not a gap in how
+hard this was searched, and not something a more thorough search would find.**
+
+**Resolution: the flat healthy-population-mean fallback stays as the documented, honest current
+state.** No proxy was implemented, since implementing one without a real citable basis would mean
+fabricating coefficients — exactly what this project's citation discipline exists to prevent (see
+the MAGGIC benchmark's own age-band sourcing caution, `src/analytics/benchmark_scores.py`, for the
+same principle applied elsewhere). The `risk_caveats` messaging fix (§8.5.1 of
+`docs/real_world_data_integration.md`) remains the correct, currently-available mitigation:
+naming the mechanism accurately, not hiding it behind a spuriously-precise proxy. **This
+specific question — a BNP-based EF proxy — is now closed; a real EF measurement (echocardiogram)
+remains the only path to actually resolving the underlying limitation, not attempted here.**
 - **The live-pipeline severity regressor underperforms its offline benchmark by a diagnosed, real
   margin: MAE 0.271 live vs. 0.048 offline (§7, Phase 8 batch validation).** Root cause:
   `build_inference_features()` (`src/scenario_classifier/features.py`) always defaults

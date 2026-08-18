@@ -205,9 +205,14 @@ authoritative current list.
       only, verified against a live re-run of the real patient (which also caught and fixed a real
       bug: `ef_is_fallback` was being wrongly re-derived downstream instead of reusing the
       already-stored value). Full detail: `docs/real_world_data_integration.md` §8.5/§8.5.1.
-      **Still open, not solved by the caveat fix**: a real EF measurement or validated proxy is
-      the actual fix for the underlying limitation — flagged in `docs/methodology.md` §8, not
-      attempted here.
+      **Still open, not solved by the caveat fix**: a real EF measurement (echocardiogram) is the
+      actual fix for the underlying limitation. **A BNP-based EF proxy was investigated
+      (2026-08-18) and ruled out for good** — checked against this project's own cited literature
+      and the broader cardiology literature independently; every source treats EF as the known
+      input used to explain BNP, never the reverse, so no defensible EF-from-BNP formula exists to
+      build a proxy from. Not a search-effort gap — a structural feature of the clinical
+      literature. Full writeup: `docs/methodology.md`'s `fluid_overload` Known Engine Constraints
+      subsection, "Future work."
 
 - [x] **Increase the live re-validation completion rate — attempted, landed at n=27/30 (90%),
       not the full 30, 2026-08-17.** Topped up from n=20 via

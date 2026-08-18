@@ -419,5 +419,8 @@ pipeline. This isn't a gap in the check; it's the honest current shape of the da
 **What remains open, and belongs in Future Work / Limitations, not solved here**: the EF-fallback
 limitation itself — that a real fluid_overload patient with unmeasured EF gets an unreliable
 `risk_score` regardless of how clearly the caveat names the reason. Naming the mechanism correctly
-doesn't fix the mechanism; a real EF measurement (echo) or a validated non-invasive EF proxy would
-be the actual fix, and isn't attempted here.
+doesn't fix the mechanism; a real EF measurement (echo) is the actual fix. A BNP-based non-invasive
+proxy was investigated as a substitute and ruled out (2026-08-18, `docs/methodology.md`'s
+`fluid_overload` Known Engine Constraints subsection) — the clinical literature treats EF as the
+input that explains BNP, never the reverse, so no defensible EF-from-BNP formula exists to build
+one from. Not attempted here, and not expected to be revisited on this specific approach.
