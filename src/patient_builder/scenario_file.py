@@ -30,6 +30,18 @@ DATA_REQUESTS = [
     {"Category": "Physiology", "PropertyName": "CardiacOutput"},
     {"Category": "Physiology", "PropertyName": "HeartStrokeVolume"},
     {"Category": "Physiology", "PropertyName": "RespirationRate"},
+    # ECG lead trace and left-heart volume/pressure, added to drive the dashboard's ECG/PV-loop
+    # panels (2026-08-28). Not top-level Physiology scalars -- confirmed empirically via a direct
+    # PulseScenarioDriver invocation inside the container (same discipline as OxygenSaturation
+    # above): "LeftHeartPressure"/"LeftHeartVolume" under Category "Physiology" both fail with
+    # "Unhandled data request", and "GasCompartment"/"LeftHeart" fails with "Unknown gas
+    # compartment" (LeftHeart is a liquid, not gas, compartment). The two forms below are the
+    # ones that actually parsed with zero engine errors and returned real, physiologically
+    # plausible values (a test run: volume 62-143 mL, pressure 5.8-136.8 mmHg, a repeating
+    # ECG QRS-like spike at the patient's simulated heart rate).
+    {"Category": "LiquidCompartment", "CompartmentName": "LeftHeart", "PropertyName": "Volume"},
+    {"Category": "LiquidCompartment", "CompartmentName": "LeftHeart", "PropertyName": "Pressure"},
+    {"Category": "ECG", "PropertyName": "Lead3ElectricPotential"},
 ]
 
 STABILIZATION_S = 60

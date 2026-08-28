@@ -1,6 +1,9 @@
+import { useMemo } from 'react'
+import TrendChart from '../trends/TrendChart.jsx'
 import { riskColor } from '../../utils/format.js'
 
 const HORIZON_KEYS = ['7', '14', '30']
+const HORIZON_LABELS = { 0: 'Now', 7: '+7d', 14: '+14d', 30: '+30d' }
 
 function HorizonCard({ label, nowClass, severity, riskBucket }) {
   const color = riskBucket ? riskColor(riskBucket) : '#64748B'
@@ -33,12 +36,36 @@ export default function ForwardProjectionPanel({ assessment, horizons }) {
   const pct = daysToBarPct(daysToNext)
   const barColor = assessment?.risk_bucket ? riskColor(assessment.risk_bucket) : 'var(--teal)'
 
+  const trajectory = useMemo(() => {
+    const points = [{ x: 0, y: assessment?.severity ?? null }]
+    for (const key of HORIZON_KEYS) {
+      const h = horizons?.[key]
+      points.push({ x: Number(key), y: h?.projected_severity ?? null })
+    }
+    return points.filter((p) => p.y !== null && p.y !== undefined)
+  }, [assessment, horizons])
+
   return (
     <div className="section">
       <div className="sectitle">
         Forward Projection <span className="sub">digital twin trajectory</span>
       </div>
-      <div className="card">
+      <div className="card" style={{ padding: '20px 24px 8px' }}>
+        <div className="projexplainer">
+          Each point is a fresh Pulse simulation of this patient's projected future state at that
+          severity — not a curve fit through past readings.
+        </div>
+        {trajectory.length >= 2 && (
+          <TrendChart
+            data={trajectory}
+            color={barColor}
+            height={120}
+            formatX={(v) => HORIZON_LABELS[v] ?? `+${v}d`}
+            formatY={(v) => v.toFixed(2)}
+          />
+        )}
+      </div>
+      <div className="card" style={{ marginTop: 14 }}>
         <div className="projgrid">
           <HorizonCard label="Now" nowClass="now" severity={assessment?.severity ?? null} riskBucket={assessment?.risk_bucket ?? null} />
           {HORIZON_KEYS.map((key) => {

@@ -136,7 +136,7 @@ class TestBuildScenarioFile:
         )
         assert scenario["PatientConfiguration"]["PatientFile"] == "/workspace/scenarios/patient_test.json"
         assert "DataRequestManager" in scenario
-        assert len(scenario["DataRequestManager"]["DataRequest"]) == 8
+        assert len(scenario["DataRequestManager"]["DataRequest"]) == 11
         actions = scenario["AnyAction"]
         assert "AdvanceTime" in actions[0]
         assert "AdvanceTime" in actions[-1]

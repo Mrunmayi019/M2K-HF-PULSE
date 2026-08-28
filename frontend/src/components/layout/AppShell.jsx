@@ -5,6 +5,7 @@ import HeroStatusCard from '../hero/HeroStatusCard.jsx'
 import CurrentConditionPanel from '../condition/CurrentConditionPanel.jsx'
 import VitalsTable from '../vitals/VitalsTable.jsx'
 import ForwardProjectionPanel from '../projection/ForwardProjectionPanel.jsx'
+import CardiacWaveformPanel from '../waveform/CardiacWaveformPanel.jsx'
 import DoctorReportCard from '../report/DoctorReportCard.jsx'
 import { DashboardSkeleton } from '../shared/Skeleton.jsx'
 import ErrorState from '../shared/ErrorState.jsx'
@@ -75,8 +76,15 @@ function DashboardBody({ patientId, patient }) {
       <HeroStatusCard assessment={assessment} patientLabel={patientLabel} />
       <CurrentConditionPanel assessment={assessment} wearable={wearable} />
       <VitalsTable wearable={wearable} vitalSlopes={assessment?.vital_slopes} />
+      <CardiacWaveformPanel waveformData={status.waveform_data} assessment={assessment} />
       <ForwardProjectionPanel assessment={assessment} horizons={report.projection?.horizons} />
-      <DoctorReportCard patientLabel={patientLabel} patient={patient} assessment={assessment} wearable={wearable} />
+      <DoctorReportCard
+        patientLabel={patientLabel}
+        patient={patient}
+        assessment={assessment}
+        wearable={wearable}
+        waveformData={status.waveform_data}
+      />
     </>
   )
 }

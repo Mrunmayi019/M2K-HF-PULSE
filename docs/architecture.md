@@ -49,7 +49,9 @@ Wearable / clinical report input
          ▼
   src/analytics/simulation_features.py  — Phase 4, BUILT
          │  (per-run feature extraction: HR rise, MAP drop, CO drop%, compensation/instability
-         │   flags -- feeds data/simulation_runs/features_dataset.csv, Phase 5's model input)
+         │   flags -- feeds data/simulation_runs/features_dataset.csv, Phase 5's model input.
+         │   extract_waveform_data() added 2026-08-28: steady-state ECG trace + left-heart
+         │   pressure-volume loop, see methodology.md §4.1 for the property-discovery evidence)
          ▼
   src/analytics/risk_score.py           — Phase 5, BUILT (primary risk scorer)
          │  (hand-tuned, clinically-cited weighted score -- LOW/MODERATE/HIGH; see
@@ -78,7 +80,8 @@ Wearable / clinical report input
          ▼
   frontend/ (React + Vite)               — Phase 7, BUILT; extended Phase 7 (Trends/Lab/Reports/Settings)
          │  (src/components/: layout/, hero/, condition/, vitals/, projection/, report/, shared/
-         │   state components, + trends/, lab/, reports/, settings/ from the extension below;
+         │   state components, + trends/, lab/, reports/, settings/ from the extension below,
+         │   + waveform/ (ECG trace + PV loop panel, added 2026-08-28, methodology.md §4.1);
          │   src/hooks/: usePatients, usePatientReport (polls while running/pending), + useTrends,
          │   useTheme from the extension; built against a decoded design reference,
          │   frontend/design_reference.html -- see methodology.md §10 for the decode approach and

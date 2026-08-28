@@ -80,6 +80,10 @@ class SimulationRun(Base):
     scenario_json_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     started_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
+    # {"cycle_duration_s": ..., "pv_loop": [{"volume_ml", "pressure_mmhg"}, ...], "ecg": [{"t_s",
+    # "mv"}, ...]} -- see src.analytics.simulation_features.extract_waveform_data(). Nullable:
+    # simulation runs created before this field was added (2026-08-28) have none.
+    waveform_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="simulation_runs")
     risk_assessment: Mapped[Optional["RiskAssessment"]] = relationship(back_populates="simulation_run")
@@ -94,6 +98,12 @@ class RiskAssessment(Base):
     risk_score: Mapped[float] = mapped_column(Float)
     risk_bucket: Mapped[str] = mapped_column(String)
     component_scores: Mapped[dict] = mapped_column(JSON)
+    # risk_score.compute_risk_score() computes these but they were previously discarded before
+    # storage -- for a fluid_overload patient whose score is baseline-driven (§6.1), every
+    # component_scores entry can legitimately read 0 while risk_score is nonzero, with nothing in
+    # the stored data explaining why. Nullable: existing rows predate this field (2026-08-28).
+    baseline_deficit_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    dominant_mechanism: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     nyha_class: Mapped[str] = mapped_column(String)
     risk_caveats: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     deterioration_direction: Mapped[Optional[str]] = mapped_column(String, nullable=True)

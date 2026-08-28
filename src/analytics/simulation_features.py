@@ -26,6 +26,17 @@ _COLUMN_SUBSTRINGS = {
     "stroke_volume": "HeartStrokeVolume",
 }
 
+_WAVEFORM_COLUMN_SUBSTRINGS = {
+    "left_heart_volume": "LeftHeart-Volume",
+    "left_heart_pressure": "LeftHeart-Pressure",
+    "ecg": "ECG-Lead3ElectricPotential",
+}
+
+# How many cardiac cycles of ECG trace to keep for the dashboard panel -- one cycle alone reads
+# as a single ambiguous spike; 3 reads recognizably as a repeating rhythm strip. The PV loop
+# panel, in contrast, needs exactly one closed cycle (more would just overplot the same loop).
+ECG_DISPLAY_CYCLES = 3
+
 
 def _pick_column(df: pd.DataFrame, substring: str) -> str:
     """Fuzzy column lookup, matching streamlit_app.py's pick_column() convention -- Pulse's CSV
@@ -71,4 +82,46 @@ def analyze_simulation(df: pd.DataFrame) -> dict:
         "stroke_volume_end": sv_end,
         "compensation_flag": int(stroke_volume_ratio >= COMPENSATION_STROKE_VOLUME_RATIO),
         "instability_flag": int(map_end < INSTABILITY_MAP_THRESHOLD_MMHG),
+    }
+
+
+def extract_waveform_data(df: pd.DataFrame) -> dict:
+    """Extracts a steady-state ECG trace + pressure-volume (PV) loop window from one Pulse run's
+    raw output, for the dashboard's ECG/PV-loop panels (added 2026-08-28; see
+    src.patient_builder.scenario_file.DATA_REQUESTS for how these columns were confirmed to exist
+    and what they measure).
+
+    Takes the window from the *end* of the run (steady state, matching every "_end" feature in
+    analyze_simulation() above) rather than the full run -- the run's raw output is 6000+ rows at
+    50Hz, and the early portion is dominated by the 60s stabilization period, not the scenario's
+    actual physiological response.
+    """
+    time_col = next(c for c in df.columns if c.strip().lower().startswith("time"))
+    hr_col = _pick_column(df, _COLUMN_SUBSTRINGS["heart_rate"])
+    volume_col = _pick_column(df, _WAVEFORM_COLUMN_SUBSTRINGS["left_heart_volume"])
+    pressure_col = _pick_column(df, _WAVEFORM_COLUMN_SUBSTRINGS["left_heart_pressure"])
+    ecg_col = _pick_column(df, _WAVEFORM_COLUMN_SUBSTRINGS["ecg"])
+
+    final_time = float(df[time_col].iloc[-1])
+    hr_end = float(df[hr_col].iloc[-1])
+    cycle_s = 60.0 / hr_end if hr_end > 0 else 1.0
+
+    def _tail_window(n_cycles: float) -> pd.DataFrame:
+        cutoff = final_time - n_cycles * cycle_s
+        return df[df[time_col] >= cutoff]
+
+    pv_window = _tail_window(1)
+    ecg_window = _tail_window(ECG_DISPLAY_CYCLES)
+    ecg_window_start = float(ecg_window[time_col].iloc[0])
+
+    return {
+        "cycle_duration_s": round(cycle_s, 4),
+        "pv_loop": [
+            {"volume_ml": round(float(v), 2), "pressure_mmhg": round(float(p), 2)}
+            for v, p in zip(pv_window[volume_col], pv_window[pressure_col])
+        ],
+        "ecg": [
+            {"t_s": round(float(t) - ecg_window_start, 3), "mv": round(float(v), 4)}
+            for t, v in zip(ecg_window[time_col], ecg_window[ecg_col])
+        ],
     }

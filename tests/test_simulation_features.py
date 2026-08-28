@@ -13,6 +13,7 @@ from src.analytics.simulation_features import (
     COMPENSATION_STROKE_VOLUME_RATIO,
     INSTABILITY_MAP_THRESHOLD_MMHG,
     analyze_simulation,
+    extract_waveform_data,
     _pick_column,
 )
 
@@ -101,3 +102,45 @@ class TestAnalyzeSimulation:
             "stroke_volume_start", "stroke_volume_end",
             "compensation_flag", "instability_flag",
         }
+
+
+def _make_waveform_run():
+    """11 rows, Time(s) 0..10 at a 1s step, constant HR=60 -> cycle_duration_s=1.0 exactly, so
+    the tail-window cutoffs land on whole seconds and are easy to hand-verify."""
+    return pd.DataFrame(
+        {
+            "Time(s)": list(range(11)),
+            "HeartRate(1/min)": [60] * 11,
+            "LeftHeart-Volume(mL)": [i * 10 for i in range(11)],
+            "LeftHeart-Pressure(mmHg)": [float(i) for i in range(11)],
+            "ECG-Lead3ElectricPotential(mV)": [round(i * 0.01, 3) for i in range(11)],
+        }
+    )
+
+
+class TestExtractWaveformData:
+    def test_cycle_duration_from_end_heart_rate(self):
+        result = extract_waveform_data(_make_waveform_run())
+        assert result["cycle_duration_s"] == pytest.approx(1.0)
+
+    def test_pv_loop_is_exactly_one_cycle(self):
+        # cutoff = final_time(10) - 1*cycle_s(1.0) = 9 -> rows at Time=9,10
+        result = extract_waveform_data(_make_waveform_run())
+        assert result["pv_loop"] == [
+            {"volume_ml": 90.0, "pressure_mmhg": 9.0},
+            {"volume_ml": 100.0, "pressure_mmhg": 10.0},
+        ]
+
+    def test_ecg_covers_display_cycles_with_time_relative_to_window_start(self):
+        # cutoff = final_time(10) - 3*cycle_s(1.0) = 7 -> rows at Time=7,8,9,10, t_s rebased to 0
+        result = extract_waveform_data(_make_waveform_run())
+        assert result["ecg"] == [
+            {"t_s": 0.0, "mv": 0.07},
+            {"t_s": 1.0, "mv": 0.08},
+            {"t_s": 2.0, "mv": 0.09},
+            {"t_s": 3.0, "mv": 0.1},
+        ]
+
+    def test_returns_expected_top_level_keys(self):
+        result = extract_waveform_data(_make_waveform_run())
+        assert set(result.keys()) == {"cycle_duration_s", "pv_loop", "ecg"}

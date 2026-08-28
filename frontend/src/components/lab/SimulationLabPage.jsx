@@ -225,6 +225,15 @@ function SimulationInternals({ patientId }) {
           {assessment.risk_bucket} RISK
         </div>
       </div>
+      {assessment.dominant_mechanism === 'baseline' && (
+        <div className="mechanismnote">
+          This score is driven by <b>chronic baseline congestion</b> (this patient's resting MAP
+          is already low, not an acute change during the simulated encounter) — the 5 meters
+          below measure only <i>acute</i> change during the run and correctly read near-zero here.
+          Baseline deficit score: <b>{assessment.baseline_deficit_score?.toFixed(3)}</b> (this is
+          what actually produced the {assessment.risk_score?.toFixed(3)} above).
+        </div>
+      )}
       <div className="metergrid">
         {Object.entries(assessment.component_scores ?? {}).map(([key, value]) => (
           <ComponentMeter key={key} label={COMPONENT_LABELS[key] ?? key} value={value} />

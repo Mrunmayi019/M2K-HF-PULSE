@@ -156,6 +156,14 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
         latest_assessment=schemas.RiskAssessmentPayload.model_validate(assessment) if assessment else None,
         latest_wearable=schemas.WearableReadingResponse.model_validate(latest_wearable) if latest_wearable else None,
         error_message=latest_run.error_message if latest_run and latest_run.status == "failed" else None,
+        # From the assessment's own linked run, not `latest_run` -- if a newer run failed after
+        # this assessment's run succeeded, `latest_run` would already be that failed run (see
+        # sim_status logic above, which has the same "assessment wins" precedent).
+        waveform_data=(
+            db.get(models.SimulationRun, assessment.simulation_run_id).waveform_data
+            if assessment
+            else None
+        ),
     )
 
 

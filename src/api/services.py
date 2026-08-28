@@ -24,7 +24,7 @@ from src.analytics.deterioration_rate import (
 )
 from src.analytics.projection import DEFAULT_HORIZONS_DAYS, project_physiology
 from src.analytics.risk_score import compute_risk_score
-from src.analytics.simulation_features import analyze_simulation
+from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
 from src.analytics.staging import classify_nyha
 from src.api import models
 from src.data_synthesis.generate_patients import load_reference_stats
@@ -247,6 +247,7 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         return
 
     sim_features = analyze_simulation(df)
+    run.waveform_data = extract_waveform_data(df)
     risk = compute_risk_score(
         hr_rise=sim_features["hr_rise"],
         map_drop=sim_features["map_drop"],
@@ -297,6 +298,8 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
             risk_score=risk["risk_score"],
             risk_bucket=risk["risk_bucket"],
             component_scores=risk["component_scores"],
+            baseline_deficit_score=risk["baseline_deficit_score"],
+            dominant_mechanism=risk["dominant_mechanism"],
             nyha_class=nyha_class,
             risk_caveats=risk_caveats,
             deterioration_direction=rate_info["direction"],

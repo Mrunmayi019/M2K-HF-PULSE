@@ -117,7 +117,10 @@ etc. Includes crash/timeout detection, since this step can and does fail for som
 **Stage 4 — Feature extraction.** Reduces the raw Pulse time series to 5 clinically-meaningful
 deltas: how much heart rate rose, how much mean arterial pressure dropped, how much cardiac output
 declined (%), whether the heart's stroke volume held up under stress (compensation), and whether
-blood pressure crossed a critical-care instability threshold.
+blood pressure crossed a critical-care instability threshold. As of 2026-08-28, this stage also
+extracts a steady-state ECG trace and left-heart pressure-volume (PV) loop for the dashboard's
+Cardiac Waveform panel — see `docs/methodology.md` §4.1 for how the underlying Pulse properties
+were confirmed to exist (they aren't top-level scalars like the 5 deltas above).
 
 **Stage 5 — Risk scoring and clinical logic.** Those 5 features (plus a 6th, `map_start`, the
 patient's baseline MAP) feed a hand-tuned, clinically-cited weighted risk score, a rule-based NYHA
@@ -129,8 +132,9 @@ runs stages 1-5 as one background job once a patient's 21-day wearable window fi
 read-facing endpoint is a fast database read — nothing in the request path ever waits on Pulse.
 
 **Stage 7 — Frontend.** A React dashboard reads from that API to show the patient's risk status,
-current condition, vitals, forward projection, and a clinical summary report, plus trend charts,
-a patient-creation wizard, and a reports view.
+current condition, vitals, a cardiac waveform panel (ECG trace + PV loop, added 2026-08-28),
+forward projection, and a clinical summary report, plus trend charts, a patient-creation wizard,
+and a reports view.
 
 ---
 

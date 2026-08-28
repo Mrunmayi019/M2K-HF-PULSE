@@ -47,6 +47,9 @@ def _fake_pulse_df(hr_start=71, hr_end=71, map_start=95, map_end=95, co_start=50
             "CardiacOutput(mL/min)": [co_start, co_end],
             "HeartStrokeVolume(mL)": [sv_start, sv_end],
             "OxygenSaturation": [0.0, 0.0],
+            "LeftHeart-Volume(mL)": [100.0, 100.0],
+            "LeftHeart-Pressure(mmHg)": [60.0, 60.0],
+            "ECG-Lead3ElectricPotential(mV)": [0.0, 0.0],
         }
     )
 

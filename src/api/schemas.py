@@ -115,6 +115,20 @@ class RiskAssessmentPayload(BaseModel):
     risk_score: float
     risk_bucket: str
     component_scores: dict
+    baseline_deficit_score: Optional[float] = Field(
+        default=None,
+        description=(
+            "The chronic-baseline-congestion sub-score (fluid_overload's map_start-driven fix, "
+            "docs/methodology.md §6.1) -- risk_score = max(acute_score, baseline_deficit_score). "
+            "component_scores only covers the acute mechanism, so a fluid_overload patient whose "
+            "risk is baseline-driven can show every component_scores entry as 0 while risk_score "
+            "is nonzero -- this field is what actually explains that case. None for runs that "
+            "predate this field (2026-08-28)."
+        ),
+    )
+    dominant_mechanism: Optional[Literal["acute", "baseline"]] = Field(
+        default=None, description="Which of the two mechanisms above produced risk_score."
+    )
     nyha_class: str
     risk_caveats: Optional[str] = Field(default=None, description=RISK_CAVEATS_DESCRIPTION)
     deterioration_direction: Optional[str] = None
@@ -136,6 +150,16 @@ class StatusResponse(BaseModel):
     latest_assessment: Optional[RiskAssessmentPayload] = None
     latest_wearable: Optional[WearableReadingResponse] = None
     error_message: Optional[str] = None
+    waveform_data: Optional[dict] = Field(
+        default=None,
+        description=(
+            "Steady-state ECG trace + pressure-volume (PV) loop from the latest completed "
+            "simulation run, if any. {'cycle_duration_s', 'pv_loop': [{'volume_ml', "
+            "'pressure_mmhg'}, ...], 'ecg': [{'t_s', 'mv'}, ...]} -- see "
+            "src.analytics.simulation_features.extract_waveform_data(). None for runs that "
+            "predate this field (2026-08-28) or that failed/are still in progress."
+        ),
+    )
 
 
 class HistoryResponse(BaseModel):

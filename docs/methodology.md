@@ -123,6 +123,55 @@ compiled source inside the Docker image rather than assuming from the planning d
   warning on every invocation) — plausibly an emulation-specific numerical artifact rather than a
   bug in our pipeline. Flagged as an open item; worth re-testing on native `amd64` if available.
 
+### 4.1 Cardiac waveform panel — ECG trace + pressure-volume (PV) loop, added 2026-08-28
+
+Pulse's cardiovascular model is a real, mechanistic time-varying-elastance heart model — it
+tracks the same underlying volume/pressure/electrical-activity signals a real cardiologist would
+read off a bedside monitor, not just the 8 summary scalars this project extracted through Phase 7.
+This addition surfaces two of those signals (an ECG trace and a pressure-volume loop) on the
+dashboard and in the clinical summary report, without changing any existing scenario/risk logic.
+
+**Discovery, same discipline as everything else in this section — verified empirically against
+the real engine, not assumed from docs.** None of `LeftHeartPressure`/`LeftHeartVolume`/
+`LeftVentricularVolume` exist as top-level `Physiology` scalars (all three fail with "Unhandled
+data request"); `GasCompartment`/`LeftHeart` fails too ("Unknown gas compartment" — the heart is a
+liquid, not gas, compartment). The properties that actually parsed with zero engine errors:
+
+```
+{"Category": "LiquidCompartment", "CompartmentName": "LeftHeart", "PropertyName": "Volume"}
+{"Category": "LiquidCompartment", "CompartmentName": "LeftHeart", "PropertyName": "Pressure"}
+{"Category": "ECG", "PropertyName": "Lead3ElectricPotential"}
+```
+
+A controlled test run (stable scenario, EF=45%) confirmed real, physiologically plausible output,
+not a repeat of the `OxygenSaturation` flat-0.0 problem above: `LeftHeart-Volume(mL)` ranged
+62.2–143.0 (matches real LV end-systolic/end-diastolic volume ranges), `LeftHeart-Pressure(mmHg)`
+ranged 5.8–136.8 (matches real diastolic-filling-to-peak-systolic range), and the ECG trace showed
+a clean, repeating QRS-like spike at the patient's simulated heart rate. A second live run through
+the full production pipeline (real patient, EF=32%, `fluid_overload`) showed a larger
+`LeftHeart-Volume` range (up to ~281mL) than the EF=45% test case — the expected direction for a
+more dilated, lower-EF heart, a useful physiological cross-check that the signal is behaving
+correctly, not just present.
+
+**What's extracted and shown**: `src/analytics/simulation_features.py`'s `extract_waveform_data()`
+takes the steady-state window from the *end* of the run (matching every `_end` feature elsewhere
+in this file) — one full cardiac cycle for the PV loop, the last 3 cycles for the ECG trace (one
+cycle alone reads as an ambiguous single spike; 3 reads as a recognizable rhythm strip). Stored on
+`SimulationRun.waveform_data` (new nullable JSON column, 2026-08-28 — existing rows predate it and
+correctly report no waveform data rather than a fabricated one), served via
+`GET /patients/{id}/status`'s `waveform_data` field, rendered by
+`frontend/src/components/waveform/CardiacWaveformPanel.jsx`.
+
+**What is deliberately NOT claimed.** The dashboard/report shows only numbers derived directly
+from the same waveform data by simple arithmetic (stroke volume = loop's volume range, pulse
+pressure = loop's pressure range, implied HR = 60/cycle duration) — no interpretation of loop
+*shape* (e.g. "this loop's morphology indicates diastolic dysfunction") is made anywhere. That
+kind of claim would need real validation against echocardiographic ground truth this project
+doesn't have, and is exactly the category of unvalidated clinical inference this project has
+already declined to make elsewhere (Tier 3 ECG-to-hemodynamics, §3; the BNP→EF proxy, §8's
+`fluid_overload` subsection) — the same standard applied consistently, not relaxed for a feature
+that happens to look visually impressive.
+
 ## 5. ML Model Design, Training, Evaluation
 
 **Phase 3 (scenario classifier, done).** Two `RandomForest` models

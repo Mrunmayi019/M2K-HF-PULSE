@@ -9,6 +9,29 @@ export const MOCK_PATIENTS = [
   { id: '44444444-4444-4444-8444-444444444444', age: 59, sex: 'Male', height_cm: 174, weight_kg: 90, created_at: '2026-06-04T09:00:00Z' },
 ]
 
+// A small, hand-shaped synthetic ECG/PV-loop cycle for mock-mode preview only -- shape matches
+// the real Pulse output confirmed empirically (2026-08-28: QRS-like spike, ~60-140mL volume
+// range, ~6-137mmHg pressure range), not a faithful reproduction of any one real run.
+function makeMockWaveform(hr, severity) {
+  const cycleS = 60 / hr
+  const n = 24
+  const ecgTemplate = [0, -0.03, -0.05, -0.02, 0.05, 0.62, -0.08, -0.04, 0, 0.02, 0.06, 0.09, 0.11, 0.1, 0.07, 0.04, 0.01, -0.01, -0.02, -0.01, 0, 0.01, 0, 0]
+  const ecg = []
+  for (let cycle = 0; cycle < 3; cycle += 1) {
+    for (let i = 0; i < n; i += 1) {
+      ecg.push({ t_s: Number((cycle * cycleS + (i / n) * cycleS).toFixed(3)), mv: ecgTemplate[i] })
+    }
+  }
+  const strokeScale = 1 - severity * 0.35
+  const pvLoop = Array.from({ length: n }, (_, i) => {
+    const t = (i / n) * 2 * Math.PI
+    const volume = 100 + 38 * strokeScale * Math.cos(t) - 6 * Math.sin(2 * t)
+    const pressure = 65 + 62 * Math.max(0, Math.sin(t + 0.4)) ** 1.6
+    return { volume_ml: Number(volume.toFixed(2)), pressure_mmhg: Number(pressure.toFixed(2)) }
+  })
+  return { cycle_duration_s: Number(cycleS.toFixed(4)), pv_loop: pvLoop, ecg }
+}
+
 function makeReport({ patientId, scenario, severity, riskBucket, riskScore, nyha, ef, bnp, hr, spo2, weight, steps, sleep, hrv, caveats, direction, daysToNext, simStatus, errorMessage }) {
   const latestWearable = simStatus === 'collecting' || simStatus === 'pending' || simStatus === 'running' || simStatus === 'complete' || simStatus === 'failed'
     ? {
@@ -27,13 +50,18 @@ function makeReport({ patientId, scenario, severity, riskBucket, riskScore, nyha
       ? {
           risk_score: riskScore,
           risk_bucket: riskBucket,
-          component_scores: {
-            hr_rise: 0.08,
-            map_drop: 0.06,
-            co_drop_pct: 0.05,
-            compensation_flag: 0.1,
-            instability_flag: riskBucket === 'HIGH' ? 0.3 : 0,
-          },
+          component_scores:
+            scenario === 'fluid_overload'
+              ? { hr_rise: 0, map_drop: 0, co_drop_pct: 0, compensation_flag: 0, instability_flag: 0 }
+              : {
+                  hr_rise: 0.08,
+                  map_drop: 0.06,
+                  co_drop_pct: 0.05,
+                  compensation_flag: 0.1,
+                  instability_flag: riskBucket === 'HIGH' ? 0.3 : 0,
+                },
+          baseline_deficit_score: scenario === 'fluid_overload' ? riskScore : 0,
+          dominant_mechanism: scenario === 'fluid_overload' ? 'baseline' : 'acute',
           nyha_class: nyha,
           risk_caveats: caveats ?? null,
           deterioration_direction: direction,
@@ -72,6 +100,7 @@ function makeReport({ patientId, scenario, severity, riskBucket, riskScore, nyha
       latest_assessment: latestAssessment,
       latest_wearable: latestWearable,
       error_message: errorMessage ?? null,
+      waveform_data: simStatus === 'complete' ? makeMockWaveform(hr, severity) : null,
     },
     projection: {
       patient_id: patientId,
