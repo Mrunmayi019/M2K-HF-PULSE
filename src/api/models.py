@@ -7,7 +7,7 @@ import datetime
 import uuid
 from typing import Optional
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.api.database import Base
@@ -35,6 +35,7 @@ class Patient(Base):
     wearable_readings: Mapped[list["WearableReading"]] = relationship(back_populates="patient")
     simulation_runs: Mapped[list["SimulationRun"]] = relationship(back_populates="patient")
     risk_assessments: Mapped[list["RiskAssessment"]] = relationship(back_populates="patient")
+    pulse_states: Mapped[list["PulseState"]] = relationship(back_populates="patient")
 
 
 class ClinicalReport(Base):
@@ -130,3 +131,35 @@ class RiskAssessment(Base):
     @property
     def severity(self) -> Optional[float]:
         return self.simulation_run.severity if self.simulation_run else None
+
+
+class PulseState(Base):
+    """Continuous-state-sync feature (2026-08-30, feature/continuous-state-sync branch): one row
+    per saved Pulse engine snapshot, append-only history (not upserted-in-place) -- same pattern
+    as SimulationRun/RiskAssessment, so past states remain inspectable rather than overwritten.
+
+    `state_json` is the full engine state as produced by PulseEngine.serialize_to_file() (JSON
+    format, ~2.3MB for one whole-body adult model -- see
+    docs/pulse_state_serialization_investigation.md). It captures the complete engine, but does
+    NOT capture whether a CardiovascularMechanicsModification action is still "in force" --
+    verified empirically that this action's effect silently drifts away over time after a resume
+    unless reissued fresh. `last_ejection_fraction_pct`/`last_severity` are stored specifically so
+    the resume step can call the existing, unmodified `ef_to_cardiovascular_modifiers()` again and
+    reissue the action immediately after loading -- storing the two scalar inputs to that function
+    rather than its output multiplier dict, since that stays valid even if the function's internal
+    formula is later recalibrated (a stale frozen multiplier dict would not).
+    """
+    __tablename__ = "pulse_states"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"))
+    state_json: Mapped[str] = mapped_column(Text)
+    last_ejection_fraction_pct: Mapped[float] = mapped_column(Float)
+    last_severity: Mapped[float] = mapped_column(Float)
+    # Pulse's own internal simulation clock at save time (seconds) -- not wall-clock time.
+    # Purely observational/debugging metadata (e.g. to sanity-check elapsed time between saves);
+    # nothing in the resume path depends on this value.
+    simulation_time_s: Mapped[float] = mapped_column(Float)
+    saved_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
+
+    patient: Mapped["Patient"] = relationship(back_populates="pulse_states")
