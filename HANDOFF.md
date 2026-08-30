@@ -11,6 +11,12 @@ Repo: https://github.com/Mrunmayi019/M2K-HF-PULSE — working branch is `main` d
 workflow; Kaveri is the only contributor). Purpose: a research paper on a personalized
 heart-failure digital-twin system, built on the Kitware Pulse physiology engine.
 
+> **If you're on `feature/continuous-state-sync`** (or asked to resume that work): stop reading
+> this file and go straight to `docs/continuous_state_sync_status.md` — it's a complete,
+> self-contained session log (what was investigated, full chronological findings, exact current
+> state, and precise next steps) for an in-progress, unreviewed continuous-state-synchronization
+> feature. `main` and everything below in this file are unaffected by that branch's work.
+
 ---
 
 ## 1. Set up the machine, first
