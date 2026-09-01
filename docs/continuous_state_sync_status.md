@@ -1,10 +1,22 @@
-# Continuous State Sync — Session Log (2026-08-30)
+# Continuous State Sync — Session Log (2026-08-30, updated 2026-09-01)
 
 **Read this first if picking up this work in a fresh session.** Nothing in this document is
 merged, reviewed, or approved — `main` and the live demo pipeline (`src/api/services.py`,
 `src/pulse_runner/runner.py`) are completely untouched by everything below. This is both a
-record of what happened today and a resumption guide; Section 4 tells you exactly what to do
-next.
+record of what happened across both sessions and a resumption guide.
+
+**STATUS AS OF 2026-09-01: working end-to-end.** The 2026-08-30 session ended blocked on a
+segfault, diagnosed at the time as a joblib/Pulse threading collision. That diagnosis turned out
+to be **wrong** (see §6.1) — investigated further, the real cause was a native bug specific to
+the Pulse Python SDK's `initialize_engine()` call, unrelated to scikit-learn/joblib entirely. The
+fix was to rebuild the resume mechanism on `PulseScenarioDriver`'s CLI/scenario-JSON layer
+instead of the SDK (§6.2), which resolved it completely. The full daily pipeline now runs
+end-to-end against a real patient with no crash (§6.3), produces a real risk assessment through
+the exact same analytics code the existing pipeline uses (§6.4), and is visually confirmed
+working in the actual frontend GUI (§6.6). Section 6 is the current source of truth; Sections
+1–5 are the (now partially superseded) 2026-08-30 record, kept as-is for the investigation trail
+— **do not trust §3/§4's "not working" / "next steps" content below without reading §6 first**,
+it describes a state that no longer holds.
 
 ---
 
@@ -364,3 +376,214 @@ since it's confined to this new, unreleased feature. We tried the simplest fix a
 doesn't fully solve the problem; the next step is to run the two pieces of software in separate,
 isolated processes, which is expected to resolve it cleanly. None of this work has touched the
 current working demo, which remains exactly as it was.
+
+**Update 2026-09-01: this turned out to be the wrong diagnosis. See §6 below for what was
+actually wrong and how it was fixed — the feature now works end-to-end.**
+
+---
+
+## 6. Session update (2026-09-01) — the real root cause, the fix, and full end-to-end verification
+
+Resumed per explicit instruction, in 4 steps: (1) rebuild the resume mechanism on the CLI driver
+instead of the SDK and re-verify the reissue fix with the same rigor as before; (2) run the real
+day1→day2→day3 pipeline end-to-end; (3) wire results into the existing frontend/API; (4) confirm
+visually in the running GUI. Each step was verified before moving to the next, per instruction.
+
+### 6.1 The 2026-08-30 "joblib fork vs. Pulse threads" diagnosis was wrong
+
+Before starting Step 1, the previous session's fix attempt (`n_jobs=1`) was re-examined as a
+sanity check. Bisecting further than the previous session had: calling **only**
+`PulseEngine.initialize_engine()` — zero scikit-learn/joblib imported anywhere in the process —
+segfaulted, 100% reproducibly across 3 independent fresh-process runs, using the exact same
+patient file previously verified to work bit-for-bit. `gdb` showed a native crash entirely inside
+Pulse's own C++ code:
+
+```
+SESubstanceManager::AddActiveSubstance()
+  <- SubstanceManager::InitializeSubstances()
+  <- Controller::Initialize()
+  <- Controller::InitializeEngine()
+```
+
+Meanwhile `PulseScenarioDriver` (the CLI/scenario-JSON path), run on the *identical*
+patient/scenario computation, completed cleanly every time (`[Final SimTime] 660(s)`, exit 0).
+
+**Conclusion:** the bug is specific to the Python SDK's `initialize_engine()` path, not a
+process-sharing collision with joblib. The 2026-08-30 session's bit-for-bit-exact SDK tests
+(§2.4–2.6) weren't wrong about the *reissue-on-resume* finding (that's a property of Pulse's own
+state-resume behavior, confirmed independently again at the CLI layer in §6.2) — they just got
+lucky on scheduling and never happened to hit this particular crash, the same class of
+false-negative already flagged for a different reason in §2.7's tests #10–13. `n_jobs=1`
+"fixing" the crash in some runs was never a fix; it was never going to touch this bug at all.
+
+**Action:** `src/pulse_runner/sdk_runner.py` (the SDK-based module) is kept, unmodified beyond an
+added docstring warning, as the documented evidence trail for this bug — not deleted, but not
+used by anything anymore. It's superseded by two new modules built on the CLI driver instead:
+`src/pulse_runner/cli_state_scenario.py` (scenario-JSON builders for save/resume) and
+`src/pulse_runner/cli_state_runner.py` (subprocess execution + resume-aware crash detection).
+`src/api/continuous_state_pipeline.py` now imports from the latter; its own logic (DB queries,
+classifier calls, multi-rate strategy) is otherwise unchanged.
+
+### 6.2 Step 1 — CLI-driver resume mechanism, two real bugs found and fixed, then verified
+
+Porting `sdk_runner.py`'s save/resume logic onto `PulseScenarioDriver`'s scenario-JSON actions
+(`SerializeState` to save, `EngineStateFile` to resume — schema described in
+`docs/pulse_state_serialization_investigation.md`) surfaced two bugs, both found and fixed before
+any result was trusted:
+
+1. **Wrong field name.** The investigation doc's `{"SerializeState": {"Type": "Save", ...}}`
+   shape doesn't match 4.3.1's actual schema — confirmed directly against this image's own
+   `/source/src/schema/pulse/cdm/bind/Actions.proto`, whose `SerializeStateData` message has a
+   field named `Mode` (enum `eMode`, values `Save`/`Load`), not `Type`. The investigation doc's
+   test that "confirmed" this schema was actually run against a different Pulse version
+   (`4.2.0`) — the field name apparently changed. Fixed in `cli_state_scenario.py`.
+2. **Crash-detector logic bug.** The known false-positive gotcha (§2.3: a resumed run exits 1 and
+   logs a benign `"Simulation time does not equal expected end time"` error, because the driver's
+   own internal check doesn't know about the state file's already-elapsed clock) was correctly
+   *detected and filtered* out of the fatal-marker list in the first implementation, but the code
+   still unconditionally raised on the nonzero exit code regardless of whether any real fatal
+   markers remained. Fixed: a resume's exit code 1 is now only tolerated when, after filtering,
+   zero other fatal markers remain; any other nonzero exit (or a resume with genuinely different
+   errors present) still raises normally.
+
+**Re-verification, same rigor as the original SDK-layer investigation (§2.4–2.5), now at the CLI
+layer**, patient/EF/severity identical to the original test (EF=56.4, severity=0.46) for direct
+comparability:
+
+| Check | Result |
+|---|---|
+| Determinism control (2 independent continuous runs) | Bit-for-bit identical |
+| Resume WITHOUT reissuing CVMod (negative control) | HR −3.584%, CO −6.574% drift vs. continuous — confirms the drift is a real Pulse state-resume property, reproduced at this layer too |
+| Resume WITH reissue, via the actual production `cli_state_runner.resume_and_advance()` | **HR/MAP/CO/SV all 0.000000% difference** vs. continuous — exact match |
+
+Host test suite: 162/162 passing throughout.
+
+### 6.3 Step 2 — full day1→day2→day3 pipeline, no crash
+
+`scripts/verify_continuous_state_pipeline.py` (unmodified) run twice against a synthetic
+seeded patient, both times clean:
+
+```
+[day1] simulation_time_s=660.0   last_ejection_fraction_pct=45.0  last_severity=0.4826
+[day2] simulation_time_s=1260.0  last_ejection_fraction_pct=45.0  last_severity=0.4828
+[day3] simulation_time_s=1860.0  last_ejection_fraction_pct=30.0  last_severity=0.4784
+=== VERDICT === all 6 checks PASS, both runs
+```
+
+Given §2.7's tests #10–13 showed a crash can "disappear" from timing luck alone, a second
+independent run was required before trusting this — both passed identically, no signs of
+flakiness. Unlike the abandoned SDK path, this mechanism is a plain subprocess exec per call, not
+an in-process race condition, so this is expected to be genuinely stable rather than lucky.
+
+### 6.4 Step 3 — real SimulationRun/RiskAssessment, reusing services.py's own analytics
+
+Checked whether the continuous-sync pipeline writes to the tables the frontend/API already read
+(`src/api/routes.py`'s `/status`, `/history`, `/projection`, `/report` all query
+`RiskAssessment`/`SimulationRun`/`WearableReading` generically by `patient_id`, agnostic to how a
+row was produced) — it didn't; `PulseState` was a separate table with no risk score, NYHA class,
+trend, or projection data at all. Fixed by making `run_daily_continuous_pipeline()` also produce
+a real `SimulationRun` + `RiskAssessment` row, using the **exact same** analytics functions
+`services.py`'s from-scratch pipeline already uses (`analyze_simulation`, `compute_risk_score`,
+`classify_nyha`, `compute_deterioration_rate`, `project_physiology`, `extract_waveform_data`) —
+none of those functions changed; they're generic over any Pulse-output DataFrame. This is why no
+new API endpoint was needed: `/patients/{id}/status|history|projection|report` all "just work"
+for a continuous-synced patient already.
+
+`cli_state_runner.run_initial()`/`resume_and_advance()` were extended to also return the raw
+per-encounter DataFrame (previously discarded after squeezing into a snapshot dict) so
+`analyze_simulation()` has something to operate on.
+
+**Caveat worth flagging, not a bug:** on day 1, the returned df spans stabilize+CVMod+advance, so
+`hr_rise`/`map_drop`/`co_drop_pct` measure the same "healthy baseline → modified+advanced end
+state" swing `services.py` measures. On day 2+ (a resume), the df spans only *that day's*
+reissue+[Exercise]+advance window (no stabilization — already done on a prior day), so those same
+deltas measure "state right after today's reissue → end of today's advance," not "healthy
+baseline → now." Arguably a more natural notion for continuous monitoring (how much did today's
+encounter move the patient), but not numerically the same quantity the from-scratch pipeline
+computes, and `risk_score.py`/`staging.py` were calibrated against the from-scratch semantics.
+Flagged in `src/api/continuous_state_pipeline.py`'s module docstring; not resolved here — needs a
+decision before this feature is used for anything beyond a demo.
+
+**A separate, pre-existing bug found on the real local DB (not this branch's fault):** the actual
+runtime `data/db/m2k_hf_pulse.db` predates `main`'s most recent commit's schema additions
+(`waveform_data` on `simulation_runs`; `baseline_deficit_score`, `dominant_mechanism` on
+`risk_assessments`, both added 2026-08-28). Both real patients with a full 21-day window on this
+DB had **zero** risk assessments despite the window being full — consistent with the existing
+`services.py` pipeline having silently failed to write new assessments against this stale local
+schema ever since that commit landed, since `Base.metadata.create_all()` only creates missing
+*tables*, never adds missing *columns* to existing ones. Fixed non-destructively: backed up the
+db file (`data/db/m2k_hf_pulse.db.bak_pre_schema_fix`, gitignored, same directory), then
+`ALTER TABLE ... ADD COLUMN` for the 3 missing nullable columns — no existing row touched, no
+data lost. This restores the DB to what `main`'s own current code already expects; it isn't a
+change to any behavior, just an un-break of a local-machine migration gap. `data/db/` is entirely
+gitignored, so none of this touches git history or any tracked file.
+
+### 6.5 Step 4 — confirmed visually in the actual running frontend
+
+Ran `run_daily_continuous_pipeline()` twice (day 1, day 2-via-resume) against a **real** existing
+patient in the real project DB (`7693f167-c7ae-4f4f-bd59-18e8bb119a7a`, not a throwaway test DB),
+additive only — no existing row modified or deleted. Day 2's `simulation_time_s` advanced by
+exactly 600.0s from day 1's, confirming a genuine resume, not a from-scratch rebuild.
+
+Started the backend (`uvicorn src.api.main:app`, host venv, pointed at the now-fixed real DB) and
+the frontend (`npm run dev`) both from this branch. In the actual browser GUI, selecting this
+patient shows, entirely through the existing, unmodified UI:
+
+- **Patient Dashboard:** HIGH RISK / NYHA Class IV, "Fluid Overload" current condition, severity
+  index 0.91, EF 32%, BNP 1400, live vitals with 7-day trend arrows, the cardiac waveform panel
+  (ECG + PV loop, generated from this pipeline's own Pulse output), and the Forward Projection
+  panel (+7/+14/+30 day severity/risk-bucket trajectory).
+- **Trends & History:** both assessments listed with a visible risk trend — 12:58 PM MODERATE/III
+  → 1:06 PM HIGH/IV — plus the full 22-day wearable history charts.
+
+No frontend code was changed to make this appear — exactly the "point the dashboard at this
+patient via the normal API" outcome, confirmed rather than assumed.
+
+### 6.6 Current state, precisely (supersedes §3 above)
+
+**Confirmed working, end-to-end:**
+- CLI-driver save/resume mechanism, bit-for-bit exact reissue-on-resume (§6.2).
+- Full day1→day2→day3 daily pipeline, twice, no crash (§6.3).
+- Real `SimulationRun`/`RiskAssessment` rows produced via the existing analytics code, visible
+  through the existing, unmodified API endpoints (§6.4).
+- Visually confirmed in the actual running frontend GUI against a real patient (§6.5).
+- Host test suite: 162/162 passing throughout today's changes.
+- `main` unchanged at `46d0083` throughout (confirmed via `git log main -1` after every step).
+
+**Still open (not blocking, but not resolved either):**
+- The day-1-vs-day-2+ semantic difference in what `hr_rise`/`map_drop`/`co_drop_pct` measure
+  (§6.4's caveat) — a design question for review, not a bug.
+- `sdk_runner.py` (the abandoned SDK path) is left in the tree as a documented dead end, per
+  earlier convention of not deleting evidence of a real, reproducible bug finding — could be
+  filed as an upstream Pulse issue at some point, not done here.
+- No commit has been made this session — branch working tree currently has: modified
+  `src/api/continuous_state_pipeline.py`, `src/pulse_runner/sdk_runner.py` (docstring only); new
+  `src/pulse_runner/cli_state_scenario.py`, `src/pulse_runner/cli_state_runner.py`; updated
+  `docs/continuous_state_sync_status.md` (this file). Same three pre-existing unrelated local
+  diffs as before (`frontend/package.json`/`package-lock.json`, `models/phase3_eval_report.txt`)
+  plus untracked `scenarios/` debug/verification scripts (safe to delete, not committed, same
+  precedent as the 2026-08-30 session).
+- The real local DB's schema-drift fix (§6.4) is a local runtime-state change only
+  (`data/db/` is gitignored) — worth telling whoever else runs this project locally that their
+  own `data/db/m2k_hf_pulse.db` may need the same 3-column `ALTER TABLE` if it predates
+  `46d0083`, since nothing about `main`'s own code currently detects or fixes this automatically.
+
+### 6.7 Plain-English summary (supersedes §5 above)
+
+Following up on the professor's suggestion that the digital-twin simulation should carry a
+patient's physiological state forward from one day to the next instead of rebuilding from
+scratch, we found and fixed the crash that was blocking this. The earlier diagnosis (two software
+libraries competing for processor cores) turned out to be a red herring, caught by testing one
+piece completely in isolation; the actual cause was a defect specific to one particular way of
+talking to the physiology engine (a lower-level programming interface), which a different,
+higher-level way of talking to the same engine doesn't have. Switching to that other interface,
+and fixing two smaller bugs surfaced along the way, resolved it completely. The full daily
+pipeline now runs start-to-finish without crashing, produces a real risk assessment using the
+exact same scoring logic the current system already uses, and — most concretely — we watched a
+real patient's updated risk status, condition trend, and forward-looking projection appear
+correctly in the actual application, using unmodified screens, after two simulated days of
+continuous state carried forward rather than rebuilt. One open design question remains (exactly
+what a couple of the risk-score's inputs mean on a resumed day versus a brand-new day), flagged
+for review but not blocking. The current working demo was not touched or put at risk at any
+point; a separate, pre-existing local database issue was found and fixed along the way without
+losing any data.

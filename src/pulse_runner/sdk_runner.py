@@ -1,6 +1,34 @@
 """Continuous-state-sync feature (feature/continuous-state-sync branch, 2026-08-30): Pulse
-SDK-based save/resume, used by the new daily pipeline instead of `runner.py`'s CLI-driver
-approach.
+SDK-based save/resume.
+
+**SUPERSEDED (2026-09-01) -- DO NOT USE. Kept only as the documented evidence trail for a real,
+100%-reproducible native bug.** `PulseEngine.initialize_engine()` (called from this module's
+`run_initial()`) segfaults every time, confirmed via gdb, natively inside Pulse's own engine code:
+
+    SESubstanceManager::AddActiveSubstance()
+      <- SubstanceManager::InitializeSubstances()
+      <- Controller::Initialize()
+      <- Controller::InitializeEngine()
+
+with ZERO scikit-learn/joblib involvement -- reproduced calling nothing but `PulseEngine()` +
+`initialize_engine()` in an otherwise-empty fresh process, 3/3 runs. This DISPROVES this module's
+own earlier "reissue on resume, verified bit-for-bit" conclusion as evidence that the SDK path
+itself is safe: those earlier tests just didn't hit this crash by luck of thread scheduling, the
+same class of false-negative already flagged (see docs/continuous_state_sync_status.md's Step 4
+isolation-test log, tests #10-13) for a different, now-superseded theory (a joblib fork colliding
+with Pulse's native threads). `PulseScenarioDriver` (the CLI/scenario-JSON path) runs the identical
+patient/scenario computation cleanly every time -- see `src/pulse_runner/cli_state_scenario.py`
+and `src/pulse_runner/cli_state_runner.py`, which reimplement this module's save/resume/reissue
+logic on that path instead, and are what `src/api/continuous_state_pipeline.py` actually uses now.
+
+The CardiovascularMechanicsModification-reissue-on-resume finding below (module docstring
+"CRITICAL, empirically-verified finding") is NOT invalidated by the above -- that's a property of
+how Pulse's serialized engine state itself behaves on resume, independent of SDK vs. CLI, and was
+re-verified at the CLI layer (see docs/continuous_state_sync_status.md).
+
+Everything below this point describes the abandoned SDK approach, left unmodified as-is.
+
+---
 
 This is a deliberately separate module from `src/pulse_runner/runner.py` -- that module backs the
 current, working, from-scratch-every-time pipeline (`src/api/services.py`) and must not change
