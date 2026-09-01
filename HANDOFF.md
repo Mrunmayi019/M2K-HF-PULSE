@@ -267,6 +267,20 @@ authoritative current list.
       `backend/`'s Pulse SDK bindings for anything drug-related) before committing engineering
       time — this might be out of reach without engine-level work. **Not started.**
 
+- [ ] **Fluid_overload scenario lacks a volume-loading mechanism** — found and root-caused
+      2026-09-01 (`docs/continuous_state_sync_status.md`, `docs/methodology.md`'s new Limitations
+      entry of the same name), a `main`-affecting finding, not specific to that branch.
+      `_scenario_actions()`'s `fluid_overload` branch (`src/patient_builder/scenario_file.py`)
+      applies only a `VenousComplianceMultiplier`, no volume-loading action — reducing venous
+      compliance alone mobilizes pooled blood into circulation (a recruitment effect) rather than
+      representing real fluid overload, so simulated HR/MAP/CO actually *improve* as severity
+      rises. This is the confirmed mechanistic root cause of §6.1's existing "barely varies with
+      severity" observation, not a new problem. Fix requires adding a real volume-loading Pulse
+      action to the scenario definition, then re-running Phase 2 validation and likely retraining
+      the severity regressor — scenario-design rework, not a quick parameter fix. **Not a patient-
+      safety gap**: `baseline_deficit_score`/`max()` (§6.1) already catches high-risk
+      `fluid_overload` patients via a baseline-MAP floor regardless. **Not started.**
+
 ### P3 — strengthens the paper's positioning
 
 - [ ] Related-work / positioning section — how this compares to existing HF digital-twin and

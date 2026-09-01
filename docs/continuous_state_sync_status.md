@@ -1,4 +1,4 @@
-# Continuous State Sync — Session Log (2026-08-30, updated 2026-09-01)
+# Continuous State Sync — Session Log (2026-08-30, updated 2026-09-01, 2026-09-02)
 
 **Read this first if picking up this work in a fresh session.** Nothing in this document is
 merged, reviewed, or approved — `main` and the live demo pipeline (`src/api/services.py`,
@@ -587,3 +587,53 @@ what a couple of the risk-score's inputs mean on a resumed day versus a brand-ne
 for review but not blocking. The current working demo was not touched or put at risk at any
 point; a separate, pre-existing local database issue was found and fixed along the way without
 losing any data.
+
+---
+
+## 7. Follow-up investigation (2026-09-01/09-02) — projection_json flatness, root-caused
+
+After §6's end-to-end confirmation, a manual eyeball check of the two real `RiskAssessment` rows
+created in §6.5 (patient `7693f167-c7ae-4f4f-bd59-18e8bb119a7a`) surfaced an oddity: row 2's
+`projection_json` showed the *same* `risk_score`/`risk_bucket` (0.5044/MODERATE) at all three
+horizons despite `projected_severity` correctly ranging 0.946→1.0.
+
+**Investigated and resolved as NOT a bug in this branch's code.** Re-deriving the two
+`compute_risk_score()` sub-components (`acute_score`, `baseline_deficit_score`) at each horizon
+showed `acute_score = 0.0` at every horizon (HR fell, MAP rose, CO rose during the encounter --
+all clamped to 0 by the acute-score formula) while `baseline_deficit_score` stayed pinned at
+0.5044 (driven by `map_start`, captured before the severity-driven action is even applied, so it
+can't vary with projected severity by construction). `max(acute_score, baseline_deficit_score)`
+is correctly returning the baseline floor every time -- expected behavior, not a projection or
+resume-specific bug.
+
+Digging into *why* `acute_score` stays 0 across a full severity range led to a real, confirmed
+finding: **the `fluid_overload` scenario's own action definition
+(`src/patient_builder/scenario_file.py`) has no volume-loading mechanism** -- it only reduces
+venous compliance, which (absent an actual volume increase) mobilizes pooled blood into
+circulation and makes simulated hemodynamics *improve* with severity instead of worsening. This
+is a **pre-existing, `main`-affecting limitation**, not something introduced by or specific to
+continuous-state-sync -- confirmed as the mechanistic root cause behind `docs/methodology.md`
+§6.1's already-documented observation that `fluid_overload`'s scenario generation barely varies
+with severity.
+
+**Documented as a new, clearly-separate entry (not merged with the existing, already-closed
+EF-fallback/BNP-proxy `fluid_overload` limitation):**
+- `docs/methodology.md` §8: new subsection **"Fluid_overload scenario lacks a volume-loading
+  mechanism, diagnosed 2026-09-01"** -- full mechanism, root cause, why it isn't fixed now (needs
+  a real volume-loading Pulse action added to the scenario, plus re-running Phase 2 validation and
+  likely retraining the severity regressor -- scenario-design rework, not a quick parameter fix),
+  and the current mitigation already in place (`baseline_deficit_score`/`max()`, §6.1 -- a working
+  safeguard, not a patient-safety gap).
+- `docs/methodology.md` §9: a pointer bullet under a new "Directly motivated by the
+  continuous-state-sync investigation" group.
+- `HANDOFF.md` P2: a new checklist item pointing to both.
+
+**Not fixed, per explicit instruction not to attempt a fix under time pressure.** No code was
+changed by this investigation -- only `docs/methodology.md`, `HANDOFF.md`, and this file.
+
+**State as of 2026-09-02, end of session:** branch `feature/continuous-state-sync` has one
+committed fix (`cb7dff6`, §6) plus these three doc-only changes on top (uncommitted at the time of
+writing -- check `git log` for whether they landed as a follow-up commit). `main` still untouched.
+Real DB (`data/db/m2k_hf_pulse.db`) still has the two real `RiskAssessment` rows from §6.5's
+verification, additive only, nothing lost. Backend (`:8000`)/frontend (`:5173`) dev servers were
+left running in the background during this session; they will need restarting in a fresh session.

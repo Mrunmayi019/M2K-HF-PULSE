@@ -1060,6 +1060,67 @@ same principle applied elsewhere). The `risk_caveats` messaging fix (§8.5.1 of
 naming the mechanism accurately, not hiding it behind a spuriously-precise proxy. **This
 specific question — a BNP-based EF proxy — is now closed; a real EF measurement (echocardiogram)
 remains the only path to actually resolving the underlying limitation, not attempted here.**
+
+**Note: this is a distinct, separate limitation from the "Fluid_overload scenario lacks a
+volume-loading mechanism" entry immediately below** — that one is about the scenario's own
+hemodynamic response to severity being structurally weak; this one is specifically about EF
+falling back to a healthy default when unmeasured. Do not conflate the two.
+
+### Fluid_overload scenario lacks a volume-loading mechanism, diagnosed 2026-09-01
+
+Found during the continuous-state-sync investigation (`docs/continuous_state_sync_status.md`,
+2026-08-30 session, root-caused 2026-09-01) while checking why a real patient's forward
+projection showed a flat `risk_score` across projected severities 0.946-1.0. This entry provides
+the confirmed mechanistic root cause behind §6.1's existing observation that Pulse's
+`fluid_overload` scenario generation barely varies `map_start`/hemodynamics with severity — that
+note flagged the symptom; this is the traced cause.
+
+#### Mechanism
+
+`fluid_overload`'s scenario definition (`src/patient_builder/scenario_file.py`,
+`_scenario_actions()`) applies a single `CardiovascularMechanicsModification` action with
+`VenousComplianceMultiplier = max(0.5, 1 - 0.4*severity)`, and nothing else — no `Exercise`
+action, no volume-loading action of any kind. Confirmed via direct comparison against
+`acute_deterioration` at the same EF (using the same `ef_to_cardiovascular_modifiers()` core
+values): that scenario additionally applies a `HeartRateMultiplier` and an `Exercise` action —
+the actual driver of its meaningful `hr_rise`/`map_drop`/`co_drop_pct` response to severity.
+`fluid_overload` has neither.
+
+#### Root cause
+
+Reducing venous compliance alone, with no accompanying increase in total circulating volume,
+mobilizes pooled blood into active circulation (a recruitment effect via Frank-Starling) rather
+than representing genuine fluid/volume overload. Every multiplier moves in the clinically correct
+direction as severity rises (compliance and resistance both fall) — **this is not a sign error,
+it is a structural gap in what the scenario models.** Confirmed on a real patient (EF=32,
+`fluid_overload`) across three projected severities (0.946, 0.984, 1.0): simulated HR fell, MAP
+rose, and CO rose — the *improving* direction, despite increasing severity. `acute_score`
+(risk_score.py) was 0.0 at every horizon as a direct consequence.
+
+#### Why this matters
+
+This is the underlying reason `baseline_deficit_score`/`max()` (§6.1) had to be added as a
+compensating mechanism in the first place — it patches around this scenario-generation weakness
+via a baseline-MAP floor, rather than the weakness being resolved at the source.
+
+#### Why not fixed now
+
+Correctly representing `fluid_overload` would require adding a real volume-loading mechanism
+(e.g. a Pulse action that increases total circulating blood volume, not just reduces venous
+compliance) to the scenario definition. This is scenario-design rework, not a quick parameter
+fix, with real downstream costs: patient stability at high severity would need re-verification
+(interacts with the already-characterized Exercise-instability findings above), the 30-patient
+Phase 2 validation would need re-running, and the severity regressor would likely need retraining
+against the updated scenario behavior. Out of scope for the continuous-state-sync branch and for
+the session that found it.
+
+#### Current mitigation
+
+`baseline_deficit_score`/`max()` (§6.1, `risk_score.py`) is already in place and validated: it
+correctly catches high-risk `fluid_overload` patients via the baseline-MAP floor mechanism even
+though the scenario's own severity response is weak. **This is a working safeguard, not a gap in
+patient safety** — just an architectural inefficiency worth fixing properly at the source someday.
+
 - **The live-pipeline severity regressor underperforms its offline benchmark by a diagnosed, real
   margin: MAE 0.271 live vs. 0.048 offline (§7, Phase 8 batch validation).** Root cause:
   `build_inference_features()` (`src/scenario_classifier/features.py`) always defaults
@@ -1124,6 +1185,14 @@ Everything below is a real candidate for continued work, not a padded wishlist �
 either an explicit Phase 9 stretch goal from the original roadmap that Phases 0-8 deliberately
 didn't need to solve, or a next step toward the team's stated goal of turning this system into a
 research paper once the pipeline is validated end-to-end (§7/§8).
+
+**Directly motivated by the continuous-state-sync investigation (2026-08-30/09-01,
+`docs/continuous_state_sync_status.md`):**
+- **Fluid_overload scenario lacks a volume-loading mechanism** — full mechanism, root cause, and
+  why it isn't fixed yet in §8's new entry of the same name. Not started; needs a real
+  volume-loading Pulse action added to the scenario definition, plus re-running Phase 2 validation
+  and likely retraining the severity regressor. Currently safely mitigated by
+  `baseline_deficit_score`/`max()` (§6.1), not a patient-safety gap.
 
 **Directly motivated by the Phase 8 validation findings (§7, §8):**
 - **DONE — retrained the severity regressor (and classifier — one shared feature matrix, see §5)
