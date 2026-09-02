@@ -16,9 +16,22 @@ function deriveStats(waveformData) {
   const press = loop.map((p) => p.pressure_mmhg)
   const strokeVolumeMl = Math.max(...vols) - Math.min(...vols)
   const pulsePressureMmhg = Math.max(...press) - Math.min(...press)
-  const impliedHr = waveformData.cycle_duration_s ? 60 / waveformData.cycle_duration_s : null
-  return { strokeVolumeMl, pulsePressureMmhg, impliedHr }
+  return { strokeVolumeMl, pulsePressureMmhg }
 }
+
+// Single source of truth for the panel subtitle -- it appeared twice (empty-state + real render)
+// and duplicated copy is how one of the two silently drifts back to stale wording later.
+const WAVEFORM_SUBTITLE =
+  "ECG: reference rhythm template scaled to simulated HR. PV loop: computed by this run's Pulse simulation."
+
+// docs/methodology.md §4.2 has the fuller version of this, with citation.
+const ECG_TOOLTIP_TEXT =
+  "Pulse does not compute this trace from cardiac electrophysiology. Per Kitware's Cardiovascular " +
+  'Methodology documentation ("Electrocardiogram" section), the engine does not model the heart\'s ' +
+  'electrical activity -- a single-cycle voltage-time series is stored in a data file and interpolated ' +
+  "to this run's simulated cycle length. It is identical for any two patients at the same heart rate, " +
+  'regardless of EF, scenario, or severity, and is not used as an input to the scenario classifier or ' +
+  'severity regressor.'
 
 export default function CardiacWaveformPanel({ waveformData, assessment }) {
   const stats = useMemo(() => deriveStats(waveformData), [waveformData])
@@ -31,7 +44,7 @@ export default function CardiacWaveformPanel({ waveformData, assessment }) {
     return (
       <div className="section">
         <div className="sectitle">
-          Cardiac Waveform <span className="sub">ECG trace &amp; pressure-volume loop, from this run's Pulse simulation</span>
+          Cardiac Waveform <span className="sub">{WAVEFORM_SUBTITLE}</span>
         </div>
         <div className="card statecard">
           <div className="statetitle">Not available for this assessment</div>
@@ -44,12 +57,22 @@ export default function CardiacWaveformPanel({ waveformData, assessment }) {
   return (
     <div className="section">
       <div className="sectitle">
-        Cardiac Waveform <span className="sub">ECG trace &amp; pressure-volume loop, from this run's Pulse simulation</span>
+        Cardiac Waveform <span className="sub">{WAVEFORM_SUBTITLE}</span>
       </div>
       <div className="grid2">
         <div className="card waveformcard">
-          <div className="waveformcardtitle">ECG (Lead III, simulated)</div>
+          <div className="waveformcardtitle">
+            Reference Rhythm (Lead III template, scaled to simulated HR)
+            <span className="infoicon" tabIndex={0}>
+              i
+              <span className="infopopover">{ECG_TOOLTIP_TEXT}</span>
+            </span>
+          </div>
           <TrendChart data={ecgPoints} color="#F472B6" unit=" mV" height={140} formatX={(v) => `${v.toFixed(2)}s`} formatY={(v) => v.toFixed(3)} />
+          <div className="ecgcaveat">
+            Stored reference rhythm interpolated to the simulated cycle length, not computed from cardiac
+            electrophysiology — reflects heart rate only; EF, scenario, and severity have no effect.
+          </div>
         </div>
         <div className="card waveformcard">
           <div className="waveformcardtitle">Pressure-Volume Loop (left heart, one cycle)</div>
@@ -65,10 +88,6 @@ export default function CardiacWaveformPanel({ waveformData, assessment }) {
           <div className="minicard">
             <div className="minival">{fmt1(stats.pulsePressureMmhg)}</div>
             <div className="minilabel">Pulse Pressure (mmHg, from loop)</div>
-          </div>
-          <div className="minicard">
-            <div className="minival">{stats.impliedHr ? Math.round(stats.impliedHr) : '—'}</div>
-            <div className="minilabel">Implied HR (bpm, from ECG cycle)</div>
           </div>
         </div>
       )}

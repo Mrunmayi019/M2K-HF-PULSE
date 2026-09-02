@@ -126,10 +126,12 @@ compiled source inside the Docker image rather than assuming from the planning d
 ### 4.1 Cardiac waveform panel — ECG trace + pressure-volume (PV) loop, added 2026-08-28
 
 Pulse's cardiovascular model is a real, mechanistic time-varying-elastance heart model — it
-tracks the same underlying volume/pressure/electrical-activity signals a real cardiologist would
-read off a bedside monitor, not just the 8 summary scalars this project extracted through Phase 7.
-This addition surfaces two of those signals (an ECG trace and a pressure-volume loop) on the
-dashboard and in the clinical summary report, without changing any existing scenario/risk logic.
+tracks the same underlying volume/pressure signals a real cardiologist would read off a bedside
+monitor, not just the 8 summary scalars this project extracted through Phase 7. This addition
+surfaces that mechanistic pressure/volume signal (as a PV loop) alongside a separate, non-
+mechanistic ECG reference trace on the dashboard and in the clinical summary report, without
+changing any existing scenario/risk logic — see §4.2 for why the ECG is not part of the
+mechanistic claim above.
 
 **Discovery, same discipline as everything else in this section — verified empirically against
 the real engine, not assumed from docs.** None of `LeftHeartPressure`/`LeftHeartVolume`/
@@ -164,13 +166,39 @@ correctly report no waveform data rather than a fabricated one), served via
 
 **What is deliberately NOT claimed.** The dashboard/report shows only numbers derived directly
 from the same waveform data by simple arithmetic (stroke volume = loop's volume range, pulse
-pressure = loop's pressure range, implied HR = 60/cycle duration) — no interpretation of loop
-*shape* (e.g. "this loop's morphology indicates diastolic dysfunction") is made anywhere. That
-kind of claim would need real validation against echocardiographic ground truth this project
-doesn't have, and is exactly the category of unvalidated clinical inference this project has
-already declined to make elsewhere (Tier 3 ECG-to-hemodynamics, §3; the BNP→EF proxy, §8's
-`fluid_overload` subsection) — the same standard applied consistently, not relaxed for a feature
-that happens to look visually impressive.
+pressure = loop's pressure range) — no interpretation of loop *shape* (e.g. "this loop's
+morphology indicates diastolic dysfunction") is made anywhere. That kind of claim would need real
+validation against echocardiographic ground truth this project doesn't have, and is exactly the
+category of unvalidated clinical inference this project has already declined to make elsewhere
+(Tier 3 ECG-to-hemodynamics, §3; the BNP→EF proxy, §8's `fluid_overload` subsection) — the same
+standard applied consistently, not relaxed for a feature that happens to look visually impressive.
+
+### 4.2 ECG Output: Scope and Interpretation, added 2026-09-01
+
+The ECG trace shown alongside the PV loop (§4.1) is not computed from cardiac electrophysiology.
+Per Kitware's Cardiovascular Methodology documentation ("Electrocardiogram" section), Pulse's ECG
+is not a calculated value — the engine does not model the electrical activity of the heart. The
+rhythm is stored as a voltage time series for a single cardiac cycle in a data file, and points
+are interpolated based on the length of the cardiac cycle.
+
+**Consequence.** The trace responds only to heart rate. Two patients at EF 55% and EF 25% at the
+same simulated heart rate produce an identical waveform; `scenario_type` (stable, fluid_overload,
+cardiac_stress, deconditioning, acute_deterioration) and severity have no effect on its shape.
+This is a different situation from the PV loop next to it (§4.1), which genuinely is computed by
+the simulation and does respond to EF and loading conditions — that distinction is why the two
+panels carry different labeling on the dashboard
+(`frontend/src/components/waveform/CardiacWaveformPanel.jsx`).
+
+**Not a modeling input.** The ECG trace is not used as an input to the scenario classifier or the
+severity regressor (`src/scenario_classifier/`) — those consume the 21-day wearable window and
+clinical-report fields only. It is a display-only reference signal.
+
+**Source attribution.** This is documented behavior of the Pulse engine (Kitware's public
+Cardiovascular Methodology documentation, "Electrocardiogram" section, pulse.kitware.com), not an
+approximation introduced by this project. The dashboard (info tooltip on the ECG panel title) and
+the API (`ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE`, `src/api/services.py`, surfaced in every
+completed run's `risk_caveats`) both state this distinction directly rather than presenting the
+ECG as an equally-computed sibling of the PV loop.
 
 ## 5. ML Model Design, Training, Evaluation
 

@@ -831,6 +831,50 @@ table.vt tr:last-child td {
   color: var(--text);
   margin-bottom: 12px;
 }
+.infoicon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: help;
+  vertical-align: middle;
+}
+.infoicon .infopopover {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 280px;
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+  z-index: 5;
+}
+.infoicon:hover .infopopover,
+.infoicon:focus .infopopover {
+  opacity: 1;
+}
+.ecgcaveat {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 10px;
+}
 .waveformstats {
   display: flex;
   gap: 14px;

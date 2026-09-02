@@ -8,13 +8,12 @@ function waveformSummaryLines(waveformData) {
   const press = loop.map((p) => p.pressure_mmhg)
   const strokeVolumeMl = Math.max(...vols) - Math.min(...vols)
   const pulsePressureMmhg = Math.max(...press) - Math.min(...press)
-  const impliedHr = waveformData.cycle_duration_s ? Math.round(60 / waveformData.cycle_duration_s) : null
   return [
     '',
-    'CARDIAC WAVEFORM SUMMARY (from this run\'s Pulse simulation, not a recorded patient ECG)',
+    'CARDIAC WAVEFORM SUMMARY (PV loop computed by this run\'s Pulse simulation; ECG is a',
+    'reference rhythm template scaled to simulated HR, not a recorded patient ECG)',
     `  Stroke volume (from PV loop) ... ${strokeVolumeMl.toFixed(1)} mL`,
     `  Pulse pressure (from PV loop) .. ${pulsePressureMmhg.toFixed(1)} mmHg`,
-    `  Implied HR (from ECG cycle) .... ${impliedHr ?? '—'} bpm`,
   ]
 }
 

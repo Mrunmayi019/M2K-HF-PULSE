@@ -90,15 +90,18 @@ class WearableHistoryResponse(BaseModel):
 # ---- Shared risk payload pieces ----
 
 RISK_CAVEATS_DESCRIPTION = (
-    "Populated when the detected scenario_type is fluid_overload. risk_score.py's "
-    "baseline_deficit_score term (docs/methodology.md §6.1) fixes this scenario's shifted-baseline "
-    "blind spot (chronically congested but acutely stable at rest) when a real, measured "
-    "ejection_fraction_pct is available -- in that case this field carries the general "
-    "fluid_overload caveat (the fix is a hand-tuned approximation, not a guarantee). When EF is "
-    "unmeasured and Tier-1-fallback-defaulted instead, the fix has no congested baseline to "
-    "detect and risk_score can still understate severity for a different, specific reason -- this "
-    "field then carries that mechanism-specific caveat instead (docs/real_world_data_integration.md "
-    "§8.5). Either way, risk_score should not be relied on alone for fluid_overload patients."
+    "Always populated for a completed run: it carries the ECG-reference-template caveat "
+    "(docs/methodology.md §4.2 -- the dashboard's ECG trace is heart-rate-scaled template output, "
+    "not computed from cardiac electrophysiology) for every scenario_type. When scenario_type is "
+    "fluid_overload, a scenario-specific caveat is prepended: risk_score.py's baseline_deficit_score "
+    "term (docs/methodology.md §6.1) fixes this scenario's shifted-baseline blind spot (chronically "
+    "congested but acutely stable at rest) when a real, measured ejection_fraction_pct is available "
+    "-- in that case the prepended text is the general fluid_overload caveat (the fix is a "
+    "hand-tuned approximation, not a guarantee). When EF is unmeasured and Tier-1-fallback-defaulted "
+    "instead, the fix has no congested baseline to detect and risk_score can still understate "
+    "severity for a different, specific reason -- the prepended text is that mechanism-specific "
+    "caveat instead (docs/real_world_data_integration.md §8.5). Either way, risk_score should not be "
+    "relied on alone for fluid_overload patients."
 )
 
 

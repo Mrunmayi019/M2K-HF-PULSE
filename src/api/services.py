@@ -67,6 +67,21 @@ EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE = (
     "(docs/real_world_data_integration.md §8.5)."
 )
 
+# Relabeling fix, 2026-09-01 (docs/methodology.md §4.2): the dashboard's Cardiac Waveform panel
+# used to caption the ECG "simulated", implying it was patient-derived like the PV loop next to it.
+# Per Kitware's Cardiovascular Methodology docs ("Electrocardiogram" section), Pulse does not
+# compute this trace from cardiac electrophysiology at all -- it interpolates a stored single-cycle
+# voltage template to the run's simulated cycle length, so it carries heart-rate information only.
+# Unlike the two messages above, this applies to every completed run regardless of scenario_type
+# (waveform_data is populated unconditionally after a successful Pulse run), so it is appended to
+# risk_caveats rather than selected as an alternative.
+ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE = (
+    "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this "
+    "run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine "
+    "design -- docs/methodology.md §4.2). It reflects heart rate only and is not an input to the "
+    "scenario classifier or severity regressor. Do not read patient-specific meaning into its shape."
+)
+
 _model_cache: dict[str, object] = {}
 
 
@@ -285,11 +300,15 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
     }
 
     if scenario_type != "fluid_overload":
-        risk_caveats = None
+        fluid_overload_caveat = None
     elif ef_is_fallback and risk["risk_bucket"] == "LOW":
-        risk_caveats = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
+        fluid_overload_caveat = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
     else:
-        risk_caveats = FLUID_OVERLOAD_CAVEAT_MESSAGE
+        fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
+
+    risk_caveats = " ".join(
+        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
+    )
 
     db.add(
         models.RiskAssessment(
