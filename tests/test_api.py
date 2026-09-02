@@ -267,7 +267,11 @@ class TestFluidOverloadCaveat:
         assert "risk_score is known to underestimate severity for this presentation" in caveats
         assert "ejection_fraction_pct was not measured" not in caveats
 
-    def test_no_caveat_for_non_fluid_overload_scenario(self, client):
+    def test_ecg_only_caveat_for_non_fluid_overload_scenario(self, client):
+        """Since 716c13d (2026-09-02), risk_caveats is never None for a completed run -- the
+        ECG-reference-template caveat (docs/methodology.md §4.2) is appended for every
+        scenario_type, not just fluid_overload. A non-fluid_overload scenario gets ONLY that ECG
+        caveat, with no fluid_overload-specific text prepended."""
         patient_id = _create_patient(client)
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 60, "nt_probnp_pg_ml": 150})
 
@@ -277,7 +281,10 @@ class TestFluidOverloadCaveat:
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
-        assert status["latest_assessment"]["risk_caveats"] is None
+        caveats = status["latest_assessment"]["risk_caveats"]
+        assert caveats is not None
+        assert "fluid_overload" not in caveats
+        assert "not an input to the scenario classifier or severity regressor" in caveats
 
 
 # ---- GET endpoints ----
