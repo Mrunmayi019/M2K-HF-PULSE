@@ -31,6 +31,7 @@ class PatientResponse(BaseModel):
     height_cm: float
     weight_kg: float
     created_at: datetime.datetime
+    label: Optional[str] = None
 
 
 # ---- Clinical reports ----

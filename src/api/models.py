@@ -30,6 +30,12 @@ class Patient(Base):
     height_cm: Mapped[float] = mapped_column(Float)
     weight_kg: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
+    # Demo-convenience only (2026-09-03) -- not project functionality. No patient has a real name
+    # anywhere in this system; this exists so a handful of hand-picked demo patients can be found
+    # by a human on stage instead of by UUID. Nullable, unset for every patient created before this
+    # column existed and for any patient created normally going forward -- nothing reads or writes
+    # it except a one-off SQL UPDATE for the chosen demo patients and the Sidebar's display fallback.
+    label: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     clinical_reports: Mapped[list["ClinicalReport"]] = relationship(back_populates="patient")
     wearable_readings: Mapped[list["WearableReading"]] = relationship(back_populates="patient")
