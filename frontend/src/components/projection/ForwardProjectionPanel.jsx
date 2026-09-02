@@ -33,6 +33,13 @@ function daysToBarPct(days) {
 
 export default function ForwardProjectionPanel({ assessment, horizons }) {
   const daysToNext = assessment?.days_to_next_stage ?? null
+  // days_to_next_stage.py returns None for two different reasons this panel used to collapse into
+  // the single word "stable": a genuinely flat/improving trend, OR the patient already being at the
+  // highest (HIGH) tier with nowhere higher to project a crossing date for -- the second case can
+  // still be actively worsening (see docs: a HIGH patient's severity climbing 0.50->0.57 read as
+  // "stable" on screen, exactly backwards). Risk_bucket is the one signal already exposed here that
+  // distinguishes them without a backend change.
+  const atCeiling = assessment?.risk_bucket === 'HIGH' && daysToNext === null
   const pct = daysToBarPct(daysToNext)
   const barColor = assessment?.risk_bucket ? riskColor(assessment.risk_bucket) : 'var(--teal)'
 
@@ -84,7 +91,7 @@ export default function ForwardProjectionPanel({ assessment, horizons }) {
         <div className="probwrap">
           <div className="probhead">
             <span>Projected time to next risk tier</span>
-            <b>{daysToNext === null ? 'stable' : `${daysToNext}d`}</b>
+            <b>{daysToNext !== null ? `${daysToNext}d` : atCeiling ? 'at ceiling' : 'stable'}</b>
           </div>
           <div className="probtrack">
             <div className="probfill" style={{ width: `${pct}%`, background: barColor }} />
