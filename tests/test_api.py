@@ -277,7 +277,10 @@ class TestFluidOverloadCaveat:
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
-        assert status["latest_assessment"]["risk_caveats"] is None
+        caveats = status["latest_assessment"]["risk_caveats"]
+        assert caveats is not None
+        assert "ECG trace is a stored reference rhythm template" in caveats
+        assert "Detected scenario is fluid_overload" not in caveats
 
 
 # ---- GET endpoints ----
