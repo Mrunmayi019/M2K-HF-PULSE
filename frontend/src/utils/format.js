@@ -47,15 +47,13 @@ export function formatDateTime(iso) {
   )
 }
 
-// Client-side-only normal-range banding for the Vitals table's Status column -- these are
-// display thresholds, not a new model output (no backend computation implied).
-const VITAL_RANGES = {
-  resting_hr_bpm: { lo: 60, hi: 100, unit: 'bpm', label: 'Heart Rate' },
-  spo2_pct: { lo: 92, hi: 100, unit: '%', label: 'SpO2' },
-  weight_kg: { lo: -Infinity, hi: Infinity, unit: 'kg', label: 'Weight' },
-  steps_per_day: { lo: -Infinity, hi: Infinity, unit: 'steps', label: 'Steps' },
-  sleep_hours: { lo: 5, hi: 10, unit: 'hrs', label: 'Sleep' },
-  hrv_rmssd_ms: { lo: -Infinity, hi: Infinity, unit: 'ms', label: 'HRV (RMSSD)' },
+const VITAL_META = {
+  resting_hr_bpm: { unit: 'bpm', label: 'Heart Rate' },
+  spo2_pct: { unit: '%', label: 'SpO2' },
+  weight_kg: { unit: 'kg', label: 'Weight' },
+  steps_per_day: { unit: 'steps', label: 'Steps' },
+  sleep_hours: { unit: 'hrs', label: 'Sleep' },
+  hrv_rmssd_ms: { unit: 'ms', label: 'HRV (RMSSD)' },
 }
 
 export const VITAL_ORDER = [
@@ -68,13 +66,7 @@ export const VITAL_ORDER = [
 ]
 
 export function vitalMeta(key) {
-  return VITAL_RANGES[key]
-}
-
-export function vitalStatus(key, value) {
-  const range = VITAL_RANGES[key]
-  if (!range || value === null || value === undefined) return 'Normal'
-  return value < range.lo || value > range.hi ? 'Attention' : 'Normal'
+  return VITAL_META[key]
 }
 
 // Worsening sign convention matches src/analytics/deterioration_rate.py's WORSENING_SIGN --
