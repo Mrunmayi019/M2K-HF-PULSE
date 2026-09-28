@@ -188,6 +188,24 @@ class StatusResponse(BaseModel):
     simulation_status: Literal["collecting", "pending", "running", "complete", "failed"]
     reading_count: int
     latest_assessment: Optional[RiskAssessmentPayload] = None
+    latest_assessment_stale: bool = Field(
+        default=False,
+        description=(
+            "True when a SimulationRun newer than `latest_assessment` failed -- the assessment "
+            "shown is from an earlier run and no longer reflects the patient's latest "
+            "classification. `simulation_status` is 'failed' in this case, not 'complete'."
+        ),
+    )
+    current_alert: Optional[dict] = Field(
+        default=None,
+        description=(
+            "The most up-to-date alert decision, in src.analytics.score_reporting."
+            "build_score_report()'s shape. From `latest_assessment`'s score_provenance normally; "
+            "from the failed run's stored classifier severity/scenario_type when a newer run "
+            "failed (source 'classifier_only', simulation_status 'unstable', alert_basis "
+            "'classifier_only'). None when there is nothing to decide from yet."
+        ),
+    )
     latest_wearable: Optional[WearableReadingResponse] = None
     error_message: Optional[str] = None
     waveform_data: Optional[dict] = Field(

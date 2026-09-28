@@ -150,9 +150,8 @@ class RiskAssessment(Base):
         risk_score are present (src/api/services.py never creates one on a failed Pulse run), so
         `pulse_attempted`/`pulse_succeeded` are always True here -- `simulation_status` can only
         come back "valid" or "unstable" (the crash-zone check), never "not_run", from this
-        property specifically. See src/analytics/score_reporting.py's own docstring for the
-        "classifier_only"/"not_run" states this becomes reachable for once a SimulationRun-level
-        (not RiskAssessment-level) exposure of severity for failed runs is added."""
+        property specifically. For a failed run, src/api/routes.py's _build_status() builds the
+        "classifier_only" report from the SimulationRun directly (StatusResponse.current_alert)."""
         return build_score_report(
             classifier_severity=self.severity,
             pulse_risk_score=self.risk_score,

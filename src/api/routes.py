@@ -10,6 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.analytics.score_reporting import build_score_report
 from src.api import models, schemas, services
 from src.api.database import SessionLocal, get_db
 
@@ -133,7 +134,18 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
     )
     assessment = _latest_assessment(db, patient.id)
 
-    if assessment is not None:
+    # A failed run newer than the latest assessment means that assessment is out of date -- the
+    # patient was re-classified (possibly as sicker, e.g. into the acute_deterioration crash zone)
+    # and Pulse failed. Previously "any assessment wins" hid that failure behind a stale "complete".
+    newer_run_failed = (
+        latest_run is not None
+        and latest_run.status == "failed"
+        and (assessment is None or latest_run.id > assessment.simulation_run_id)
+    )
+
+    if newer_run_failed:
+        sim_status = "failed"
+    elif assessment is not None:
         sim_status = "complete"
     elif latest_run is not None:
         sim_status = latest_run.status
@@ -149,11 +161,30 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
         .first()
     )
 
+    # services.py never creates a RiskAssessment for a failed Pulse run, but the classifier's
+    # scenario_type/severity are already stored on the SimulationRun before Pulse starts -- so the
+    # alert decision for a failed run is built from those (classifier-only; alert_decision() alerts
+    # on high severity even when the simulation is unstable).
+    if newer_run_failed and latest_run.severity is not None:
+        current_alert = build_score_report(
+            classifier_severity=latest_run.severity,
+            pulse_risk_score=None,
+            scenario_type=latest_run.scenario_type,
+            pulse_attempted=True,
+            pulse_succeeded=False,
+        )
+    elif assessment is not None and not newer_run_failed:
+        current_alert = assessment.score_provenance
+    else:
+        current_alert = None
+
     return schemas.StatusResponse(
         patient_id=patient.id,
         simulation_status=sim_status,
         reading_count=reading_count,
         latest_assessment=schemas.RiskAssessmentPayload.model_validate(assessment) if assessment else None,
+        latest_assessment_stale=assessment is not None and newer_run_failed,
+        current_alert=current_alert,
         latest_wearable=schemas.WearableReadingResponse.model_validate(latest_wearable) if latest_wearable else None,
         error_message=latest_run.error_message if latest_run and latest_run.status == "failed" else None,
         # From the assessment's own linked run, not `latest_run` -- if a newer run failed after

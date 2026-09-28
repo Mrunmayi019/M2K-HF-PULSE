@@ -219,6 +219,59 @@ class TestWearableSync:
         assert status["simulation_status"] == "failed"
         assert "simulated crash" in status["error_message"]
 
+        # No RiskAssessment exists for a failed run, but the classifier's severity (0.8) is on the
+        # SimulationRun -- the alert decision must still be made from it, not go silent.
+        assert status["latest_assessment"] is None
+        assert status["latest_assessment_stale"] is False
+        current_alert = status["current_alert"]
+        assert current_alert["alert"] == "alert"
+        assert current_alert["alert_basis"] == "classifier_only"
+        assert current_alert["simulation_status"] == "unstable"
+        assert current_alert["source"] == "classifier_only"
+        assert current_alert["classifier_severity"] == pytest.approx(0.8)
+        assert current_alert["pulse_risk_score"] is None
+
+    def test_newer_failed_run_marks_earlier_assessment_stale(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 2000})
+
+        # Day 21: stable, low severity, Pulse succeeds -> a RiskAssessment exists.
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.1))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+        assert client.get(f"/patients/{patient_id}/status").json()["simulation_status"] == "complete"
+
+        # Day 22: re-classified into the acute_deterioration crash zone, Pulse crashes.
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("acute_deterioration"), _FakeModel(0.7))), \
+             patch("src.pulse_runner.runner.run_pulse", side_effect=PulseExecutionError("simulated crash")):
+            client.post(
+                f"/patients/{patient_id}/wearable-sync",
+                json={"recorded_date": "2026-01-22", **VALID_READING},
+            )
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        # The old, calmer assessment must not hide the newer failure behind "complete".
+        assert status["simulation_status"] == "failed"
+        assert status["latest_assessment"] is not None
+        assert status["latest_assessment"]["severity"] == pytest.approx(0.1)
+        assert status["latest_assessment_stale"] is True
+        # The alert reflects the newer (sicker) classification, not the stale assessment.
+        assert status["current_alert"]["alert"] == "alert"
+        assert status["current_alert"]["classifier_severity"] == pytest.approx(0.7)
+        assert status["current_alert"]["alert_basis"] == "classifier_only"
+
+    def test_successful_run_current_alert_matches_assessment(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.1))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        assert status["latest_assessment_stale"] is False
+        assert status["current_alert"] == status["latest_assessment"]["score_provenance"]
+        assert status["current_alert"]["alert_basis"] == "classifier_and_simulation"
+
 
 class TestFluidOverloadCaveat:
     def test_risk_caveats_populated_for_fluid_overload(self, client):

@@ -33,9 +33,10 @@ function DashboardBody({ patientId, patient }) {
   const wearable = status.latest_wearable
   const patientLabel = avatarFromId(patientId).label
 
-  // NOTE: routes.py's _build_status reports "complete" whenever *any* prior assessment exists,
-  // even if a newer run is currently in progress -- so "running"/"pending" is only actually
-  // observable before a patient's very first assessment completes. Built correctly for both,
+  // NOTE: routes.py's _build_status reports "complete" whenever a prior assessment exists, even if
+  // a newer run is currently in progress -- so "running"/"pending" is only actually observable
+  // before a patient's very first assessment completes. The exception is a newer run that
+  // *failed*: that reports "failed" (and status.latest_assessment_stale=true), not "complete". Built correctly for both,
   // not worked around, since changing that branching is out of scope for this frontend task.
   if (simStatus === 'collecting') {
     return (
