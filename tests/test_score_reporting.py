@@ -121,10 +121,19 @@ class TestConfidenceScore:
 
 
 class TestAlertDecision:
-    def test_unstable_status_is_always_indeterminate_regardless_of_severity(self):
-        # Even a very high severity must not become a confident "alert" if the simulation status
-        # says the underlying run can't be trusted.
-        assert alert_decision(0.95, confidence=0.9, simulation_status="unstable") == "indeterminate"
+    def test_unstable_with_high_severity_falls_back_to_classifier_alert(self):
+        # The crash zone is only reachable because the classifier already said "severe" --
+        # an unstable simulation must not silence the alert for the sickest patients. Holds
+        # even at the (low) "unstable" confidence, which is below MIN_CONFIDENCE_FOR_ALERT.
+        assert alert_decision(0.7, confidence=CONFIDENCE_BY_STATUS["unstable"], simulation_status="unstable") == "alert"
+        assert alert_decision(0.95, confidence=0.9, simulation_status="unstable") == "alert"
+
+    def test_unstable_with_low_severity_is_indeterminate(self):
+        # An unstable run can't confirm a low severity either -- no confident "no_alert".
+        assert alert_decision(0.05, confidence=0.9, simulation_status="unstable") == "indeterminate"
+
+    def test_unstable_with_none_severity_is_indeterminate(self):
+        assert alert_decision(None, confidence=0.9, simulation_status="unstable") == "indeterminate"
 
     def test_none_severity_is_indeterminate(self):
         assert alert_decision(None, confidence=0.9, simulation_status="valid") == "indeterminate"
@@ -168,8 +177,21 @@ class TestBuildScoreReport:
     def test_full_shape_for_a_crash_zone_run(self):
         report = build_score_report(0.7, 0.6, "acute_deterioration", pulse_attempted=True, pulse_succeeded=True)
         assert report["simulation_status"] == "unstable"
-        assert report["alert"] == "indeterminate"
+        assert report["alert"] == "alert"
+        assert report["alert_basis"] == "classifier_only"
         assert report["confidence"] == CONFIDENCE_BY_STATUS["unstable"]
+
+    def test_failed_pulse_run_with_high_severity_still_alerts_classifier_only(self):
+        report = build_score_report(0.7, None, "acute_deterioration", pulse_attempted=True, pulse_succeeded=False)
+        assert report["simulation_status"] == "unstable"
+        assert report["alert"] == "alert"
+        assert report["alert_basis"] == "classifier_only"
+
+    def test_alert_basis_reflects_simulation_status(self):
+        valid = build_score_report(0.3, 0.2, "acute_deterioration", pulse_attempted=True, pulse_succeeded=True)
+        not_run = build_score_report(0.3, None, "acute_deterioration", pulse_attempted=False, pulse_succeeded=False)
+        assert valid["alert_basis"] == "classifier_and_simulation"
+        assert not_run["alert_basis"] == "classifier_only"
 
     def test_threshold_clinically_validated_is_always_present_and_false(self):
         # Sprint 2.5 task 5: an explicit, always-present field, not left to be inferred from

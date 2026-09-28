@@ -149,7 +149,7 @@ class RiskAssessmentPayload(BaseModel):
         default=None,
         description=(
             "{'classifier_severity', 'pulse_risk_score', 'source', 'severity_score', "
-            "'severity_band', 'alert', 'confidence', 'simulation_status', "
+            "'severity_band', 'alert', 'alert_basis', 'confidence', 'simulation_status', "
             "'threshold_clinically_validated'} -- src.analytics.score_reporting."
             "build_score_report()'s full output. 'source' is 'not_fused' whenever "
             "both scores are present (the only state reachable when this payload exists at all) -- "
@@ -161,7 +161,10 @@ class RiskAssessmentPayload(BaseModel):
             "acute_deterioration crash zone (severity 0.6-0.85), either way not a reliable data "
             "point. 'alert' ('alert'|'no_alert'|'indeterminate') is produced by a function "
             "structurally separate from score production (project_severity() and friends only "
-            "ever produce a number, never an alert decision) -- its underlying threshold logic "
+            "ever produce a number, never an alert decision). When 'simulation_status' is "
+            "'unstable' and severity exceeds the stable range, 'alert' is still 'alert' (classifier "
+            "fallback) and 'alert_basis' is 'classifier_only'; 'alert_basis' is "
+            "'classifier_and_simulation' only for a 'valid' run -- its underlying threshold logic "
             "remains an unvalidated engineering placeholder pending real outcome data, same as "
             "'severity_band'; do not read 'alert' as a clinically validated determination. "
             "'threshold_clinically_validated' (Sprint 2.5) is always `false` -- a fixed, explicit "

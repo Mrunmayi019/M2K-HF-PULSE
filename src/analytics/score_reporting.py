@@ -160,17 +160,23 @@ def alert_decision(severity: Optional[float], confidence: float, simulation_stat
     engineering choices, not derived from real outcome data (docs/methodology.md Sec 8). This is
     an architecture change, not a threshold-validation change.
 
-      - simulation_status == "unstable" -> always "indeterminate", regardless of severity or
-        confidence. An unstable Pulse configuration is not a trustworthy enough data point to
-        turn into a confident alert/no-alert call either way (see determine_simulation_status()).
       - severity is None -> "indeterminate" (nothing to decide from).
+      - simulation_status == "unstable" AND severity exceeds STABLE_SEVERITY_CAP -> "alert",
+        regardless of confidence (classifier fallback). The documented crash zone
+        (acute_deterioration, severity 0.6-0.85) is reachable only because the classifier already
+        produced a high severity, so going silent there would suppress alerts for exactly the
+        sickest patients. The Pulse side is still untrusted -- build_score_report()'s
+        `alert_basis` reports "classifier_only" for this case. The crash itself is NOT treated as
+        a clinical signal: the alert comes from the classifier's severity, not from the failure.
+      - simulation_status == "unstable" otherwise -> "indeterminate". An unstable Pulse run can't
+        confirm a low classifier severity either, so no confident "no_alert" is issued.
       - Otherwise: "alert" if severity exceeds STABLE_SEVERITY_CAP (severity_band() ==
         "exceeds_stable_range") AND confidence >= MIN_CONFIDENCE_FOR_ALERT; "no_alert" otherwise.
     """
-    if simulation_status == "unstable":
-        return "indeterminate"
     if severity is None:
         return "indeterminate"
+    if simulation_status == "unstable":
+        return "alert" if severity_band(severity) == "exceeds_stable_range" else "indeterminate"
     if severity_band(severity) == "exceeds_stable_range" and confidence >= MIN_CONFIDENCE_FOR_ALERT:
         return "alert"
     return "no_alert"
@@ -200,8 +206,12 @@ def build_score_report(
 
     Returns {"classifier_severity", "pulse_risk_score", "source" (from score_provenance()),
     "severity_score" (alias of classifier_severity, for response-shape clarity), "severity_band",
-    "alert", "confidence", "simulation_status", "threshold_clinically_validated" (always False,
-    see that constant's own comment)}.
+    "alert", "alert_basis", "confidence", "simulation_status", "threshold_clinically_validated"
+    (always False, see that constant's own comment)}.
+
+    `alert_basis` is "classifier_and_simulation" only when simulation_status == "valid", and
+    "classifier_only" otherwise ("not_run" or "unstable") -- so a classifier-fallback alert (see
+    alert_decision()) is never mistaken for one a stable Pulse run backed up.
     """
     provenance = score_provenance(classifier_severity, pulse_risk_score)
     simulation_status = determine_simulation_status(
@@ -216,6 +226,7 @@ def build_score_report(
         "severity_score": classifier_severity,
         "severity_band": band,
         "alert": alert,
+        "alert_basis": "classifier_and_simulation" if simulation_status == "valid" else "classifier_only",
         "confidence": confidence,
         "simulation_status": simulation_status,
         "threshold_clinically_validated": THRESHOLD_CLINICALLY_VALIDATED,
