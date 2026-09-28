@@ -185,8 +185,7 @@ class TestWearableSync:
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
 
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.1))), \
-             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
-             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
             r = _fill_wearable_window(client, patient_id)
 
         assert r.status_code == 202
@@ -197,12 +196,23 @@ class TestWearableSync:
         assert status["latest_assessment"] is not None
         assert status["latest_assessment"]["risk_bucket"] in {"LOW", "MODERATE", "HIGH"}
 
+        # Score-provenance/severity-band fields (added 2026-09-10, docs/methodology.md Sec 8):
+        # severity and risk_score must appear separately, never fused, and severity_band must not
+        # be derived from risk_score.py's 0.65 MODERATE_HIGH_BOUNDARY.
+        assessment = status["latest_assessment"]
+        assert assessment["severity"] == pytest.approx(0.1)  # from _FakeModel(0.1) above
+        assert assessment["severity_band"] == "within_stable_range"  # 0.1 <= STABLE_SEVERITY_CAP (0.15)
+        provenance = assessment["score_provenance"]
+        assert provenance["source"] == "not_fused"
+        assert provenance["classifier_severity"] == pytest.approx(0.1)
+        assert provenance["pulse_risk_score"] == assessment["risk_score"]  # present, not combined
+
     def test_pulse_failure_marks_simulation_failed(self, client):
         patient_id = _create_patient(client)
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 2000})
 
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("acute_deterioration"), _FakeModel(0.8))), \
-             patch("src.api.services.run_pulse", side_effect=PulseExecutionError("simulated crash")):
+             patch("src.pulse_runner.runner.run_pulse", side_effect=PulseExecutionError("simulated crash")):
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
@@ -218,8 +228,7 @@ class TestFluidOverloadCaveat:
         # Matches the real Phase 5 finding: flat deltas, MAP already low but stable at rest.
         flat_df = _fake_pulse_df(hr_start=72, hr_end=70, map_start=78, map_end=78, co_start=4800, co_end=5400, sv_start=67, sv_end=67)
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
-             patch("src.api.services.run_pulse", return_value=flat_df), \
-             patch("src.analytics.projection.run_pulse", return_value=flat_df):
+             patch("src.pulse_runner.runner.run_pulse", return_value=flat_df):
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
@@ -239,8 +248,7 @@ class TestFluidOverloadCaveat:
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": None, "nt_probnp_pg_ml": None})
 
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
-             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
-             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
@@ -258,8 +266,7 @@ class TestFluidOverloadCaveat:
 
         flat_df = _fake_pulse_df(hr_start=72, hr_end=70, map_start=78, map_end=78, co_start=4800, co_end=5400, sv_start=67, sv_end=67)
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
-             patch("src.api.services.run_pulse", return_value=flat_df), \
-             patch("src.analytics.projection.run_pulse", return_value=flat_df):
+             patch("src.pulse_runner.runner.run_pulse", return_value=flat_df):
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
@@ -272,8 +279,7 @@ class TestFluidOverloadCaveat:
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 60, "nt_probnp_pg_ml": 150})
 
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.05))), \
-             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
-             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
             _fill_wearable_window(client, patient_id)
 
         status = client.get(f"/patients/{patient_id}/status").json()
@@ -301,8 +307,7 @@ class TestHistory:
         patient_id = _create_patient(client)
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.05))), \
-             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
-             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
             _fill_wearable_window(client, patient_id)
 
         r = client.get(f"/patients/{patient_id}/history")
@@ -341,8 +346,7 @@ class TestProjection:
         patient_id = _create_patient(client)
         client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
         with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.05))), \
-             patch("src.api.services.run_pulse", return_value=_fake_pulse_df()), \
-             patch("src.analytics.projection.run_pulse", return_value=_fake_pulse_df()):
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
             _fill_wearable_window(client, patient_id)
 
         r = client.get(f"/patients/{patient_id}/projection")

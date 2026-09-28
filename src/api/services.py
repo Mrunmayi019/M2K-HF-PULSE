@@ -17,11 +17,7 @@ import joblib
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from src.analytics.deterioration_rate import (
-    SD_RATE_TO_RISK_SCORE_PER_DAY,
-    compute_deterioration_rate,
-    days_to_next_stage,
-)
+from src.analytics.deterioration_rate import compute_deterioration_rate, days_to_next_stage
 from src.analytics.projection import DEFAULT_HORIZONS_DAYS, project_physiology
 from src.analytics.risk_score import compute_risk_score
 from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
@@ -30,7 +26,7 @@ from src.api import models
 from src.data_synthesis.generate_patients import load_reference_stats
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S, build_scenario_file
-from src.pulse_runner.runner import PulseExecutionError, run_pulse
+from src.pulse_runner.runner import run_pulse_with_preflight
 from src.scenario_classifier.features import build_inference_features, feature_columns
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -231,14 +227,15 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         scenario_path.write_text(json.dumps(scenario, indent=2))
 
         expected_duration_s = STABILIZATION_S + 10.0 * 60
-        df = run_pulse(str(scenario_path), expected_duration_s=expected_duration_s, timeout_sec=180)
-    except PulseExecutionError as e:
-        run.status = "failed"
-        run.error_message = str(e)
-        run.scenario_json_path = str(scenario_path)
-        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        db.commit()
-        return
+        # run_pulse_with_preflight() (Sprint 2, docs/methodology.md Sec 8) warns (RuntimeWarning)
+        # before running if (scenario_type, severity) falls in the documented crash zone -- it
+        # still runs by default (never silently skips a run this pipeline expects); catches
+        # PulseExecutionError internally and reports it via pulse_result["error"] instead of
+        # raising, so the failure handling below is unchanged in observable behavior.
+        pulse_result = run_pulse_with_preflight(
+            str(scenario_path), scenario_type, severity,
+            expected_duration_s=expected_duration_s, timeout_sec=180,
+        )
     except Exception as e:  # defensive: never leave a run stuck at "running" on an unexpected error
         run.status = "failed"
         run.error_message = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
@@ -246,6 +243,15 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         db.commit()
         return
 
+    if not pulse_result["pulse_succeeded"]:
+        run.status = "failed"
+        run.error_message = pulse_result["error"]
+        run.scenario_json_path = str(scenario_path)
+        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+        db.commit()
+        return
+
+    df = pulse_result["df"]
     sim_features = analyze_simulation(df)
     run.waveform_data = extract_waveform_data(df)
     risk = compute_risk_score(
@@ -270,7 +276,10 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         patient=demo_row,
         scenario_type=scenario_type,
         current_severity=severity,
-        deterioration_rate_per_day=rate_info["composite_rate"] * SD_RATE_TO_RISK_SCORE_PER_DAY,
+        # Raw, scale-agnostic rate -- project_physiology()/project_severity() do their own
+        # severity-scoped conversion internally. Passing a risk_score-pre-converted rate here
+        # (SD_RATE_TO_RISK_SCORE_PER_DAY) was the bug fixed 2026-09-10 (docs/methodology.md Sec 8).
+        composite_rate=rate_info["composite_rate"],
         horizons=DEFAULT_HORIZONS_DAYS,
         output_dir=output_dir / "projection",
     )

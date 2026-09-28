@@ -11,6 +11,7 @@ from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.api.database import Base
+from src.analytics.score_reporting import build_score_report, severity_band
 
 
 def _uuid() -> str:
@@ -131,6 +132,34 @@ class RiskAssessment(Base):
     @property
     def severity(self) -> Optional[float]:
         return self.simulation_run.severity if self.simulation_run else None
+
+    @property
+    def severity_band(self) -> Optional[str]:
+        """Descriptive label, explicitly NOT a clinical alert threshold -- see
+        src/analytics/score_reporting.py's own docstring for why 0.65 isn't used here."""
+        return severity_band(self.severity)
+
+    @property
+    def score_provenance(self) -> dict:
+        """Sprint 2 (2026-09-10): extended from Sprint 1's narrower {classifier_severity,
+        pulse_risk_score, source} to the full build_score_report() shape -- also carries
+        severity_score/severity_band/alert/confidence/simulation_status. Same field name kept
+        (not a new competing field) since this is that field growing, not a replacement for it.
+
+        A RiskAssessment row only ever exists once both the classifier severity and Pulse's
+        risk_score are present (src/api/services.py never creates one on a failed Pulse run), so
+        `pulse_attempted`/`pulse_succeeded` are always True here -- `simulation_status` can only
+        come back "valid" or "unstable" (the crash-zone check), never "not_run", from this
+        property specifically. See src/analytics/score_reporting.py's own docstring for the
+        "classifier_only"/"not_run" states this becomes reachable for once a SimulationRun-level
+        (not RiskAssessment-level) exposure of severity for failed runs is added."""
+        return build_score_report(
+            classifier_severity=self.severity,
+            pulse_risk_score=self.risk_score,
+            scenario_type=self.scenario_type,
+            pulse_attempted=True,
+            pulse_succeeded=True,
+        )
 
 
 class PulseState(Base):

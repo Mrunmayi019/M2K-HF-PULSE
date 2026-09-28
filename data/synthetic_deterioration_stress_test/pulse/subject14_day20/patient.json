@@ -1,0 +1,22 @@
+{
+  "Name": "Synthetic_bcg_subject14_trend_pulse",
+  "Sex": "Male",
+  "Age": {
+    "ScalarTime": {
+      "Value": 53.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 160.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 70.0,
+      "Unit": "kg"
+    }
+  }
+}

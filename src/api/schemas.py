@@ -135,6 +135,43 @@ class RiskAssessmentPayload(BaseModel):
     days_to_next_stage: Optional[int] = None
     scenario_type: Optional[str] = None
     severity: Optional[float] = None
+    severity_band: Optional[str] = Field(
+        default=None,
+        description=(
+            "Descriptive label for `severity` -- 'within_stable_range' or 'exceeds_stable_range', "
+            "relative to this project's own training-data stable-scenario severity ceiling "
+            "(0.15, docs/methodology.md Sec 8). Explicitly NOT a clinical alert threshold: no "
+            "cutoff has been derived from real outcome data. Do not treat this as equivalent to "
+            "risk_bucket."
+        ),
+    )
+    score_provenance: Optional[dict] = Field(
+        default=None,
+        description=(
+            "{'classifier_severity', 'pulse_risk_score', 'source', 'severity_score', "
+            "'severity_band', 'alert', 'confidence', 'simulation_status', "
+            "'threshold_clinically_validated'} -- src.analytics.score_reporting."
+            "build_score_report()'s full output. 'source' is 'not_fused' whenever "
+            "both scores are present (the only state reachable when this payload exists at all) -- "
+            "severity and risk_score are never combined into one number (docs/methodology.md "
+            "Sec 8's 'blocked on data' note: no real outcome-calibration data exists yet for a "
+            "fused score). 'simulation_status' ('valid'|'unstable'|'not_run') and 'confidence' "
+            "(0-1, derived from simulation_status) are Sprint 2 additions -- 'unstable' covers both "
+            "an outright Pulse failure and a 'lucky' success inside the documented "
+            "acute_deterioration crash zone (severity 0.6-0.85), either way not a reliable data "
+            "point. 'alert' ('alert'|'no_alert'|'indeterminate') is produced by a function "
+            "structurally separate from score production (project_severity() and friends only "
+            "ever produce a number, never an alert decision) -- its underlying threshold logic "
+            "remains an unvalidated engineering placeholder pending real outcome data, same as "
+            "'severity_band'; do not read 'alert' as a clinically validated determination. "
+            "'threshold_clinically_validated' (Sprint 2.5) is always `false` -- a fixed, explicit "
+            "statement that none of this payload's thresholds (STABLE_SEVERITY_CAP, "
+            "MIN_CONFIDENCE_FOR_ALERT, CONFIDENCE_BY_STATUS, ENTER/EXIT_THRESHOLD, "
+            "SCENARIO_TYPE_PERSISTENCE_N, or risk_score.py's own LOW/MODERATE_HIGH_BOUNDARY) has "
+            "been checked against real outcome data, so a caller never has to infer this from "
+            "scattered docstrings."
+        ),
+    )
     ejection_fraction_pct: Optional[float] = None
     nt_probnp_pg_ml: Optional[float] = None
     vital_slopes: Optional[dict] = None
