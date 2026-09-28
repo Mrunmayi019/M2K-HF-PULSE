@@ -245,26 +245,23 @@ authoritative current list.
 
 ### P1 — biggest blockers to a credible submission
 
-- [ ] **Real clinical outcome validation.** Everything validated so far (synthetic + PerHeart
-      real data) shows the pipeline runs correctly on real inputs — not that its risk predictions
-      correlate with actual outcomes (hospitalization, real deterioration events). This is the
-      single biggest gap between "systems demo" and "clinical research paper."
-      **Partially solvable in code after all, as of 2026-08-17**: a *retrospective* slice of this
-      is now in progress using MIMIC-IV's own outcome fields (`admissions.deathtime`/
-      `dischtime`/`discharge_location`/`hospital_expire_flag`, `patients.dod`) — this project's
-      existing PhysioNet credentialing is dataset-wide (project `ai-inventory-project`, source
-      `physionet-data`, confirmed via a schema-only check against `mimiciv_3_1_hosp` covering
-      `mimiciv_3_1_hosp`/`mimiciv_3_1_icu`/`mimiciv_3_1_derived`, no patient data pulled yet — see
-      `docs/data_provenance.md`'s `mimic_bigquery_extract` row). This does NOT replace the
-      original ask here: MIMIC-IV is a retrospective, ICU-population dataset, not a prospective
-      validation of this project's own wearable-trend/digital-twin pipeline against real
-      deterioration events in the target outpatient/home-monitoring population, and MIMIC
-      patients were never run through this pipeline. A genuine clinical partnership (cardiology
-      department/HF clinic contact, IRB requirements at Kaveri's institution) is still the
-      long-pole item for a prospective validation claim — keep that conversation going in
-      parallel. Status of the MIMIC-IV retrospective slice: access confirmed, linkage/outcome
-      plan in design (see the in-progress write-up this will land in, once done, as a new
-      `docs/methodology.md` subsection distinct from the PerHeart section).
+- [x] **Retrospective real-outcome validation — done, committed 2026-09-28 (`ab795a9`).**
+      `risk_score.py`'s `baseline_deficit_score` was tested against real outcomes on MIMIC-IV
+      (in-hospital death, n=17,129, AUC 0.596) and Zigong (6-month death-or-readmission, n=625,
+      AUC 0.533); Model 1's clinical-only variant scored AUC 0.517 on Zigong. Full results and
+      caveats: `docs/methodology.md` §7.X–§7.AA and
+      `docs/claims_methodology.md` Claim 3 (read that file's "what earlier summaries overstated"
+      list before citing any of these numbers). These are hospitalized/ICU populations and
+      baseline-snapshot tests only — **day-by-day trend/early-warning detection (Model 1's actual
+      production use case) remains untested against real data.**
+
+- [ ] ~~**Prospective clinical validation**~~ — **dropped, 2026-09-28, deliberate scope
+      decision.** A clinical partnership + ethics-committee (IRB) approval is out of scope for this
+      project. Remaining validation work uses only already-accessible public, de-identified
+      datasets (MIMIC-IV, Zigong, PerHeart, the BCG dataset) plus simulation-only checks — e.g.
+      physiological plausibility against published ranges, sensitivity analysis, retrospective
+      trend tests on MIMIC-IV's time-series vitals. State this as a limitation in the paper rather
+      than implying a prospective validation is pending.
 
 - [x] **Diagnose the Pulse failure/timeout behavior — done, 2026-08-17, but the answer is
       neither of the two hypotheses this item originally posed.** A clean Docker Desktop restart
@@ -345,19 +342,27 @@ authoritative current list.
       limitations for that specific sample in the paper rather than treating its bootstrap CIs as
       sufficient alone.
 
-- [ ] **Benchmark against an established clinical risk score** (Seattle Heart Failure Model,
-      MAGGIC, or GWTG-HF). Journals want evidence of added value over existing standards of
-      care, not just internal self-consistency. Scope: (a) pick one with a public/implementable
-      formula, (b) compute it on the same synthetic + PerHeart cohorts, (c) compare risk-bucket
-      agreement or discrimination (AUC) against `src/analytics/risk_score.py`'s output.
-      **Not started.**
+- [x] **Benchmark against an established clinical risk score — done, committed 2026-09-28
+      (`ab795a9`).** MAGGIC chosen (public, implementable formula): `compute_maggic_score()` in
+      `src/analytics/benchmark_scores.py`, re-verified against the original point system with
+      hand-calculated unit tests (`tests/test_maggic_score.py`). Run on Zigong as "MAGGIC-11" (11
+      of 13 inputs; current-smoker and HF-duration are absent from Zigong and excluded, not
+      defaulted): AUC 0.604 on the same cohort/outcome where this project's own
+      `baseline_deficit_score` scored 0.533. Note MAGGIC is an *external* score and needs
+      creatinine/NYHA (not wearable-obtainable) — don't group it with "our scores" when citing.
+      Details: `docs/methodology.md` §7.CC and `docs/claims_methodology.md` Claim 3.
 
-- [ ] **Medication modeling.** Nearly all real HF patients are on diuretics/beta-blockers/ACE
-      inhibitors — none represented in current Pulse scenarios, a real gap for any
-      real-world-applicability claim. Scope: does Pulse itself support drug-modeling actions? Do
-      a quick feasibility check (read Pulse's own action/state documentation, check
-      `backend/`'s Pulse SDK bindings for anything drug-related) before committing engineering
-      time — this might be out of reach without engine-level work. **Not started.**
+- [ ] **Medication modeling — FUTURE WORK, deliberately out of scope for this project
+      (decided 2026-09-28).** Nearly all real HF patients are on diuretics/beta-blockers/ACE
+      inhibitors/ARBs, and none are represented in current Pulse scenarios. The feasibility check
+      is done (`docs/medication_modeling_feasibility.md`): Pulse's drug engine includes
+      furosemide (a loop diuretic), but **beta-blockers, ACE inhibitors and ARBs are not in
+      Pulse's substance library** and would need new engine-level substance definitions. **Do not
+      start this** — report it in the paper as a limitation / future-work item instead: the
+      simulator models unmedicated physiology, and beta-blockers in particular blunt the
+      heart-rate rise the trend detector partly relies on. Cheap, in-scope way to quantify the
+      impact without modeling drugs: stratify the Zigong results by beta-blocker use (`dat_md.csv`
+      drug list, already used for MAGGIC-11).
 
 - [ ] **Fluid_overload scenario lacks a volume-loading mechanism** — found and root-caused
       2026-09-01 (`docs/continuous_state_sync_status.md`, `docs/methodology.md`'s new Limitations
@@ -402,11 +407,11 @@ authoritative current list.
    Surfaced and closed a caveat-messaging gap; the underlying EF-fallback limitation is still open.
 3. ~~Top up the live re-validation sample~~ — **attempted 2026-08-17**, landed at n=27/30, see
    P1 above.
-4. Start the real clinical outcome validation conversation with a clinical partner — **still not
-   started** (the MIMIC-IV retrospective slice, done 2026-08-17, is a real but partial substitute
-   — see P1's first item — not a replacement for this). Institutional timelines are the long
-   pole — start early, keep doing P2/P3/P4 in parallel.
-5. ~~Benchmark comparison + medication-modeling feasibility check~~ — **done** (P2, prior session).
+4. ~~Clinical-partner / prospective validation~~ — **dropped 2026-09-28** (out of scope, see
+   P1). The retrospective MIMIC-IV/Zigong outcome tests are done; further validation stays on
+   public datasets and simulation-only checks.
+5. ~~Benchmark comparison + medication-modeling feasibility check~~ — **done** (P2). MAGGIC
+   benchmark committed 2026-09-28; medication modeling itself is future work, not to be started.
 6. ~~Related-work/ethics writing~~ — **first drafts done** (P3, prior session) — needs Kaveri's
    read before treating as final.
 7. Journal scaffolding (P4) — do last, once the results section is stable. Still not started.
