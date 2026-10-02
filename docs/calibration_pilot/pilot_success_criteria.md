@@ -23,3 +23,52 @@ and HR only; CO is held out and used only for evaluation.
 
 "Arm A" in this rule means **Arm A-prod**. Arm A-formula is reported alongside it for context but
 is not part of the success rule.
+
+---
+
+## Amendment 1 — 2026-10-02
+
+Written **after** the Arm A results for patients 295/136/120 were seen (commit `8cab8b2`) and
+**before** any Arm B run and before the selection script below was run. Why: the real measurements
+in the Gu file disagree with each other for those 3 patients (thermodilution vs Fick cardiac
+output, echo vs MRI ejection fraction), so a second, independently chosen set of patients with
+internally consistent measurements is added. The original text above is unchanged.
+
+a) **Primary rule unchanged.** The success rule above (against CO_td, patients 295/136/120, Arm B
+   vs Arm A-prod) remains the primary rule.
+
+b) **Extra reporting.** Every result table also reports error against CO_fick, and reports stroke
+   volume error and HR error separately. Real SV = CO / HR_vitals (once with CO_td, once with
+   CO_fick); twin SV = twin CO / twin HR.
+
+c) **Second set, "measurement-consistent".** Chosen from real measurements only, first snapshot
+   per patient, by applying these filters in this order:
+   1. All present (a finite number; > 0 for physical measurements; Sex in {1, 2}): LVEF_tte,
+      CO_td, CO_fick, HR_vitals, NIBPs_vitals, NIBPd_vitals, MRI_LVEDV, MRI_LVESV, Height,
+      Weight, Sex.
+   2. |CO_td − CO_fick| / mean(CO_td, CO_fick) ≤ 0.10.
+   3. |LVEF_tte − MRI EF| ≤ 7 percentage points, with MRI EF = (MRI_LVEDV − MRI_LVESV) / MRI_LVEDV × 100.
+   4. 16.5 ≤ BMI ≤ 29.5 (no weight clamp needed).
+   5. 50 ≤ HR_vitals ≤ 110 bpm. This is the HeartRateBaseline range Pulse 4.3.1 accepts
+      (`SetupPatient.cpp`: values outside it are an initialization error).
+   6. No valve regurgitation worse than mild, on all four valves (AVr, MVr, TVr, PVr). Grade
+      coding, worked out by comparing the numbers with their `_str` text across the whole
+      dataset: 1.0 none, 1.5 minimal/trace, 2.0 mild, 2.5 mild-to-moderate, 3.0 moderate,
+      3.5 moderate-to-severe, 4.0 severe. Code 1.0 is also used for "Doppler not available"
+      and "not optimally visualized"; 0 and −1 are unparsed or missing text. **A valve passes
+      only if its grade is known to be ≤ mild**: numeric 1.5 or 2.0, or numeric 1.0 with a
+      "No evidence" text. Not-assessed or unknown valves fail. The selection log also reports
+      the count under the looser reading (numeric ≤ 2.0 regardless of text), for information
+      only.
+   7. Not one of patients 295, 136 or 120.
+
+   From the patients that pass, 3 are picked in this order: echo EF closest to 25, then closest
+   to 40, then closest to 58. Ties go to the smaller CO_td/CO_fick gap. A patient already picked
+   is not eligible for a later target. If fewer than 3 patients pass, nothing is picked and the
+   rule is not loosened.
+
+   The same 2-of-3 success rule (Arm B vs Arm A-prod, CO_td) is applied to this set and reported
+   separately. Age is still unreadable from the file, so the fixed 60-year assumption carries over.
+
+d) **Arm B design.** In Arm B, HR is set directly from HR_vitals (via `hr_baseline_bpm`), and
+   calibration searches for EF and MAP only. CO stays held out.
