@@ -92,3 +92,60 @@ this repository beforehand.** Unlike the success rule and Amendment 1, it theref
 commit-history proof that it predates the result. It is recorded here only after the fact.
 
 Summary of the whole pilot: `docs/calibration_pilot/pilot_summary.md`.
+
+---
+
+## Amendment 2 — 2026-10-02: Arm C, direct-set
+
+Written **after** the closing note above, and after every earlier result (Arm A, the knob scan,
+the blood-pressure check) had been seen. Written **before** any Arm C code was run. Arm C is a new
+arm: no knob table, and no search over several knobs. Arm B stays unbuilt, and the earlier text,
+including the closing note, is unchanged.
+
+a) **How each Arm C twin is built.** Each patient's own body is used: sex, height, weight (with the
+   existing BMI clamp in `build_patient_file()`) and age assumed 60. The patient's own values are
+   set where Pulse accepts them:
+   - `HeartRateBaseline` = HR_vitals. It must be within 50–110 bpm; all 6 pilot patients are.
+   - **Systolic/Diastolic baseline** = the real NIBPs/NIBPd, moved to the nearest pair Pulse
+     accepts. "Nearest" means the closest (SBP, DBP) point in mmHg (Euclidean) that satisfies
+     90 ≤ SBP ≤ 120, 60 ≤ DBP ≤ 80 and DBP ≤ 0.75·SBP. The original and used values are both
+     logged.
+   - `ChronicVentricularSystolicDysfunction` is ON if echo EF ≤ 40, otherwise OFF. This is the
+     same threshold as production.
+   - **StrokeVolumeMultiplier** is tuned so that twin EF is within 2 points of echo EF, using at
+     most 4 runs per patient, in the range 0.6–1.4. The algorithm, fixed here:
+     1. Run 1 uses SV = linear interpolation of the knob scan's (SV, EF) points for the same
+        condition, at the target EF, clipped to 0.6–1.4. The scan points are condition ON
+        (1.0, 25.2), (1.2, 38.6), (1.4, 49.6) and condition OFF (0.6, 42.8), (0.8, 49.8),
+        (1.0, 54.5), (1.2, 64.9), all from patient 120's body (`sensitivity_scan.csv`).
+     2. Before run 1 the bracket is [0.6, 1.4]. After each run: if twin EF is within 2 points of
+        the target, stop. If it is below the target, the run's SV becomes the bracket's lower
+        end; if above, its upper end.
+     3. Runs 2–4 use the midpoint of the current bracket.
+     4. If no run is within 2 points after 4 runs, the run with the smallest |EF − target| is
+        kept as final, and that is reported.
+     5. A crashed run counts as one of the 4, and its SV value is not used to move the bracket.
+   - All other modifiers stay at 1.0. No HeartRateMultiplier is used.
+   - Timing and settle check are the same as the knob scan: 60 s stabilization, then the
+     modification, then 180 s, with metrics from the last 60 s. A run is flagged if any output
+     moves more than 2% between the last two 60 s windows. Every tuning run is kept in the
+     results.
+
+b) **Inputs and held-out values.** Inputs used: EF, HR and blood pressure. Held out, used only for
+   scoring: cardiac output and stroke volume.
+
+c) **Primary rule, unchanged from the original.** Arm C is promising if its CO error against
+   CO_td is smaller than Arm A-prod's in at least 2 of 3 patients, with no additional crashes.
+   This is applied separately to the original set (295, 136, 120) and the consistent set
+   (56, 242, 264). "CO error" is the absolute % error of the final run. "No additional crashes"
+   means no patient whose final Arm C run crashed, given that Arm A-prod had none.
+
+d) **Also reported for every patient,** Arm A-prod next to Arm C:
+   - errors in EF, HR, MAP (formula: (2·DBP + SBP)/3 on the twin's own pressures, like-for-like
+     with the real cuff MAP), SV (real SV = CO_td / HR_vitals) and CO, against both CO_td and
+     CO_fick;
+   - one overall number: the mean absolute % error across EF, HR, MAP (formula), SV (vs CO_td
+     based) and CO_td.
+
+e) **EF, HR and MAP are inputs to Arm C,** so improvement on those is expected and is not evidence
+   by itself. Cardiac output and stroke volume are the real test.
