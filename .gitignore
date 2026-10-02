@@ -39,3 +39,4 @@ data/synthetic_deterioration_stress_test/**/full_results.csv
 data/calibration_pilot/runs/**/scenarioResults.csv
 data/calibration_pilot/sensitivity/**/scenarioResults.csv
 data/calibration_pilot/bp_check/**/scenarioResults.csv
+data/calibration_pilot/arm_c/**/scenarioResults.csv
