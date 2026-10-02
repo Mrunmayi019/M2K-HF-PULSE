@@ -1,0 +1,2309 @@
+meta:
+  generated_at: '2026-10-02T20:34:26.797779+00:00'
+  results_tag: results-rc1
+  note: 'Provisional, unreviewed: pending PR #4 merge (see docs/integration_pre_results.md).'
+  seeds:
+  - 42
+  - 43
+  - 44
+  baseline_days: 21
+  monitored_days: 21
+  seed_affects: synthetic wearable noise only -- this file's own schedule is deterministic and seed-independent
+  demographic_ranges_used:
+    age: generator mean=68.72 sd=13.73 range=[18,95] (reference_stats.yaml); this cohort spans 45-82
+    sex: generator male_ratio=0.563; this cohort uses 5 male / 5 female
+    height_cm: generator male mean=174.32 sd=7.77, female mean=160.46 sd=7.13
+    weight_kg: generator male mean=86.43 sd=21.3, female mean=75.99 sd=21.78
+    ejection_fraction_pct: 'generator profiles: healthy mean=62 range=[55,70], hfpef mean=56.9 range=[50,80],
+      hfref mean=32.3 range=[14,40]'
+patients:
+  P01:
+    story: Stable patient, ordinary life
+    expected_group: should_stay_quiet
+    demographics:
+      age: 58
+      sex: Female
+      height_cm: 162.0
+      weight_kg: 70.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 64.0
+      nt_probnp_pg_ml: 90.0
+    baseline_wearable:
+      resting_hr_bpm: 68.0
+      steps_per_day: 6200.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      spo2_pct: 97.5
+      weight_kg: 70.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 6200
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.2
+      weight_kg: 70.0
+      steps_per_day: 5084
+      resting_hr_bpm: 68.0
+      hrv_rmssd_ms: 36.0
+      sleep_hours: 7.1
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P02:
+    story: Salty weekend
+    expected_group: edge_case
+    demographics:
+      age: 50
+      sex: Male
+      height_cm: 178.0
+      weight_kg: 88.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 60.0
+      nt_probnp_pg_ml: 110.0
+    baseline_wearable:
+      resting_hr_bpm: 72.0
+      steps_per_day: 6800.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      spo2_pct: 97.0
+      weight_kg: 88.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 90.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_peak
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 90.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_peak
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 90.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_peak
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 89.33
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_recovery
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 88.67
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_recovery
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: salty_weekend_recovery
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 6800
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.2
+      weight_kg: 88.0
+      steps_per_day: 5576
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 34.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P03:
+    story: Slow, quiet weight gain
+    expected_group: edge_case
+    demographics:
+      age: 75
+      sex: Female
+      height_cm: 158.0
+      weight_kg: 68.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 58.0
+      nt_probnp_pg_ml: 180.0
+    baseline_wearable:
+      resting_hr_bpm: 74.0
+      steps_per_day: 5200.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      spo2_pct: 96.0
+      weight_kg: 68.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 68.0
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 68.0
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 68.0
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 68.3
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 68.6
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 68.9
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 69.2
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 69.5
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 69.8
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2
+      weight_kg: 70.1
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2
+      weight_kg: 70.4
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2
+      weight_kg: 70.7
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2
+      weight_kg: 71.0
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.2
+      weight_kg: 71.3
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.2
+      weight_kg: 71.6
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.2
+      weight_kg: 71.9
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.2
+      weight_kg: 72.2
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.2
+      weight_kg: 72.5
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.2
+      weight_kg: 72.8
+      steps_per_day: 5200
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.2
+      weight_kg: 73.1
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.2
+      weight_kg: 73.4
+      steps_per_day: 4264
+      resting_hr_bpm: 74.0
+      hrv_rmssd_ms: 30.0
+      sleep_hours: 6.8
+      event: quiet_weight_creep
+      weight_input_level_only: true
+      sleep_input_level_only: false
+  P04:
+    story: Fluid overload building up
+    expected_group: should_catch
+    demographics:
+      age: 70
+      sex: Male
+      height_cm: 170.0
+      weight_kg: 95.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 30.0
+      nt_probnp_pg_ml: 650.0
+    baseline_wearable:
+      resting_hr_bpm: 78.0
+      steps_per_day: 5500.0
+      hrv_rmssd_ms: 28.0
+      sleep_hours: 6.9
+      spo2_pct: 94.5
+      weight_kg: 95.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 95.0
+      steps_per_day: 5500
+      resting_hr_bpm: 80.4
+      hrv_rmssd_ms: 26.8
+      sleep_hours: 6.9
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 95.0
+      steps_per_day: 5500
+      resting_hr_bpm: 80.4
+      hrv_rmssd_ms: 26.8
+      sleep_hours: 6.9
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 95.0
+      steps_per_day: 5500
+      resting_hr_bpm: 80.4
+      hrv_rmssd_ms: 26.8
+      sleep_hours: 6.9
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 95.4
+      steps_per_day: 5500
+      resting_hr_bpm: 80.4
+      hrv_rmssd_ms: 26.8
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2176
+      weight_kg: 95.8
+      steps_per_day: 5500
+      resting_hr_bpm: 80.6
+      hrv_rmssd_ms: 26.7
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2353
+      weight_kg: 96.2
+      steps_per_day: 4510
+      resting_hr_bpm: 80.8
+      hrv_rmssd_ms: 26.6
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2529
+      weight_kg: 96.6
+      steps_per_day: 4510
+      resting_hr_bpm: 81.0
+      hrv_rmssd_ms: 26.5
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2706
+      weight_kg: 97.0
+      steps_per_day: 5500
+      resting_hr_bpm: 81.2
+      hrv_rmssd_ms: 26.4
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2882
+      weight_kg: 97.4
+      steps_per_day: 5500
+      resting_hr_bpm: 81.5
+      hrv_rmssd_ms: 26.3
+      sleep_hours: 6.9
+      event: fluid_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.3059
+      weight_kg: 97.8
+      steps_per_day: 3850
+      resting_hr_bpm: 81.7
+      hrv_rmssd_ms: 26.2
+      sleep_hours: 6.9
+      event: breathless
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.3235
+      weight_kg: 98.2
+      steps_per_day: 3850
+      resting_hr_bpm: 81.9
+      hrv_rmssd_ms: 26.1
+      sleep_hours: 6.9
+      event: breathless
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.3412
+      weight_kg: 98.6
+      steps_per_day: 3850
+      resting_hr_bpm: 82.1
+      hrv_rmssd_ms: 26.0
+      sleep_hours: 6.9
+      event: breathless
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.3588
+      weight_kg: 99.0
+      steps_per_day: 3157
+      resting_hr_bpm: 82.3
+      hrv_rmssd_ms: 25.8
+      sleep_hours: 6.9
+      event: breathless
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.3765
+      weight_kg: 99.4
+      steps_per_day: 3157
+      resting_hr_bpm: 87.5
+      hrv_rmssd_ms: 21.9
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 15
+      severity_target: 0.3941
+      weight_kg: 99.8
+      steps_per_day: 3850
+      resting_hr_bpm: 87.7
+      hrv_rmssd_ms: 21.8
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 16
+      severity_target: 0.4118
+      weight_kg: 100.2
+      steps_per_day: 3850
+      resting_hr_bpm: 87.9
+      hrv_rmssd_ms: 21.7
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 17
+      severity_target: 0.4294
+      weight_kg: 100.6
+      steps_per_day: 3850
+      resting_hr_bpm: 88.2
+      hrv_rmssd_ms: 21.6
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 18
+      severity_target: 0.4471
+      weight_kg: 101.0
+      steps_per_day: 3850
+      resting_hr_bpm: 88.4
+      hrv_rmssd_ms: 21.5
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 19
+      severity_target: 0.4647
+      weight_kg: 101.4
+      steps_per_day: 3850
+      resting_hr_bpm: 88.6
+      hrv_rmssd_ms: 21.4
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 20
+      severity_target: 0.4824
+      weight_kg: 101.8
+      steps_per_day: 3157
+      resting_hr_bpm: 88.8
+      hrv_rmssd_ms: 21.3
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 21
+      severity_target: 0.5
+      weight_kg: 102.2
+      steps_per_day: 3157
+      resting_hr_bpm: 89.0
+      hrv_rmssd_ms: 21.2
+      sleep_hours: 5.9
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+  P05:
+    story: Gradual deconditioning
+    expected_group: should_catch
+    demographics:
+      age: 82
+      sex: Female
+      height_cm: 155.0
+      weight_kg: 60.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 55.0
+      nt_probnp_pg_ml: 320.0
+    baseline_wearable:
+      resting_hr_bpm: 70.0
+      steps_per_day: 4200.0
+      hrv_rmssd_ms: 26.0
+      sleep_hours: 7.0
+      spo2_pct: 95.5
+      weight_kg: 60.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 60.0
+      steps_per_day: 4200
+      resting_hr_bpm: 71.6
+      hrv_rmssd_ms: 25.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 60.0
+      steps_per_day: 4200
+      resting_hr_bpm: 71.6
+      hrv_rmssd_ms: 25.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 60.0
+      steps_per_day: 4200
+      resting_hr_bpm: 71.6
+      hrv_rmssd_ms: 25.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 60.0
+      steps_per_day: 3360
+      resting_hr_bpm: 71.6
+      hrv_rmssd_ms: 25.0
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2088
+      weight_kg: 60.0
+      steps_per_day: 3360
+      resting_hr_bpm: 71.7
+      hrv_rmssd_ms: 25.0
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2176
+      weight_kg: 60.0
+      steps_per_day: 2755
+      resting_hr_bpm: 71.7
+      hrv_rmssd_ms: 24.9
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2265
+      weight_kg: 60.0
+      steps_per_day: 2755
+      resting_hr_bpm: 71.8
+      hrv_rmssd_ms: 24.9
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2353
+      weight_kg: 60.0
+      steps_per_day: 3360
+      resting_hr_bpm: 71.9
+      hrv_rmssd_ms: 24.8
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2441
+      weight_kg: 60.0
+      steps_per_day: 3360
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 24.8
+      sleep_hours: 7.0
+      event: steps_down_20pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2529
+      weight_kg: 60.0
+      steps_per_day: 2520
+      resting_hr_bpm: 72.0
+      hrv_rmssd_ms: 24.7
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2618
+      weight_kg: 60.0
+      steps_per_day: 2520
+      resting_hr_bpm: 72.1
+      hrv_rmssd_ms: 24.7
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2706
+      weight_kg: 60.0
+      steps_per_day: 2520
+      resting_hr_bpm: 72.2
+      hrv_rmssd_ms: 24.6
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2794
+      weight_kg: 60.0
+      steps_per_day: 2066
+      resting_hr_bpm: 72.2
+      hrv_rmssd_ms: 24.6
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.2882
+      weight_kg: 60.0
+      steps_per_day: 2066
+      resting_hr_bpm: 72.3
+      hrv_rmssd_ms: 24.6
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.2971
+      weight_kg: 60.0
+      steps_per_day: 2520
+      resting_hr_bpm: 72.4
+      hrv_rmssd_ms: 24.5
+      sleep_hours: 7.0
+      event: steps_down_40pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.3059
+      weight_kg: 60.0
+      steps_per_day: 1680
+      resting_hr_bpm: 72.4
+      hrv_rmssd_ms: 24.5
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.3147
+      weight_kg: 60.0
+      steps_per_day: 1680
+      resting_hr_bpm: 72.5
+      hrv_rmssd_ms: 24.4
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.3235
+      weight_kg: 60.0
+      steps_per_day: 1680
+      resting_hr_bpm: 72.6
+      hrv_rmssd_ms: 24.4
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.3324
+      weight_kg: 60.0
+      steps_per_day: 1680
+      resting_hr_bpm: 72.7
+      hrv_rmssd_ms: 24.3
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.3412
+      weight_kg: 60.0
+      steps_per_day: 1378
+      resting_hr_bpm: 72.7
+      hrv_rmssd_ms: 24.3
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.35
+      weight_kg: 60.0
+      steps_per_day: 1378
+      resting_hr_bpm: 72.8
+      hrv_rmssd_ms: 24.2
+      sleep_hours: 7.0
+      event: steps_down_60pct
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P06:
+    story: Cardiac stress
+    expected_group: should_catch
+    demographics:
+      age: 60
+      sex: Male
+      height_cm: 180.0
+      weight_kg: 100.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 58.0
+      nt_probnp_pg_ml: 280.0
+    baseline_wearable:
+      resting_hr_bpm: 75.0
+      steps_per_day: 6600.0
+      hrv_rmssd_ms: 32.0
+      sleep_hours: 7.0
+      spo2_pct: 96.0
+      weight_kg: 100.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 100.0
+      steps_per_day: 6400
+      resting_hr_bpm: 79.0
+      hrv_rmssd_ms: 29.6
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 100.0
+      steps_per_day: 6400
+      resting_hr_bpm: 79.0
+      hrv_rmssd_ms: 29.6
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 100.0
+      steps_per_day: 6400
+      resting_hr_bpm: 79.0
+      hrv_rmssd_ms: 29.6
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 100.0
+      steps_per_day: 6400
+      resting_hr_bpm: 79.0
+      hrv_rmssd_ms: 29.6
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2118
+      weight_kg: 100.0
+      steps_per_day: 6388
+      resting_hr_bpm: 79.2
+      hrv_rmssd_ms: 29.5
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2235
+      weight_kg: 100.0
+      steps_per_day: 3137
+      resting_hr_bpm: 94.5
+      hrv_rmssd_ms: 21.3
+      sleep_hours: 7.0
+      event: exertion_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2353
+      weight_kg: 100.0
+      steps_per_day: 5219
+      resting_hr_bpm: 79.7
+      hrv_rmssd_ms: 29.2
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2471
+      weight_kg: 100.0
+      steps_per_day: 6353
+      resting_hr_bpm: 79.9
+      hrv_rmssd_ms: 29.0
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2588
+      weight_kg: 100.0
+      steps_per_day: 6341
+      resting_hr_bpm: 80.2
+      hrv_rmssd_ms: 28.9
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2706
+      weight_kg: 100.0
+      steps_per_day: 3798
+      resting_hr_bpm: 95.4
+      hrv_rmssd_ms: 20.8
+      sleep_hours: 7.0
+      event: exertion_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2824
+      weight_kg: 100.0
+      steps_per_day: 6318
+      resting_hr_bpm: 80.6
+      hrv_rmssd_ms: 28.6
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2941
+      weight_kg: 100.0
+      steps_per_day: 6306
+      resting_hr_bpm: 80.9
+      hrv_rmssd_ms: 28.5
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.3059
+      weight_kg: 100.0
+      steps_per_day: 5161
+      resting_hr_bpm: 81.1
+      hrv_rmssd_ms: 28.3
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.3176
+      weight_kg: 100.0
+      steps_per_day: 3091
+      resting_hr_bpm: 96.4
+      hrv_rmssd_ms: 20.2
+      sleep_hours: 7.0
+      event: exertion_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.3294
+      weight_kg: 100.0
+      steps_per_day: 6271
+      resting_hr_bpm: 81.6
+      hrv_rmssd_ms: 28.0
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.3412
+      weight_kg: 100.0
+      steps_per_day: 6259
+      resting_hr_bpm: 81.8
+      hrv_rmssd_ms: 27.9
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.3529
+      weight_kg: 100.0
+      steps_per_day: 6247
+      resting_hr_bpm: 82.1
+      hrv_rmssd_ms: 27.8
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.3647
+      weight_kg: 100.0
+      steps_per_day: 3741
+      resting_hr_bpm: 97.3
+      hrv_rmssd_ms: 19.6
+      sleep_hours: 7.0
+      event: exertion_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.3765
+      weight_kg: 100.0
+      steps_per_day: 6224
+      resting_hr_bpm: 82.5
+      hrv_rmssd_ms: 27.5
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.3882
+      weight_kg: 100.0
+      steps_per_day: 5094
+      resting_hr_bpm: 82.8
+      hrv_rmssd_ms: 27.3
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.4
+      weight_kg: 100.0
+      steps_per_day: 5084
+      resting_hr_bpm: 83.0
+      hrv_rmssd_ms: 27.2
+      sleep_hours: 7.0
+      event: cardiac_stress_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P07:
+    story: Sudden deterioration
+    expected_group: should_catch
+    demographics:
+      age: 68
+      sex: Female
+      height_cm: 165.0
+      weight_kg: 80.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 28.0
+      nt_probnp_pg_ml: 700.0
+    baseline_wearable:
+      resting_hr_bpm: 80.0
+      steps_per_day: 5800.0
+      hrv_rmssd_ms: 27.0
+      sleep_hours: 7.0
+      spo2_pct: 94.0
+      weight_kg: 80.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 4756
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 4756
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 80.0
+      steps_per_day: 5800
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 7.0
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.25
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 86.2
+      hrv_rmssd_ms: 23.2
+      sleep_hours: 7.0
+      event: acute_jump
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.3
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 87.5
+      hrv_rmssd_ms: 22.5
+      sleep_hours: 7.0
+      event: acute_jump
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.35
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 88.8
+      hrv_rmssd_ms: 21.8
+      sleep_hours: 7.0
+      event: acute_jump
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2378
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_jump
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2378
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2900
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2378
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.4
+      weight_kg: 80.0
+      steps_per_day: 2378
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 7.0
+      event: acute_held
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P08:
+    story: Stressful fortnight, healthy heart
+    expected_group: should_stay_quiet
+    demographics:
+      age: 45
+      sex: Male
+      height_cm: 175.0
+      weight_kg: 82.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 65.0
+      nt_probnp_pg_ml: 80.0
+    baseline_wearable:
+      resting_hr_bpm: 65.0
+      steps_per_day: 7200.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      spo2_pct: 97.5
+      weight_kg: 82.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 75.0
+      hrv_rmssd_ms: 37.0
+      sleep_hours: 7.3
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 71.5
+      hrv_rmssd_ms: 33.6
+      sleep_hours: 6.1
+      event: poor_sleep_fortnight
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 81.5
+      hrv_rmssd_ms: 28.6
+      sleep_hours: 6.1
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 71.5
+      hrv_rmssd_ms: 33.6
+      sleep_hours: 6.1
+      event: poor_sleep_fortnight
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 11
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 71.5
+      hrv_rmssd_ms: 33.6
+      sleep_hours: 6.1
+      event: poor_sleep_fortnight
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 12
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 81.5
+      hrv_rmssd_ms: 28.6
+      sleep_hours: 6.1
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 71.5
+      hrv_rmssd_ms: 33.6
+      sleep_hours: 6.1
+      event: poor_sleep_fortnight
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 14
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 71.5
+      hrv_rmssd_ms: 33.6
+      sleep_hours: 6.1
+      event: poor_sleep_fortnight
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 15
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 75.0
+      hrv_rmssd_ms: 37.0
+      sleep_hours: 7.3
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 7200
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.2
+      weight_kg: 82.0
+      steps_per_day: 5904
+      resting_hr_bpm: 65.0
+      hrv_rmssd_ms: 42.0
+      sleep_hours: 7.3
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P09:
+    story: Active, stable patient
+    expected_group: should_stay_quiet
+    demographics:
+      age: 52
+      sex: Female
+      height_cm: 168.0
+      weight_kg: 65.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 66.0
+      nt_probnp_pg_ml: 70.0
+    baseline_wearable:
+      resting_hr_bpm: 60.0
+      steps_per_day: 8500.0
+      hrv_rmssd_ms: 45.0
+      sleep_hours: 7.5
+      spo2_pct: 98.0
+      weight_kg: 65.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 11326
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 8712
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 9
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 10
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 12
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 13
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 8712
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 14
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 11326
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 15
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 13812
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 10625
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 11326
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: light_exercise
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.2
+      weight_kg: 65.0
+      steps_per_day: 8712
+      resting_hr_bpm: 58.0
+      hrv_rmssd_ms: 49.0
+      sleep_hours: 7.5
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+  P10:
+    story: Everything goes wrong
+    expected_group: should_catch
+    demographics:
+      age: 73
+      sex: Male
+      height_cm: 172.0
+      weight_kg: 92.0
+    baseline_clinical_report:
+      ejection_fraction_pct: 25.0
+      nt_probnp_pg_ml: 900.0
+    baseline_wearable:
+      resting_hr_bpm: 82.0
+      steps_per_day: 5400.0
+      hrv_rmssd_ms: 24.0
+      sleep_hours: 6.7
+      spo2_pct: 93.5
+      weight_kg: 92.0
+    monitored_day_schedule:
+    - day: 1
+      severity_target: 0.2
+      weight_kg: 92.0
+      steps_per_day: 5400
+      resting_hr_bpm: 87.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 6.7
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 2
+      severity_target: 0.2
+      weight_kg: 92.0
+      steps_per_day: 5400
+      resting_hr_bpm: 87.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 6.7
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 3
+      severity_target: 0.2
+      weight_kg: 92.0
+      steps_per_day: 5400
+      resting_hr_bpm: 87.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 6.7
+      event: null
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 4
+      severity_target: 0.2
+      weight_kg: 92.4
+      steps_per_day: 2700
+      resting_hr_bpm: 87.0
+      hrv_rmssd_ms: 21.0
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 5
+      severity_target: 0.2147
+      weight_kg: 92.8
+      steps_per_day: 2700
+      resting_hr_bpm: 87.4
+      hrv_rmssd_ms: 20.8
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 6
+      severity_target: 0.2294
+      weight_kg: 93.2
+      steps_per_day: 2214
+      resting_hr_bpm: 99.7
+      hrv_rmssd_ms: 14.6
+      sleep_hours: 6.7
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 7
+      severity_target: 0.2441
+      weight_kg: 93.6
+      steps_per_day: 2214
+      resting_hr_bpm: 88.1
+      hrv_rmssd_ms: 20.3
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 8
+      severity_target: 0.2588
+      weight_kg: 94.0
+      steps_per_day: 2700
+      resting_hr_bpm: 94.5
+      hrv_rmssd_ms: 17.1
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 9
+      severity_target: 0.2735
+      weight_kg: 94.4
+      steps_per_day: 2700
+      resting_hr_bpm: 94.8
+      hrv_rmssd_ms: 16.9
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 10
+      severity_target: 0.2882
+      weight_kg: 94.8
+      steps_per_day: 2700
+      resting_hr_bpm: 107.2
+      hrv_rmssd_ms: 10.7
+      sleep_hours: 5.7
+      event: acute_stress_episode
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 11
+      severity_target: 0.3029
+      weight_kg: 95.2
+      steps_per_day: 2700
+      resting_hr_bpm: 95.6
+      hrv_rmssd_ms: 16.5
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 12
+      severity_target: 0.3176
+      weight_kg: 95.6
+      steps_per_day: 2700
+      resting_hr_bpm: 95.9
+      hrv_rmssd_ms: 16.3
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 13
+      severity_target: 0.3324
+      weight_kg: 96.0
+      steps_per_day: 2214
+      resting_hr_bpm: 96.3
+      hrv_rmssd_ms: 16.2
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 14
+      severity_target: 0.3471
+      weight_kg: 96.4
+      steps_per_day: 2214
+      resting_hr_bpm: 96.7
+      hrv_rmssd_ms: 16.0
+      sleep_hours: 5.7
+      event: poor_sleep
+      weight_input_level_only: false
+      sleep_input_level_only: true
+    - day: 15
+      severity_target: 0.3618
+      weight_kg: 96.8
+      steps_per_day: 2700
+      resting_hr_bpm: 91.0
+      hrv_rmssd_ms: 18.6
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 16
+      severity_target: 0.3765
+      weight_kg: 97.2
+      steps_per_day: 2700
+      resting_hr_bpm: 91.4
+      hrv_rmssd_ms: 18.4
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 17
+      severity_target: 0.3912
+      weight_kg: 97.6
+      steps_per_day: 2700
+      resting_hr_bpm: 91.8
+      hrv_rmssd_ms: 18.1
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 18
+      severity_target: 0.4059
+      weight_kg: 98.0
+      steps_per_day: 2700
+      resting_hr_bpm: 92.1
+      hrv_rmssd_ms: 17.9
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 19
+      severity_target: 0.4206
+      weight_kg: 98.4
+      steps_per_day: 2700
+      resting_hr_bpm: 92.5
+      hrv_rmssd_ms: 17.7
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 20
+      severity_target: 0.4353
+      weight_kg: 98.8
+      steps_per_day: 2214
+      resting_hr_bpm: 92.9
+      hrv_rmssd_ms: 17.5
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
+    - day: 21
+      severity_target: 0.45
+      weight_kg: 99.2
+      steps_per_day: 2214
+      resting_hr_bpm: 93.2
+      hrv_rmssd_ms: 17.2
+      sleep_hours: 6.7
+      event: everything_ramp
+      weight_input_level_only: false
+      sleep_input_level_only: false
