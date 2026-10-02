@@ -317,3 +317,62 @@ Day 11 predicted `acute_deterioration` at severity 0.843 -- inside the documente
 Q1 was a scenario-test-runner bug -- fixed as described, pilot rerun below. Q2 is expected,
 documented real-pipeline behavior -- nothing changed. Proceeding to the full batch
 (10 patients x 3 seeds, N=6 parallel) after the Q1-fix pilot rerun confirms sensible behavior.
+
+## 2026-10-03: Noise-fix pilot rerun (v3) result, and a second scenario-test-runner bug found while reviewing it
+
+**v3 (noise-SD fix applied) result**: P10 seed 42, 21/21 monitored days completed, 0 failed days
+(vs. 8/21 failed in the original pre-amendment pilot). Days 1-5 (before the story onset on day 4):
+
+| day | event | steps | HRV | HR | pred_severity | risk | alert |
+|---|---|---|---|---|---|---|---|
+| 1 | -- | 4974 | 20.4 | 87.7 | 0.0504 | 0.0001 | False (none) |
+| 2 | -- | 5437 | 22.0 | 88.4 | 0.1547 | 0.4609 | True (scorer) |
+| 3 | -- | 5153 | 19.7 | 87.2 | 0.1979 | 0.7017 | True (scorer) |
+| 4 | everything_ramp | 4869 | 21.4 | 85.6 | 0.2621 | 0.7636 | True (scorer) |
+| 5 | everything_ramp | 3215 | 20.6 | 87.2 | 0.4942 | 0.7351 | True (scorer) |
+
+Day 11 remained `unstable_fallback` as expected (Q2, unchanged, confirmed again in this run).
+Day 21 severity target reached 0.4206/0.45 as designed and predicted severity/risk tracked it
+(0.65/1.0) -- the story itself behaved sensibly end to end.
+
+**However, pre-story alerting (days 2-3) did not fully disappear after the noise-SD fix** -- it
+is smoother than the original pilot's abrupt jump, but day 2 (risk 0.46) and day 3 (risk 0.70)
+still cross the alert threshold with no story event yet active. Comparing v3 against the prior
+noise-buggy rerun (v2, same nominal seed=42, same cohort) to isolate how much of this is residual
+noise vs. something else surfaced a second, independent bug:
+
+### A second scenario-test-runner bug: `seed` was not actually reproducible across process runs
+
+`run_patient_seed.py` derived the noise RNG seed via `np.random.default_rng(hash((patient_id,
+seed)) % (2**32))`. Python salts `hash()` of strings/tuples per-process by default (hash
+randomization, `PYTHONHASHSEED` unset anywhere in this repo/image -- confirmed by grep). Verified
+directly:
+
+```
+$ for i in 1 2 3; do python3 -c "print(hash(('P10', 42)) % (2**32))"; done
+1224020279
+2146120280
+3858631085
+```
+
+Three different values for the identical `(patient_id, seed)` pair across three separate
+process launches. Since `run_batch.py` launches one fresh `python3 -m ...` subprocess per job
+(by design -- the one-process-per-patient-seed hard rule), **every single run so far (pilot v1,
+v2, v3) used an uncontrolled, per-process-random noise realization, despite being labeled
+"seed=42."** The seed argument controlled nothing; reruns of "the same seed" were never actually
+comparable. This also means the v2-vs-v3 day 2/3 comparison above is confounded: part of the
+difference is the real noise-SD fix, part is just an unrelated random reseed, and the two cannot
+be disentangled from that comparison alone.
+
+This is a scenario-test-runner bug (test code), not pipeline behavior -- nothing in the real
+pipeline depends on this seeding. **Fixed**: replaced the salted `hash()` with an unsalted,
+process-stable derivation, `int.from_bytes(hashlib.sha256(f"{patient_id}:{seed}".encode()).
+digest()[:4], "big")`. Verified stable across repeated process launches (same input -> same
+output every time, unlike before). `src/evaluation/scenario_tests/run_patient_seed.py`,
+`_derive_rng_seed()`.
+
+Per your standing instruction ("if either is a bug in the scenario-test runner, fix it, explain
+the fix, and rerun the P10 pilot"), rerunning P10 seed 42 once more (v4) under the reproducible
+seeding, so the full batch starts from a run whose seed guarantee actually holds. Result reported
+alongside this entry once complete.
+(10 patients x 3 seeds, N=6 parallel) after the Q1-fix pilot rerun confirms sensible behavior.

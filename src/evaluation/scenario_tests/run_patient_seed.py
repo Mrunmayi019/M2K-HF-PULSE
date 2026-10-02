@@ -182,10 +182,25 @@ def add_monitored_reading(db, patient_id, cfg, day_row, calendar_day, rng):
     return values
 
 
+def _derive_rng_seed(patient_id, seed):
+    """Deterministic (patient_id, seed) -> uint32 seed for np.random.default_rng.
+
+    BUGFIX (2026-10-03): the original version used Python's built-in `hash((patient_id, seed))`.
+    CPython salts str/tuple hashing per-process by default (hash randomization, PYTHONHASHSEED),
+    so the SAME (patient_id, seed) pair produced a DIFFERENT RNG seed -- and therefore a different
+    wearable-noise realization -- on every separate `python3 -m ...` subprocess invocation, even
+    though the CLI argument "42" was unchanged. This silently broke the documented guarantee that
+    "seeds 42/43/44" are reproducible noise draws: reruns of "the same seed" were not comparable.
+    hashlib.sha256 is unsalted and stable across processes/platforms, so it is used instead.
+    """
+    digest = hashlib.sha256(f"{patient_id}:{seed}".encode("utf-8")).digest()
+    return int.from_bytes(digest[:4], "big")
+
+
 def run(patient_id, seed):
     verify_model_hashes()
     cfg = load_patient_cohort(patient_id)
-    rng = np.random.default_rng(hash((patient_id, seed)) % (2**32))
+    rng = np.random.default_rng(_derive_rng_seed(patient_id, seed))
 
     db, db_path = make_session(patient_id, seed)
     print(f"[{patient_id} seed={seed}] DB: {db_path}", flush=True)
