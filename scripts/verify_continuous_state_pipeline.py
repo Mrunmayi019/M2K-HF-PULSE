@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import datetime
 import pathlib
+import sys
 import tempfile
 
 from sqlalchemy import create_engine
@@ -33,6 +34,23 @@ from src.api.continuous_state_pipeline import (
 )
 
 WINDOW_DAYS = 21
+
+
+def _require_state(state, db, patient_id, day_label):
+    """run_daily_continuous_pipeline() returns None on a Pulse failure (2026-10-02, part of the
+    continuous-state-sync / real-outcome-validation / unstable-alert-fallback integration) --
+    look up the failed SimulationRun it recorded and exit loudly instead of letting the next
+    line's state.simulation_time_s raise an opaque AttributeError on None."""
+    if state is not None:
+        return state
+    failed_run = (
+        db.query(models.SimulationRun)
+        .filter(models.SimulationRun.patient_id == patient_id, models.SimulationRun.status == "failed")
+        .order_by(models.SimulationRun.started_at.desc())
+        .first()
+    )
+    detail = failed_run.error_message if failed_run is not None else "(no failed SimulationRun row found -- unexpected)"
+    sys.exit(f"{day_label}: run_daily_continuous_pipeline() returned None (Pulse failed). {detail}")
 
 
 def make_session():
@@ -102,7 +120,7 @@ def main():
         seed_patient_and_window(db, patient_id=patient_id, ef=45.0, bnp=800.0, start_day=0)
 
         # --- Day 1: window just filled -> run_initial() path ---
-        state1 = run_daily_continuous_pipeline(patient_id, db)
+        state1 = _require_state(run_daily_continuous_pipeline(patient_id, db), db, patient_id, "day1")
         print(f"\n[day1] simulation_time_s={state1.simulation_time_s} "
               f"last_ejection_fraction_pct={state1.last_ejection_fraction_pct} "
               f"last_severity={state1.last_severity} state_json_len={len(state1.state_json)}")
@@ -116,7 +134,7 @@ def main():
 
         # --- Day 2: one new wearable reading, NO new clinical report -> resume_and_advance() ---
         add_one_reading(db, patient_id, day=WINDOW_DAYS)
-        state2 = run_daily_continuous_pipeline(patient_id, db)
+        state2 = _require_state(run_daily_continuous_pipeline(patient_id, db), db, patient_id, "day2")
         print(f"[day2] simulation_time_s={state2.simulation_time_s} "
               f"last_ejection_fraction_pct={state2.last_ejection_fraction_pct} "
               f"last_severity={state2.last_severity}")
@@ -134,7 +152,7 @@ def main():
         # --- Day 3: new clinical report arrives with a DIFFERENT EF -> should be adopted ---
         add_one_reading(db, patient_id, day=WINDOW_DAYS + 1)
         add_clinical_report(db, patient_id, ef=30.0, bnp=1500.0)
-        state3 = run_daily_continuous_pipeline(patient_id, db)
+        state3 = _require_state(run_daily_continuous_pipeline(patient_id, db), db, patient_id, "day3")
         print(f"[day3] simulation_time_s={state3.simulation_time_s} "
               f"last_ejection_fraction_pct={state3.last_ejection_fraction_pct} "
               f"last_severity={state3.last_severity}")
@@ -157,5 +175,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     sys.exit(main())

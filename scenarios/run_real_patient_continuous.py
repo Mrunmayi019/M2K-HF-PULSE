@@ -16,13 +16,30 @@ from src.api.continuous_state_pipeline import run_daily_continuous_pipeline
 
 PATIENT_ID = "7693f167-c7ae-4f4f-bd59-18e8bb119a7a"
 
+
+def _require_state(state, db, patient_id, day_label):
+    """run_daily_continuous_pipeline() returns None on a Pulse failure (2026-10-02 integration) --
+    look up the failed SimulationRun it recorded and exit loudly instead of a bare AttributeError
+    on the next line's state.simulation_time_s."""
+    if state is not None:
+        return state
+    failed_run = (
+        db.query(models.SimulationRun)
+        .filter(models.SimulationRun.patient_id == patient_id, models.SimulationRun.status == "failed")
+        .order_by(models.SimulationRun.started_at.desc())
+        .first()
+    )
+    detail = failed_run.error_message if failed_run is not None else "(no failed SimulationRun row found -- unexpected)"
+    sys.exit(f"{day_label}: run_daily_continuous_pipeline() returned None (Pulse failed). {detail}")
+
+
 db = SessionLocal()
 try:
     patient = db.get(models.Patient, PATIENT_ID)
     print(f"patient: age={patient.age} sex={patient.sex} height={patient.height_cm} weight={patient.weight_kg}")
 
     print("\n=== Day 1 (existing 21-day window, existing clinical report) ===")
-    state1 = run_daily_continuous_pipeline(PATIENT_ID, db)
+    state1 = _require_state(run_daily_continuous_pipeline(PATIENT_ID, db), db, PATIENT_ID, "day1")
     print(f"PulseState id={state1.id} sim_time={state1.simulation_time_s} "
           f"ef={state1.last_ejection_fraction_pct} severity={state1.last_severity}")
 
@@ -49,7 +66,7 @@ try:
     ))
     db.commit()
 
-    state2 = run_daily_continuous_pipeline(PATIENT_ID, db)
+    state2 = _require_state(run_daily_continuous_pipeline(PATIENT_ID, db), db, PATIENT_ID, "day2")
     print(f"PulseState id={state2.id} sim_time={state2.simulation_time_s} "
           f"ef={state2.last_ejection_fraction_pct} severity={state2.last_severity}")
     print(f"sim_time advanced by: {state2.simulation_time_s - state1.simulation_time_s}s "
