@@ -1,0 +1,20 @@
+{
+  "295": {
+    "apply_systolic_dysfunction_condition": true,
+    "stroke_volume_multiplier": 1.0,
+    "systemic_resistance_multiplier": 1.0,
+    "systemic_compliance_multiplier": 1.0
+  },
+  "136": {
+    "apply_systolic_dysfunction_condition": true,
+    "stroke_volume_multiplier": 1.0,
+    "systemic_resistance_multiplier": 1.0,
+    "systemic_compliance_multiplier": 1.0
+  },
+  "120": {
+    "apply_systolic_dysfunction_condition": false,
+    "stroke_volume_multiplier": 0.891,
+    "systemic_resistance_multiplier": 0.935,
+    "systemic_compliance_multiplier": 0.935
+  }
+}

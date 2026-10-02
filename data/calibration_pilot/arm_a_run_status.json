@@ -1,0 +1,42 @@
+{
+  "A_prod": {
+    "gu295": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 43.3
+    },
+    "gu136": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 69.7
+    },
+    "gu120": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 39.4
+    }
+  },
+  "A_formula": {
+    "gu295": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 50.6
+    },
+    "gu136": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 56.8
+    },
+    "gu120": {
+      "crashed": false,
+      "error": null,
+      "fatal_marker_lines": [],
+      "wall_clock_s": 44.6
+    }
+  }
+}

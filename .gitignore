@@ -36,3 +36,4 @@ data/bcg_validation/**/scenarioResults.csv
 data/bcg_validation/**/full_results.csv
 data/synthetic_deterioration_stress_test/**/scenarioResults.csv
 data/synthetic_deterioration_stress_test/**/full_results.csv
+data/calibration_pilot/runs/**/scenarioResults.csv

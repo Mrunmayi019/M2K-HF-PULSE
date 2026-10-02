@@ -1,0 +1,7 @@
+arm,gu_index_1based,crashed,fatal_marker_lines,real_ef_pct,real_map_mmhg,real_co_l_min,real_hr_bpm,knob_systolic_dysfunction_condition,knob_stroke_volume_multiplier,knob_systemic_resistance_multiplier,knob_systemic_compliance_multiplier,multipliers_reached_pulse,window_start_s,window_end_s,twin_ef_pct,twin_ef_sd_pct,twin_ef_n_beats,twin_map_mmhg,twin_co_l_min,twin_hr_bpm,err_ef_pct,err_map_pct,err_co_pct,err_hr_pct
+A_prod,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,False,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2
+A_prod,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,False,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7
+A_prod,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,False,120.0,180.0,54.55,0.004,71,95.18,5.246,71.83,-6.0,-8.0,42.9,-21.5
+A_formula,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,True,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2
+A_formula,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,True,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7
+A_formula,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,True,120.0,180.0,52.47,0.014,72,95.12,5.474,73.2,-9.5,-8.1,49.1,-20.0
