@@ -449,5 +449,5 @@ documented system/generator conventions (e.g. a noise SD that doesn't match
 reproducible) counts as a bug to fix. Any other outcome -- including one that's surprising,
 unwelcome, or doesn't match a pre-registered expectation -- is a finding to report in RESULTS.md,
 not something to adjust the harness, cohort, or schedules to fix. Freeze takes effect as of
-commit `<FREEZE_SHA>` (this entry's commit -- see below). Proceeding to the full batch
-(10 patients x 3 seeds, N=6 parallel), then the analysis and write-up.
+commit `f33eaac` (this entry's commit). Proceeding to the full batch (10 patients x 3 seeds,
+N=6 parallel), then the analysis and write-up.
