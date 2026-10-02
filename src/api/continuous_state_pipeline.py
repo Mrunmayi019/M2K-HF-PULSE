@@ -42,13 +42,13 @@ from __future__ import annotations
 
 import datetime
 import json
+import logging
 import pathlib
 
 import joblib
 from sqlalchemy.orm import Session
 
 from src.analytics.deterioration_rate import (
-    SD_RATE_TO_RISK_SCORE_PER_DAY,
     compute_deterioration_rate,
     days_to_next_stage,
 )
@@ -58,17 +58,19 @@ from src.analytics.simulation_features import analyze_simulation, extract_wavefo
 from src.analytics.staging import classify_nyha
 from src.api import models
 from src.api.services import (
-    EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE,
-    FLUID_OVERLOAD_CAVEAT_MESSAGE,
     WEARABLE_WINDOW_DAYS,
     apply_tier1_fallback,
+    build_risk_caveats,
     get_wearable_window,
+    mark_simulation_run_failed,
 )
 from src.data_synthesis.generate_patients import load_reference_stats
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S
-from src.pulse_runner.cli_state_runner import PulseSdkError, resume_and_advance, run_initial
+from src.pulse_runner.cli_state_runner import resume_and_advance, run_initial
 from src.scenario_classifier.features import build_inference_features, feature_columns
+
+logger = logging.getLogger(__name__)
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 MODELS_DIR = REPO_ROOT / "models"
@@ -138,12 +140,24 @@ def _resolve_clinical_values(
     )
 
 
-def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseState:
+def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseState | None:
     """One day's continuous-state-sync step. Raises NotEnoughDataError if the 21-day wearable
-    window isn't full yet (same gate as services.py's existing pipeline). Returns the newly
-    created PulseState row (already committed) -- a SimulationRun + RiskAssessment row are also
-    created as a side effect (see module docstring), discoverable via the normal
+    window isn't full yet (same gate as services.py's existing pipeline). On success, returns the
+    newly created PulseState row (already committed) -- a SimulationRun + RiskAssessment row are
+    also created as a side effect (see module docstring), discoverable via the normal
     /patients/{id}/status|history|projection|report endpoints like any other assessment.
+
+    PROPOSED 2026-10-02 (docs/integration_pre_results.md): on a Pulse failure (run_initial()/
+    resume_and_advance() raising), returns None instead of raising -- a SimulationRun(status=
+    "failed") row is recorded first via services.mark_simulation_run_failed(), the exact same
+    helper and shape _run_assessment_pipeline() uses on failure, so routes.py's _build_status()
+    and the unstable-run alert fallback (fix/unstable-alert-fallback) work identically regardless
+    of which pipeline produced the failure. No PulseState row is created on failure -- the most
+    recent PulseState (queried fresh as `last_state` below, every call) remains whatever the last
+    *successful* day wrote, so the next call resumes from the last good state automatically; this
+    was already true before this change (PulseState rows are append-only and the old code only
+    ever constructed one after a successful run_initial()/resume_and_advance() call), not a new
+    guarantee added here.
     """
     patient = db.get(models.Patient, patient_id)
     if patient is None:
@@ -194,6 +208,21 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
     output_dir = SCENARIOS_DIR / patient_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # --- SimulationRun created BEFORE the Pulse call, same ordering as services.py's
+    # _run_assessment_pipeline(): if Pulse fails below, this row is already committed and can be
+    # marked "failed" in place, giving routes.py's _build_status() / the unstable-run alert
+    # fallback the same SimulationRun(status="failed") shape regardless of pipeline. ---
+    run = models.SimulationRun(
+        patient_id=patient_id,
+        scenario_type=scenario_type,
+        severity=severity,
+        status="running",
+        started_at=datetime.datetime.now(datetime.timezone.utc),
+    )
+    db.add(run)
+    db.commit()
+    db.refresh(run)
+
     try:
         if last_state is None:
             patient_path = output_dir / "patient.json"
@@ -215,8 +244,21 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
                 prior_offset_s=last_state.simulation_time_s,
                 scenario_type=scenario_type,
             )
-    except PulseSdkError:
-        raise
+    except Exception as e:
+        # Mirrors services.py's defensive "never leave a run stuck at running" -- catches
+        # PulseSdkError (the documented failure mode) and anything else unexpected alike, but
+        # ONLY around the two Pulse-call branches above -- nothing after this except block (the
+        # PulseState write, risk scoring, projection, the RiskAssessment insert) is in scope, so a
+        # non-Pulse bug there still raises normally and is never recorded as a Pulse failure. No
+        # PulseState row is created here: the most recent PulseState queried as `last_state` above
+        # is unaffected, so the next call's `last_state` lookup still resumes from the last
+        # genuinely successful day, not this failed one.
+        logger.exception(
+            "run_daily_continuous_pipeline: Pulse execution failed for patient_id=%s (run_id=%s)",
+            patient_id, run.id,
+        )
+        mark_simulation_run_failed(db, run, f"{type(e).__name__}: {e}")
+        return None
 
     new_state = models.PulseState(
         patient_id=patient_id,
@@ -228,18 +270,8 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
     )
     db.add(new_state)
 
-    # --- SimulationRun + RiskAssessment, via the same analytics code services.py uses (Step 3) ---
-    run = models.SimulationRun(
-        patient_id=patient_id,
-        scenario_type=scenario_type,
-        severity=severity,
-        status="complete",
-        started_at=datetime.datetime.now(datetime.timezone.utc),
-        completed_at=datetime.datetime.now(datetime.timezone.utc),
-        waveform_data=extract_waveform_data(df),
-    )
-    db.add(run)
-    db.flush()  # assigns run.id without a second round-trip commit
+    # --- RiskAssessment, via the same analytics code services.py uses (Step 3) ---
+    run.waveform_data = extract_waveform_data(df)
 
     sim_features = analyze_simulation(df)
     risk = compute_risk_score(
@@ -264,7 +296,11 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
         patient=demo_row,
         scenario_type=scenario_type,
         current_severity=severity,
-        deterioration_rate_per_day=rate_info["composite_rate"] * SD_RATE_TO_RISK_SCORE_PER_DAY,
+        # Raw, scale-agnostic rate -- project_physiology()/project_severity() do their own
+        # severity-scoped conversion internally. Passing a risk_score-pre-converted rate here
+        # (SD_RATE_TO_RISK_SCORE_PER_DAY) was the bug fixed 2026-09-10 in services.py
+        # (docs/methodology.md Sec 8) -- this call site was never updated to match.
+        composite_rate=rate_info["composite_rate"],
         horizons=DEFAULT_HORIZONS_DAYS,
         output_dir=output_dir / "projection",
     )
@@ -278,12 +314,7 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
         for horizon, r in projection.items()
     }
 
-    if scenario_type != "fluid_overload":
-        risk_caveats = None
-    elif ef_is_fallback and risk["risk_bucket"] == "LOW":
-        risk_caveats = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
-    else:
-        risk_caveats = FLUID_OVERLOAD_CAVEAT_MESSAGE
+    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
 
     db.add(
         models.RiskAssessment(
@@ -305,6 +336,8 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
         )
     )
 
+    run.status = "complete"
+    run.completed_at = datetime.datetime.now(datetime.timezone.utc)
     db.commit()
     db.refresh(new_state)
     return new_state

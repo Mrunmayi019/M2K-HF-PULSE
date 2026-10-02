@@ -78,6 +78,38 @@ ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE = (
     "scenario classifier or severity regressor. Do not read patient-specific meaning into its shape."
 )
 
+def mark_simulation_run_failed(db: Session, run: models.SimulationRun, error_message: str) -> None:
+    """PROPOSED 2026-10-02, part of the continuous-state-sync / real-outcome-validation /
+    unstable-alert-fallback integration (docs/integration_pre_results.md): shared by
+    src/api/services.py and src/api/continuous_state_pipeline.py so a Pulse failure is recorded
+    identically regardless of which pipeline produced it. This is the exact behavior
+    _run_assessment_pipeline() already had inline in both of its failure branches -- extracted
+    here, not changed, so routes.py's _build_status() and the unstable-run alert fallback
+    (fix/unstable-alert-fallback) see the same SimulationRun(status="failed") shape either way."""
+    run.status = "failed"
+    run.error_message = error_message
+    run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+    db.commit()
+
+
+def build_risk_caveats(scenario_type: str, ef_is_fallback: bool, risk_bucket: str) -> str:
+    """Shared by src/api/services.py and src/api/continuous_state_pipeline.py so both pipelines
+    attach identical risk_caveats text for the same inputs -- previously duplicated inline here
+    and in continuous_state_pipeline.py, which had drifted to omit ECG_REFERENCE_TEMPLATE_CAVEAT_
+    MESSAGE entirely (found during the continuous-state-sync / real-outcome-validation merge,
+    2026-10-02). See the three *_CAVEAT_MESSAGE constants above for what each piece means."""
+    if scenario_type != "fluid_overload":
+        fluid_overload_caveat = None
+    elif ef_is_fallback and risk_bucket == "LOW":
+        fluid_overload_caveat = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
+    else:
+        fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
+
+    return " ".join(
+        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
+    )
+
+
 _model_cache: dict[str, object] = {}
 
 
@@ -252,18 +284,12 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
             expected_duration_s=expected_duration_s, timeout_sec=180,
         )
     except Exception as e:  # defensive: never leave a run stuck at "running" on an unexpected error
-        run.status = "failed"
-        run.error_message = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
-        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        db.commit()
+        mark_simulation_run_failed(db, run, f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
         return
 
     if not pulse_result["pulse_succeeded"]:
-        run.status = "failed"
-        run.error_message = pulse_result["error"]
         run.scenario_json_path = str(scenario_path)
-        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        db.commit()
+        mark_simulation_run_failed(db, run, pulse_result["error"])
         return
 
     df = pulse_result["df"]
@@ -308,16 +334,7 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         for horizon, r in projection.items()
     }
 
-    if scenario_type != "fluid_overload":
-        fluid_overload_caveat = None
-    elif ef_is_fallback and risk["risk_bucket"] == "LOW":
-        fluid_overload_caveat = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
-    else:
-        fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
-
-    risk_caveats = " ".join(
-        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
-    )
+    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
 
     db.add(
         models.RiskAssessment(
