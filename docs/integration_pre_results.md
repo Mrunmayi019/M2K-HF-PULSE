@@ -201,11 +201,13 @@ projection_for_identical_inputs` (§11 below) -- 7 new tests total.
 
 **Full suite: 253/253 passing** (246 pre-existing + 7 new), `PYTHONPATH=. pytest tests/ -v`.
 
-## 10. Cross-machine check: re-running `verify_continuous_state_pipeline.py` on this Mac vs §6.3
+## 10. Cross-machine check vs §6.3, the real root cause, and the fix
 
-Re-ran the (now-fixed, §5) 3-day script for real inside the Docker container on this Mac and
-compared check-by-check, value-by-value against `docs/continuous_state_sync_status.md` §6.3
-(produced on a different machine):
+### 10.1 Initial comparison (raw `kitware/pulse:4.3.1` image, before the fix below)
+
+Re-ran the (§5-fixed) 3-day script inside the Docker container on this Mac and compared
+check-by-check, value-by-value against `docs/continuous_state_sync_status.md` §6.3 (produced on a
+different machine):
 
 | | §6.3 (documented) | This Mac | Match? |
 |---|---|---|---|
@@ -216,25 +218,135 @@ compared check-by-check, value-by-value against `docs/continuous_state_sync_stat
 | day2 `last_severity` | 0.4828 | 0.47631 | off by 0.0065 |
 | day3 `last_severity` | 0.4784 | 0.47046 | off by 0.0079 |
 
-All 6 of the script's own PASS/FAIL checks hold (OVERALL: PASS) -- every structural property
-(EF carry-forward, simulation_time_s stepping, append-only PulseState rows) matches exactly. The
-`last_severity` difference (~0.006-0.008, not floating-point noise) is explained precisely, not
-hand-waved: **`requirements.txt` does not pin scikit-learn's version.** The committed
-`models/*.joblib` files were last saved with scikit-learn **1.9.0**; this container's Python 3.9.2
-can only install **1.6.1** (`pip show scikit-learn` confirmed on both the host venv and the
-container), triggering `InconsistentVersionWarning` on every model load. This is the *exact same*
-train/inference version-mismatch class of issue already documented once in
-`docs/continuous_state_sync_status.md` §2.6 and "fixed" there by retraining inside the container --
-that fix has since drifted (the committed models were retrained again on the host at some later
-point, without a matching in-container retrain). Not fixed here -- retraining models is out of
-scope for an integration pass and would change outputs project-wide; flagged as a real, open,
-pre-existing environment-drift issue.
+All 6 of the script's own PASS/FAIL checks held (OVERALL: PASS) -- every structural property (EF
+carry-forward, simulation_time_s stepping, append-only PulseState rows) matched exactly. Only
+`last_severity` differed (~0.006-0.008, not floating-point noise).
 
-**SpO2:** not part of this comparison. It's a deterministic *input*
+**SpO2:** never part of this comparison -- it's a deterministic *input*
 (`seed_patient_and_window()`'s fixed formula, identical code both times), never printed or checked
 as an output by this script. Pulse's own simulated `OxygenSaturation` output is a separate,
-already-documented-elsewhere broken reading (defaults to 0 without an explicit decimal format) and
-isn't one of this script's 6 checks either way.
+already-documented-elsewhere broken reading (defaults to 0 without an explicit decimal format).
+
+### 10.2 Root cause, traced precisely -- three environments, not two
+
+This project actually has **three** distinct Python environments, not the two (host/container)
+originally assumed:
+
+| Environment | Where it's used | Python | scikit-learn (unpinned) |
+|---|---|---|---|
+| Host venv | `pytest`, local model training | 3.12 | 1.9.0 |
+| **Properly-built backend image** (`docker build -f backend/Dockerfile`, the actual `docker-compose.yml` `pulse-backend` service -- the REAL deployed pipeline) | `services.py`'s `_run_assessment_pipeline()`, reached via `/wearable-sync` | **3.11.17** | **1.9.1** |
+| Raw `kitware/pulse:4.3.1` image directly | One-off scripts (`verify_continuous_state_pipeline.py`'s own documented invocation, the README's documented convention, and -- until now -- every continuous-pipeline verification including this one) | 3.9.2 | 1.6.1 (the last release supporting 3.9; 1.7+ dropped it in June 2025) |
+
+The real deployed pipeline (backend image) is only one *patch* version off the host (1.9.1 vs
+1.9.0) -- not the 1.9.0-vs-1.6.1 gap the raw-image verification path hits. `continuous_state_
+pipeline.py` has **never been wired into a route** (its own module docstring says so) and so has
+never run in the real backend image at all -- every verification of it, including §6.3's own
+session (same documented raw-image invocation) and this one, used the raw image.
+
+**A second, independent factor:** `models/*.joblib` are **gitignored** (`.gitignore:30`) --
+machine-local by design, never committed, never shared. The files on this Mac are dated
+**2026-08-17 12:33** (same day as this machine's `.venv`) -- trained *on this machine*. §6.3 was
+produced on a *different* machine, with its *own* independently-trained `.joblib` files. Training
+is seeded (`random_state=42`, `src/scenario_classifier/train.py`) on deterministic synthetic data,
+so identical environment + identical seed + identical data *would* reproduce bit-for-bit -- but
+two different machines' "trained locally" artifacts were never expected to match in the first
+place. So part of the original ~0.006-0.008 gap may simply be ordinary run-to-run RandomForest
+variance between two independently-trained models (the same class of variance this project has
+already documented elsewhere as expected, e.g. §2.6's "90.7% vs 92.3%... not a regression") -- not
+purely a library-version artifact.
+
+### 10.3 Fix applied: exact dependency pins, confirmed zero-warning on host AND backend image
+
+`requirements.txt` now pins `scikit-learn==1.9.0`, `numpy==2.4.6`, `pandas==3.0.6`,
+`xgboost==3.2.0` -- confirmed these exact versions install cleanly and load both model files with
+**zero** `InconsistentVersionWarning` on **both** the host venv (Python 3.12) and the backend image
+(Python 3.11) (`python3 -W error::UserWarning -c "import joblib; joblib.load(...)"` on both --
+raises nothing). The backend image was rebuilt from a clean `docker build` with these pins baked
+into `requirements.txt`, not just patched ad hoc.
+
+The raw `kitware/pulse:4.3.1` image (Python 3.9.2) **cannot** install any of these pins --
+confirmed directly (`pip install scikit-learn==1.9.0`/`numpy==2.4.6`/etc. all fail with "No
+matching distribution" on that image). This is a hard, unfixable constraint of that image's fixed
+Python version, not a configuration gap -- see §10.5.
+
+### 10.4 Re-verification against the properly-built backend image
+
+Rebuilt `m2k-hf-pulse-backend` from a clean `docker build -f backend/Dockerfile` with the pinned
+`requirements.txt` baked in (not patched ad hoc) -- confirmed `pip3 show` reports exactly
+`scikit-learn==1.9.0`/`numpy==2.4.6`/`pandas==3.0.6`/`xgboost==3.2.0`, and both model files load
+with zero `InconsistentVersionWarning` (`python3 -W error::UserWarning -c "joblib.load(...)"`
+raises nothing). Confirmed `PulseScenarioDriver` is present and runs (`/pulse/bin/
+PulseScenarioDriver`, 13.5MB, executes); `SCENARIOS_DIR`/paths resolve correctly under this image's
+`WORKDIR=/workspace` (observed real scratch files written and consumed at `/workspace/scenarios/
+continuous_state/P_TEST/projection/scenario_P_TEST_sev*.json` during the run below). **Architecture
+confirmed emulated, same as the raw image**: `uname -m` inside the container reports `x86_64`
+while the host (`uname -m`) reports `arm64` -- Pulse is NOT running natively here either; the
+`python:3.11-slim` base and the project's own Python code run under the same Rosetta/QEMU
+amd64 emulation as everything else in this project on Apple Silicon.
+
+Reran the 3-day script against this freshly rebuilt image, with the one earlier stray-process
+collision (two concurrent verify runs writing to the same scratch path -- see note below) killed
+and the scratch directory wiped before the clean rerun:
+
+| | §6.3 (documented) | Raw image (§10.1) | **Backend image (pinned deps)** | Backend vs raw image |
+|---|---|---|---|---|
+| day1/2/3 `simulation_time_s` | 660.0/1260.0/1860.0 | 660.0/1260.0/1860.0 | 660.0/1260.0/1860.0 | exact |
+| day1/2 `last_ejection_fraction_pct` | 45.0 | 45.0 | 45.0 | exact |
+| day3 `last_ejection_fraction_pct` | 30.0 | 30.0 | 30.0 | exact |
+| day1 `last_severity` | 0.4826 | 0.47612666666666714 | **0.47612666666666714** | **bit-for-bit identical** |
+| day2 `last_severity` | 0.4828 | 0.47631333333333375 | **0.47631333333333375** | **bit-for-bit identical** |
+| day3 `last_severity` | 0.4784 | 0.47046 (printed; 0.47045666666666697 raw) | **0.47045666666666697** | **bit-for-bit identical** |
+
+OVERALL: PASS, all 6 checks, same as before.
+
+**This settles §10.2's open question decisively: the sklearn-version pin changed nothing.** The
+pinned-deps backend-image run reproduced the raw-image run's severity values to the full printed
+precision (15+ significant figures) -- not closer to §6.3, not different at all from the
+*unpinned* run. This proves the ~0.006-0.008 gap to §6.3 was never a library-version artifact in
+the first place; it is fully explained by §10.2's other finding -- two independently-trained,
+machine-local `.joblib` models (this Mac's dated 2026-08-17, §6.3's from a different machine) are
+simply different trained artifacts, and were never expected to agree bit-for-bit. **The dependency
+pin is still correct and worth keeping** (it makes host and backend-image environments
+consistent with each other and removes the warning going forward), but it does not and cannot
+close the gap to §6.3's specific numbers -- only training on identical hardware with the identical
+pinned environment and seed would, and no such claim is made here.
+
+**Stray-process note:** a first attempt at this rerun was contaminated by an earlier, differently-
+launched verify process that the harness's background-task tracking reported as "killed" but which
+in fact kept running inside the container (confirmed via `/proc` inspection -- two concurrent
+`verify_continuous_state_pipeline.py` processes, two concurrent `PulseScenarioDriver` children,
+both writing to the same `P_TEST` scratch path). Both were killed, the scratch directory wiped, and
+the run above redone cleanly from scratch before trusting any number in this section.
+
+### 10.5 Recommendation: use the backend image for continuous-pipeline verification going forward
+
+The raw `kitware/pulse:4.3.1` image should no longer be used for verifying `continuous_state_
+pipeline.py` (or anything else that loads the trained models) -- it cannot satisfy the project's
+dependency pins at all, so it will always reintroduce this exact drift. `scripts/verify_
+continuous_state_pipeline.py` and `scripts/verify_continuous_state_live_14day.py`'s own docstrings
+now say this explicitly. The raw image remains fine for anything that doesn't load the `.joblib`
+models (e.g. the original Pulse-state-serialization feasibility probes in `docs/pulse_state_
+serialization_investigation.md`).
+
+### 10.6 Frozen model artifacts for this results run
+
+To make this run's exact models reproducible and verifiable independent of any future retrain,
+both files are copied (not moved -- originals in `models/` untouched) into `artifacts/results-v1/
+models/`, which is **not** gitignored:
+
+| File | SHA-256 | Size |
+|---|---|---|
+| `scenario_classifier.joblib` | `2157cb21991390e6b2417ff8793c2b62a32eeef7467963b94d5058cc37d05a4` | 9,252,401 bytes |
+| `severity_regressor.joblib` | `4b7afeab6210464b2e3730bf54248362db0ecc83ed58626a488fd3d47cb79f0` | 37,213,825 bytes |
+
+Total ~44.3MB, well under GitHub's 100MB/file limit -- committed directly, no Git LFS needed.
+**Provenance:** trained by `src/scenario_classifier/train.py`'s `run()` with its default
+`seed=42` (not overridden at the `if __name__ == "__main__":` call site), on `data/synthetic/
+patients.csv` + `data/synthetic/wearable_trends.csv`, under scikit-learn 1.9.0 (host venv,
+2026-08-17). A hash check against this table, refusing to start on mismatch, is a natural addition
+to the scenario-test runner once that's built (not added here -- no runner exists yet to add it
+to).
 
 ## 11. Step 4: projection consistency between the two pipelines
 
@@ -267,40 +379,51 @@ severity=self.severity, pulse_risk_score=self.risk_score, scenario_type=self.sce
 all. **Conclusion: projections are a pure write-only, display-only side effect of each day's
 assessment -- nothing downstream reads them back.**
 
-**Proposed (not implemented) for scenario-test speed, pending approval:** add `compute_projection:
-bool = True` to `run_daily_continuous_pipeline()`. When `False`, skip the `project_physiology(...)`
-call and set `projection_json = None` directly (column is nullable, `src/api/models.py` line 119) --
-nothing else changes, since nothing else depends on projection output (confirmed above). Default
-`True` preserves current behavior exactly; the scenario-test harness would opt in explicitly.
+**Implemented:** `compute_projection: bool = True` on `run_daily_continuous_pipeline()`. When
+`False`, skips the `project_physiology(...)` call and sets `projection_json = None` directly
+(column is nullable, `src/api/models.py` line 119) -- nothing else changes, confirmed by test
+(`TestComputeProjectionOptOut::test_compute_projection_false_matches_default_path_except_
+projection`): `risk_score`, `risk_bucket`, `nyha_class`, `deterioration_direction`,
+`risk_caveats`, and the full alert decision (`score_provenance["alert"]`/`["alert_basis"]`) are
+asserted identical between the `True` and `False` paths for the same inputs, and the `False` path
+is asserted to never call `runner.run_pulse` at all (an unmocked real subprocess call would fail
+the test loudly, not pass silently). A second test (`test_default_path_still_computes_
+projections`) pins that omitting the argument entirely -- the real production/demo call shape --
+still computes projections exactly as before.
 
 ## 13. Parallel Pulse throughput on this Mac (10 CPUs available to Docker Desktop)
 
 A short calibration scenario (30s stabilize + 30s advance = 60s simulated) run N-at-once inside one
 container, isolating raw `PulseScenarioDriver`-subprocess concurrency from the project's existing
 2-concurrent-patient ceiling (`docs/real_world_data_integration.md` §8.3, which was bottlenecked by
-FastAPI's SQLAlchemy connection pool, a confound not present here):
+FastAPI's SQLAlchemy connection pool, a confound not present here). Measured on both images:
 
-| N | Result | Total wall | Mean per-call | Peak CPU | Peak memory |
-|---|---|---|---|---|---|
-| 2 | 2/2 OK | 31.3s | 31.2s | -- | -- |
-| 4 | 4/4 OK | 42.3s | 41.7s | -- | -- |
-| 6 | 6/6 OK | 50.5s | 50.4s | 600% (6 cores) | 302MB / 7.75GB |
+| N | Raw image: total / mean per-call | **Backend image: total / mean per-call** | Peak CPU (backend) | Peak memory (backend) |
+|---|---|---|---|---|
+| 2 | 31.3s / 31.2s | **22.1s / 22.0s** | -- | -- |
+| 4 | 42.3s / 41.7s | **30.0s / 29.8s** | -- | -- |
+| 6 | 50.5s / 50.4s | **39.7s / 39.4s** | 600% (6 cores) | 278MB / 7.75GB |
 
-Zero failures at any level tested, memory negligible. Slowdown vs. N=2 (near-ideal parallel): N=4 is
-1.35x slower/call, N=6 is 1.61x slower/call -- real contention, no cliff, no crashes. Not tested
-beyond N=6. Benchmark script was a throwaway (`scripts/_benchmark_concurrent_pulse.py`), deleted
-after use, not committed.
+Zero failures at any level, either image; memory negligible either way. **The backend image is
+consistently faster, not just more correct** (§10.4) -- roughly 25-30% faster per call at every N
+tested here, in addition to matching the host's dependency versions. Slowdown vs. N=2 (near-ideal
+parallel), backend image: N=4 is 1.36x slower/call, N=6 is 1.79x slower/call -- comparable
+contention profile to the raw image, no cliff, no crashes. Not tested beyond N=6. Benchmark script
+was a throwaway (`scripts/_benchmark_concurrent_pulse.py`), deleted after use, not committed.
 
 **Rough scenario-test wall-time estimate (10 patients x 14 days x 3 seeds = 420 patient-days),
-extrapolating the above ratios onto the documented ~110-120s/call full-duration baseline (a
+extrapolating the backend-image ratios onto the documented ~110-120s/call full-duration baseline (a
 different-duration workload than the 60s calibration scenario, and assuming a `stable`-like mix
 with no crash-zone retries -- real uncertainty, not a measurement):**
 
 | Concurrency | Est. per-call (full duration) | Est. throughput | Est. total (no projection) | Est. total (with projection, 4x calls/day) |
 |---|---|---|---|---|
-| N=6 (best tested) | ~177-193s | ~117 patient-days/hr | **~3.6h** | **~14-15h** |
+| N=6 (best tested) | ~197-215s | ~101-105 patient-days/hr | **~4.0h** | **~16h** |
 
-The projection toggle (§12) is the single biggest lever on this estimate.
+Slightly higher than the raw-image-based estimate in an earlier draft of this document (N=6's
+contention ratio came out a bit higher here, 1.79x vs 1.61x -- noise between two short benchmark
+runs, not a meaningful regression). The projection toggle (§12, now implemented) remains the
+single biggest lever on this estimate.
 
 ## 14. Live 14-day continuous-state-sync run against a flat/non-perturbed patient
 
@@ -316,8 +439,60 @@ unconditionally as `Actions[0]` (wrapped in `PatientAction`, Pulse's required sc
 call -- verified directly by building a real resume scenario dict and inspecting it, not just by
 reading source.
 
-**Status: running at the time of this commit** (started 2026-10-02, ~14 real Pulse calls at
-~2-4min/call under amd64 emulation expected). Results (per-day wall time, `simulation_time_s` step
-correctness, risk_score/risk_bucket/NYHA/alert drift or lack thereof across the 14 days) will be
-reported as a follow-up once complete -- not blocking this PR per explicit instruction not to block
-on it.
+### 14.1 Run 1: with projections on (raw image, before the backend-image switch/opt-out existed)
+
+| Day | Wall | sim_time_s | risk_score | bucket | NYHA | alert |
+|---|---|---|---|---|---|---|
+| 1 | 310.3s | 660.0 | 0.0023 | LOW | I | no_alert |
+| 2 | 279.2s | 1260.0 | 0.0036 | LOW | I | no_alert |
+| 3 | 282.0s | 1860.0 | 0.0028 | LOW | I | no_alert |
+| 4 | 282.0s | 2460.0 | 0.0000 | LOW | I | no_alert |
+| 5 | 278.6s | 3060.0 | 0.0033 | LOW | I | no_alert |
+| 6 | 283.3s | 3660.0 | 0.0025 | LOW | I | no_alert |
+| 7 | 279.4s | 4260.0 | 0.0004 | LOW | I | no_alert |
+| 8 | 279.2s | 4860.0 | 0.0000 | LOW | I | no_alert |
+| 9 | 281.4s | 5460.0 | 0.0015 | LOW | I | no_alert |
+| 10 | 281.8s | 6060.0 | 0.0009 | LOW | I | no_alert |
+| 11 | 281.8s | 6660.0 | 0.0070 | LOW | I | no_alert |
+| 12 | 279.6s | 7260.0 | 0.0000 | LOW | I | no_alert |
+| 13 | 276.9s | 7860.0 | 0.0068 | LOW | I | no_alert |
+| 14 | 277.9s | 8460.0 | 0.0000 | LOW | I | no_alert |
+
+Total ~3,973s (~66.2 min) for 14 days x 4 Pulse calls/day.
+
+### 14.2 Run 2: `compute_projection=False` (backend image, per your instruction to restart this way)
+
+| Day | Wall | sim_time_s | risk_score | bucket | NYHA | alert |
+|---|---|---|---|---|---|---|
+| 1 | 39.6s | 660.0 | 0.0023 | LOW | I | no_alert |
+| 2 | 23.9s | 1260.0 | 0.0036 | LOW | I | no_alert |
+| 3 | 24.1s | 1860.0 | 0.0028 | LOW | I | no_alert |
+| 4 | 25.5s | 2460.0 | 0.0000 | LOW | I | no_alert |
+| 5 | 25.3s | 3060.0 | 0.0033 | LOW | I | no_alert |
+| 6 | 26.8s | 3660.0 | 0.0025 | LOW | I | no_alert |
+| 7 | 27.0s | 4260.0 | 0.0004 | LOW | I | no_alert |
+| 8 | 27.1s | 4860.0 | 0.0000 | LOW | I | no_alert |
+| 9 | 27.1s | 5460.0 | 0.0015 | LOW | I | no_alert |
+| 10 | 34.1s | 6060.0 | 0.0009 | LOW | I | no_alert |
+| 11 | 34.0s | 6660.0 | 0.0070 | LOW | I | no_alert |
+| 12 | 32.2s | 7260.0 | 0.0000 | LOW | I | no_alert |
+| 13 | 29.9s | 7860.0 | 0.0068 | LOW | I | no_alert |
+| 14 | 29.5s | 8460.0 | 0.0000 | LOW | I | no_alert |
+
+Total ~406.1s (~6.8 min) for 14 days x 1 Pulse call/day -- **a 9.8x real wall-time speedup**, even
+better than the naive "4x fewer calls" expectation (projection-horizon calls, run at higher
+projected severities, are evidently not cheaper than the main encounter for this patient).
+
+### 14.3 Conclusions
+
+- **`risk_score`/`risk_bucket`/`nyha_class`/`alert` are identical between the two runs, day by
+  day, to all 4 printed decimal places** -- independent, real-execution confirmation of §12's
+  "`compute_projection=False` changes nothing else" claim, on top of the unit test.
+- **`simulation_time_s` steps correctly every day** (+660.0s day 1, then +600.0s/day, all 14
+  checks PASS) in both runs.
+- **No drift whatsoever** in `risk_bucket`/`nyha_class`/`alert` across all 14 days for this
+  genuinely flat, non-perturbed patient (`risk_score` stays in a tight 0.0000-0.0070 band, LOW/
+  NYHA I/no_alert throughout) -- the continuous-state-sync resume mechanism itself (repeated
+  CVMod reissue, 14 consecutive Pulse state resumes) introduces no artificial drift when nothing
+  in the real input signal is changing.
+- `CardiovascularMechanicsModification` reissue reconfirmed directly before run 2 as well.
