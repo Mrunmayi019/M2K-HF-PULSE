@@ -60,6 +60,8 @@ COL_HR = "HeartRate(1/min)"
 COL_MAP = "MeanArterialPressure(mmHg)"
 COL_CO = "CardiacOutput(mL/min)"
 COL_LV_VOLUME = "LeftHeart-Volume(mL)"
+COL_SBP = "SystolicArterialPressure(mmHg)"
+COL_DBP = "DiastolicArterialPressure(mmHg)"
 
 
 def run_dir(arm: str, idx: int) -> pathlib.Path:
@@ -227,6 +229,17 @@ def analyze() -> None:
                     "err_co_fick_pct": pct_err(m["co_l_min"], p["real_co_fick_l_min"]),
                     "err_sv_td_pct": pct_err(m["sv_ml"], real_sv_td),
                     "err_sv_fick_pct": pct_err(m["sv_ml"], real_sv_fick),
+                })
+                # Like-for-like MAP: Pulse's MeanArterialPressure is a time average of the pressure
+                # wave, while real_map_mmhg is (2*DBP + SBP)/3 from cuff values -- so the twin's own
+                # SBP/DBP go through the same formula (see bp_check_report.md).
+                w = df[df[COL_TIME] >= end - ANALYSIS_WINDOW_S]
+                sbp, dbp = w[COL_SBP].mean(), w[COL_DBP].mean()
+                map_formula = (2 * dbp + sbp) / 3
+                row.update({
+                    "twin_sbp_mmhg": round(sbp, 2), "twin_dbp_mmhg": round(dbp, 2),
+                    "twin_map_formula_mmhg": round(map_formula, 2),
+                    "err_map_formula_pct": pct_err(map_formula, p["real_map_mmhg"]),
                 })
             rows.append(row)
     out = pd.DataFrame(rows)
