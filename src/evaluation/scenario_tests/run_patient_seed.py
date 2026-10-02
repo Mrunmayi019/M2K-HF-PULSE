@@ -284,7 +284,13 @@ def run(patient_id, seed):
             if not alert_flag:
                 alert_source = "none"
             elif current_alert.get("alert_basis") == "classifier_only":
-                alert_source = "unstable_fallback"
+                # BUGFIX (2026-10-03): this used to collapse to one label, "unstable_fallback",
+                # regardless of whether Pulse actually failed. determine_simulation_status()
+                # takes the classifier-only path for two distinct reasons -- a real Pulse failure
+                # (run_status == "failed") vs. a run that completed but landed in the documented
+                # crash zone (run_status == "complete", still not trusted per that function's own
+                # docstring). Splitting these per the pre-registered labelling change.
+                alert_source = "failed_fallback" if run_status == "failed" else "unstable_completed"
             else:
                 alert_source = "scorer"
 

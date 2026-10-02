@@ -1,7 +1,10 @@
 """Reads results/scenario_tests/daily_results_*.csv (NEVER re-simulates) and produces every table
 and figure results/scenario_tests/RESULTS.md references: the main per-patient table, group
-results, false-alert rate, the scenario label table, per-patient timeline figures, the P10 signal-
-ablation, the weight-rule baseline comparison, reliability stats, and the day-14-vs-day-21 diff.
+results, false-alert rate (with the 3-way alert_source breakdown -- scorer / unstable_completed /
+failed_fallback, see protocol_amendments.md 2026-10-03), the scenario label table, per-patient
+timeline figures, the P10 signal-ablation, an offline noise-robustness check (P01/P10 at 1x/1.5x/
+2x population-SD noise), the weight-rule baseline comparison, reliability stats, and the
+day-14-vs-day-21 diff.
 
 Both the 21-day primary window and the day-14 snapshot (read from the same rows, never re-run)
 are produced for every applicable item, per the pre-registered analysis plan
@@ -111,7 +114,7 @@ def group_results(main_table: pd.DataFrame) -> dict:
 
 
 # ---------------------------------------------------------------------------------------------
-# 3. False alerts per 100 patient-days + unstable_fallback count
+# 3. False alerts per 100 patient-days + alert_source breakdown (whole cohort)
 # ---------------------------------------------------------------------------------------------
 def false_alert_rate(df: pd.DataFrame, through_day: int) -> dict:
     cohort = yaml.safe_load(COHORT_PATH.read_text())
@@ -120,12 +123,18 @@ def false_alert_rate(df: pd.DataFrame, through_day: int) -> dict:
     total_patient_days = len(sub)
     false_alert_days = int(sub["alert_flag"].sum())
     rate_per_100 = (false_alert_days / total_patient_days * 100) if total_patient_days else 0.0
-    unstable_fallback_count = int((df[df["day"] <= through_day]["alert_source"] == "unstable_fallback").sum())
+    whole_cohort = df[df["day"] <= through_day]
+    # alert_source: "scorer" (normal completed run, normal scoring), "unstable_completed" (Pulse
+    # completed but determine_simulation_status() still labelled it unstable -- crash zone, by
+    # design), "failed_fallback" (Pulse run itself failed; classifier-only fallback alert).
+    source_counts = whole_cohort["alert_source"].value_counts().to_dict()
     return {
         "quiet_group_patient_days": total_patient_days,
         "false_alert_days": false_alert_days,
         "false_alerts_per_100_patient_days": round(rate_per_100, 2),
-        "total_unstable_fallback_alerts_whole_cohort": unstable_fallback_count,
+        "total_scorer_alerts_whole_cohort": int(source_counts.get("scorer", 0)),
+        "total_unstable_completed_alerts_whole_cohort": int(source_counts.get("unstable_completed", 0)),
+        "total_failed_fallback_alerts_whole_cohort": int(source_counts.get("failed_fallback", 0)),
     }
 
 
@@ -290,6 +299,90 @@ def p10_ablation(df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------------------------
+# 6b. Noise-robustness check (offline, no Pulse runs) -- added per protocol_amendments.md
+# (2026-10-03). Feeds the saved P01 (should_stay_quiet) and P10 (should_catch) 21-day wearable
+# windows to the real classifier/regressor with EXTRA Gaussian noise layered on top at 1x/1.5x/2x
+# the population SD (reference_stats.yaml wearable_baseline) -- i.e. noisier than any real-world
+# data this test suite otherwise exercises (the harness's own day-to-day noise is population_sd *
+# 0.15). Fixed seeds per multiplier for reproducibility. Reports how predicted scenario/severity
+# and the classifier's own stable/exceeds-stable-range band shift -- not a full real alert
+# decision, which also needs Pulse's risk score/confidence and is out of scope for an offline check.
+# ---------------------------------------------------------------------------------------------
+def noise_robustness_check(df: pd.DataFrame, seed: int = 42,
+                            patient_ids: tuple = ("P01", "P10"),
+                            multipliers: tuple = (0.0, 1.0, 1.5, 2.0)) -> pd.DataFrame:
+    import joblib
+    from src.data_synthesis.generate_patients import load_reference_stats
+    from src.analytics.score_reporting import severity_band
+    from src.scenario_classifier.features import build_inference_features, feature_columns
+
+    cohort = yaml.safe_load(COHORT_PATH.read_text())
+    wb = load_reference_stats()["wearable_baseline"]
+    noise_vitals = ("resting_hr_bpm", "steps_per_day", "hrv_rmssd_ms", "spo2_pct", "sleep_hours")
+
+    clf = joblib.load(REPO_ROOT / "models" / "scenario_classifier.joblib")
+    reg = joblib.load(REPO_ROOT / "models" / "severity_regressor.joblib")
+
+    rows = []
+    for pid in patient_ids:
+        cfg = cohort["patients"][pid]
+        demo = cfg["demographics"]
+        clin = cfg["baseline_clinical_report"]
+        bmi = demo["weight_kg"] / (demo["height_cm"] / 100.0) ** 2
+        patient_row = {
+            "patient_id": pid, "age": demo["age"], "sex": demo["sex"], "bmi": bmi,
+            "ejection_fraction_pct": clin["ejection_fraction_pct"],
+            "nt_probnp_pg_ml": clin["nt_probnp_pg_ml"],
+        }
+        sub = df[(df["patient_id"] == pid) & (df["seed"] == seed)].sort_values("day")
+        if sub.empty:
+            continue
+        base_trends = pd.DataFrame([{
+            "patient_id": pid, "day": i,
+            "resting_hr_bpm": r["wearable_resting_hr_bpm"],
+            "spo2_pct": r["wearable_spo2_pct"],
+            "weight_kg": r["wearable_weight_kg"],
+            "steps_per_day": r["wearable_steps_per_day"],
+            "sleep_hours": r.get("wearable_sleep_hours", 7.0),
+            "hrv_rmssd_ms": r["wearable_hrv_rmssd_ms"],
+        } for i, (_, r) in enumerate(sub.iterrows())])
+
+        base_severity = None
+        for mult in multipliers:
+            t = base_trends.copy()
+            # fixed, deterministic seed per (patient, multiplier) -- not Python's salted hash();
+            # see run_patient_seed.py's _derive_rng_seed() bugfix note for why that matters.
+            import hashlib
+            rng_seed = int.from_bytes(
+                hashlib.sha256(f"noise_robustness:{pid}:{mult}".encode()).digest()[:4], "big"
+            )
+            rng = np.random.default_rng(rng_seed)
+            if mult > 0:
+                for vital in noise_vitals:
+                    sd = wb[vital]["sd"] * mult
+                    t[vital] = t[vital] + rng.normal(0, sd, size=len(t))
+                t["steps_per_day"] = t["steps_per_day"].clip(lower=0.0)
+                t["hrv_rmssd_ms"] = t["hrv_rmssd_ms"].clip(lower=1.0)
+                t["sleep_hours"] = t["sleep_hours"].clip(lower=0.0)
+                t["spo2_pct"] = t["spo2_pct"].clip(upper=100.0)
+
+            feats = build_inference_features(patient_row, t)
+            cols = feature_columns(feats)
+            severity = float(reg.predict(feats[cols])[0])
+            scenario = clf.predict(feats[cols])[0]
+            if mult == 0.0:
+                base_severity = severity
+            rows.append({
+                "patient_id": pid, "noise_multiplier_x_population_sd": mult,
+                "predicted_scenario": scenario, "predicted_severity": round(severity, 4),
+                "severity_band": severity_band(severity),
+                "delta_severity_vs_no_extra_noise": round(severity - base_severity, 4)
+                if base_severity is not None else 0.0,
+            })
+    return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------------------------
 # 7. Baseline: weight rule (>=2kg gain within 3 days)
 # ---------------------------------------------------------------------------------------------
 def weight_rule_baseline(df: pd.DataFrame, through_day: int) -> pd.DataFrame:
@@ -380,6 +473,9 @@ def main():
 
     ablation = p10_ablation(df)
     ablation.to_csv(RESULTS_DIR / "p10_ablation.csv", index=False)
+
+    noise_robustness = noise_robustness_check(df)
+    noise_robustness.to_csv(RESULTS_DIR / "noise_robustness.csv", index=False)
 
     baseline_21 = weight_rule_baseline(df, PRIMARY_DAYS)
     baseline_21.to_csv(RESULTS_DIR / "weight_rule_baseline_day21.csv", index=False)

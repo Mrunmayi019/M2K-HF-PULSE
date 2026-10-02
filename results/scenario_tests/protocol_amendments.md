@@ -375,4 +375,46 @@ Per your standing instruction ("if either is a bug in the scenario-test runner, 
 the fix, and rerun the P10 pilot"), rerunning P10 seed 42 once more (v4) under the reproducible
 seeding, so the full batch starts from a run whose seed guarantee actually holds. Result reported
 alongside this entry once complete.
-(10 patients x 3 seeds, N=6 parallel) after the Q1-fix pilot rerun confirms sensible behavior.
+
+## 2026-10-03: alert_source split (3-way) and an offline noise-robustness check added
+
+Two changes approved while pilot v4 was running, both applied before the full batch (test-code
+only, no pipeline changes):
+
+### `alert_source` split: `unstable_fallback` -> `unstable_completed` / `failed_fallback`
+
+The harness previously collapsed every `alert_basis == "classifier_only"` case into one label,
+`unstable_fallback`, regardless of *why* the classifier-only path was taken.
+`determine_simulation_status()` takes that path for two genuinely different reasons (confirmed
+from source, Q2 above): (a) Pulse actually failed, or (b) Pulse completed but landed in the
+documented crash zone and is deliberately not trusted anyway. These are different findings worth
+reporting separately, so `alert_source` now has three values:
+
+- `scorer`: normal completed run, normal scorer-based alert decision.
+- `unstable_completed`: Pulse run completed, but `determine_simulation_status()` still labelled
+  it unstable (crash zone) -- by design, per its own docstring.
+- `failed_fallback`: the Pulse run itself failed; classifier-only fallback alert.
+
+`run_patient_seed.py`'s `alert_source` assignment now branches on `run_status` within the
+`classifier_only` case. `analyze.py`'s `false_alert_rate()` now reports counts of all three
+(`total_scorer_alerts_whole_cohort`, `total_unstable_completed_alerts_whole_cohort`,
+`total_failed_fallback_alerts_whole_cohort`) instead of one collapsed count. No pipeline code
+touched -- `determine_simulation_status()`/`alert_decision()` are unchanged; this is purely how
+the test harness labels and counts an outcome the pipeline already produces.
+
+### Offline noise-robustness check added to the analysis plan
+
+New `analyze.py::noise_robustness_check()`, run after the full batch, offline, no new Pulse
+runs: feeds the real classifier/regressor the saved P01 (should_stay_quiet) and P10
+(should_catch) 21-day wearable windows from the seed-42 run, with EXTRA Gaussian noise layered on
+top at 1x/1.5x/2x the population SD (`reference_stats.yaml` `wearable_baseline`, same five vitals
+the harness's own day-to-day noise uses at 0.15x) on resting HR, steps, HRV, SpO2 and sleep.
+Fixed, deterministic seeds per (patient, multiplier) via the same unsalted `hashlib.sha256`
+scheme as the seeding bugfix above (not Python's `hash()`). Reports predicted scenario,
+predicted severity, and the real `severity_band()` (stable/exceeds-stable-range) at each noise
+level, plus the delta vs. no extra noise. Purpose: show how sensitive the models are to noisier
+real-world data than this test suite otherwise exercises. Explicitly NOT a full real alert
+decision (that also needs Pulse's risk score/confidence, out of scope for an offline check) --
+reported as classifier/regressor sensitivity only, labelled as such in RESULTS.md.
+
+Committed together with the v4 pilot result below.
