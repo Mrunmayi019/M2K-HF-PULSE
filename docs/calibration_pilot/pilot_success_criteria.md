@@ -149,3 +149,25 @@ d) **Also reported for every patient,** Arm A-prod next to Arm C:
 
 e) **EF, HR and MAP are inputs to Arm C,** so improvement on those is expected and is not evidence
    by itself. Cardiac output and stroke volume are the real test.
+
+---
+
+## Arm C outcome — 2026-10-02
+
+Written after the Arm C runs (commit `3a4ecfe`, `data/calibration_pilot/arm_c_report.md`). Earlier
+text is unchanged.
+
+- **Primary rule (Amendment 2 c):**
+  - **Met in the consistent set:** Arm C's CO error vs CO_td was smaller in 2 of 3 patients
+    (56, 264).
+  - **Not met in the original set:** 1 of 3. The one "yes" (patient 136) rests on a margin of
+    0.04 percentage points (5.17% vs 5.21%, in opposite directions). There were no additional
+    crashes in either set.
+- **Mean absolute CO error vs CO_td across all 6 patients,** computed from `arm_a_results.csv`
+  (A_prod) and `arm_c_results.csv` (final runs):
+  - Arm A-prod: **24.9%**
+  - Arm C: **33.2%**
+- **Stroke volume** (held out): Arm C was closer in 4 of 6 patients (136, 120, 56, 264).
+- **Conclusion:** Arm C shows no consistent improvement on the held-out outputs. CO error is
+  larger on average, and the rule passes in one set and fails in the other. **Arm C is not
+  adopted.**
