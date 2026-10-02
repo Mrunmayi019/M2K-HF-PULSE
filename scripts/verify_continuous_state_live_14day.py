@@ -23,9 +23,14 @@ CardiovascularMechanicsModification is reissued on every resume (both statically
 construction -- build_resume_scenario() puts it unconditionally as Actions[0], no branch skips it
 -- and confirmed here directly by building a real resume scenario dict and inspecting it).
 
-Must run INSIDE the Pulse Docker container (PulseScenarioDriver is a Linux amd64 binary):
+Must run INSIDE a Pulse-capable Docker container (PulseScenarioDriver is a Linux amd64 binary).
+RUN THIS AGAINST THE PROPERLY-BUILT BACKEND IMAGE (`docker build -f backend/Dockerfile -t
+m2k-hf-pulse-backend .`), NOT the raw `kitware/pulse:4.3.1` image directly -- the raw image's
+Python (3.9.2) can only install an older, unpinned scikit-learn that reintroduces the severity
+drift the project's requirements.txt pin exists to prevent (docs/integration_pre_results.md):
 
-    PYTHONPATH=/workspace python3 -m scripts.verify_continuous_state_live_14day
+    docker run --rm -v "$(pwd)":/workspace -w /workspace --platform linux/amd64 \\
+        m2k-hf-pulse-backend bash -c "PYTHONPATH=/workspace python3 -m scripts.verify_continuous_state_live_14day"
 """
 from __future__ import annotations
 
@@ -47,6 +52,10 @@ MONITORED_DAYS = 14
 PATIENT_ID = "P_LIVE14_FLAT"
 EF = 60.0   # reference_stats.yaml's healthy-population EF mean -- same value Tier-1 fallback uses
 BNP = 100.0  # same "unremarkable/healthy" placeholder Tier-1 fallback uses
+# False for this run (docs/integration_pre_results.md): project_physiology()'s 3 horizon calls are
+# a pure write-only, display-only side effect (confirmed by tracing + test), so skipping them cuts
+# this run's Pulse calls from 4/day to 1/day without changing risk_score/nyha_class/alert at all.
+COMPUTE_PROJECTION = False
 FLAT_READING = dict(resting_hr_bpm=70.0, spo2_pct=97.0, weight_kg=78.0, steps_per_day=6500.0,
                      sleep_hours=7.2, hrv_rmssd_ms=38.0)
 BASE_DATE = datetime.date(2026, 1, 1)
@@ -111,7 +120,7 @@ def main():
             add_flat_reading(db, day=new_wearable_day)
 
             start = time.monotonic()
-            state = run_daily_continuous_pipeline(PATIENT_ID, db)
+            state = run_daily_continuous_pipeline(PATIENT_ID, db, compute_projection=COMPUTE_PROJECTION)
             elapsed = time.monotonic() - start
             if state is None:
                 sys.exit(f"day {day_index + 1} FAILED -- check the SimulationRun.error_message")

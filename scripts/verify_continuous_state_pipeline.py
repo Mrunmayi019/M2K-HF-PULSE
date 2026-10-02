@@ -11,10 +11,21 @@ checks the behaviors the feature is supposed to have:
   - Day 3 (new clinical report arrives with a different EF): last_ejection_fraction_pct on the
     new PulseState should reflect the NEW report's EF, not the carried-forward one.
 
-Must run INSIDE the Pulse Docker container (src/pulse_runner/sdk_runner.py imports the `pulse`
-SDK, only present there):
+Must run INSIDE a Pulse-capable Docker container (PulseScenarioDriver is a Linux amd64 binary;
+this module's own Pulse calls go through src/pulse_runner/cli_state_runner.py's CLI-driver path,
+not the SDK -- the SDK/`/pulse/python` reference a prior version of this docstring had no longer
+applies, see src/pulse_runner/sdk_runner.py's own module docstring for why that path is dead).
 
-    PYTHONPATH=/workspace:/pulse/bin:/pulse/python python3 -m scripts.verify_continuous_state_pipeline
+RUN THIS AGAINST THE PROPERLY-BUILT BACKEND IMAGE (`docker build -f backend/Dockerfile -t
+m2k-hf-pulse-backend .`), NOT the raw `kitware/pulse:4.3.1` image directly. The raw image's
+Python (3.9.2) is one major version too old for the project's current scikit-learn pin
+(requirements.txt), so it falls back to an older, unpinned sklearn and reintroduces the exact
+severity-drift the pin exists to prevent (docs/integration_pre_results.md's cross-machine-check
+section has the full story). The backend image's Python (3.11) matches the pinned dependency
+versions exactly:
+
+    docker run --rm -v "$(pwd)":/workspace -w /workspace --platform linux/amd64 \\
+        m2k-hf-pulse-backend bash -c "PYTHONPATH=/workspace python3 -m scripts.verify_continuous_state_pipeline"
 """
 from __future__ import annotations
 
