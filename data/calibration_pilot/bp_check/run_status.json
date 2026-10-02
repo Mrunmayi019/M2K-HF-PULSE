@@ -1,0 +1,68 @@
+{
+  "A_off_bp_low": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 84.6
+  },
+  "A_off_bp_high": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 65.3
+  },
+  "B_on_bp_low": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 97.2
+  },
+  "B_on_bp_high": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 104.0
+  },
+  "C_off_ar_1.3": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 63.0
+  },
+  "C_off_vr_1.3": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 64.6
+  },
+  "C_off_hrm_1.2": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 62.4
+  },
+  "D_on_sr_1.3": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 70.6
+  },
+  "D_on_ar_1.3": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 71.3
+  },
+  "E_off_hr90_bphigh_sv0.8": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 71.4
+  },
+  "E_on_hr90_bphigh_sv1.2": {
+    "crashed": false,
+    "error": null,
+    "fatal_marker_lines": [],
+    "wall_clock_s": 74.3
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "PatientConfiguration": {
+    "PatientFile": "/workspace/data/calibration_pilot/bp_check/D_on_sr_1.3/patient.json",
+    "Conditions": {
+      "AnyCondition": [
+        {
+          "PatientCondition": {
+            "ChronicVentricularSystolicDysfunction": {}
+          }
+        }
+      ]
+    }
+  },
+  "DataRequestManager": {
+    "DataRequest": [
+      {
+        "Category": "Physiology",
+        "PropertyName": "HeartRate"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "MeanArterialPressure"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "SystolicArterialPressure"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "DiastolicArterialPressure"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "OxygenSaturation",
+        "DecimalFormat": {
+          "Type": "FixedMantissa",
+          "Precision": 3
+        }
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "CardiacOutput"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "HeartStrokeVolume"
+      },
+      {
+        "Category": "Physiology",
+        "PropertyName": "RespirationRate"
+      },
+      {
+        "Category": "LiquidCompartment",
+        "CompartmentName": "LeftHeart",
+        "PropertyName": "Volume"
+      },
+      {
+        "Category": "LiquidCompartment",
+        "CompartmentName": "LeftHeart",
+        "PropertyName": "Pressure"
+      },
+      {
+        "Category": "ECG",
+        "PropertyName": "Lead3ElectricPotential"
+      }
+    ]
+  },
+  "AnyAction": [
+    {
+      "AdvanceTime": {
+        "Time": {
+          "ScalarTime": {
+            "Value": 60,
+            "Unit": "s"
+          }
+        }
+      }
+    },
+    {
+      "PatientAction": {
+        "CardiovascularMechanicsModification": {
+          "Modifiers": {
+            "StrokeVolumeMultiplier": {
+              "ScalarUnsigned": {
+                "Value": 1.0
+              }
+            },
+            "SystemicResistanceMultiplier": {
+              "ScalarUnsigned": {
+                "Value": 1.3
+              }
+            },
+            "SystemicComplianceMultiplier": {
+              "ScalarUnsigned": {
+                "Value": 1.0
+              }
+            }
+          },
+          "Incremental": true
+        }
+      }
+    },
+    {
+      "AdvanceTime": {
+        "Time": {
+          "ScalarTime": {
+            "Value": 3.0,
+            "Unit": "min"
+          }
+        }
+      }
+    }
+  ]
+}
