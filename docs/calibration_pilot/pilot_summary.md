@@ -15,13 +15,20 @@ A feasibility check found the twin could reach each patient's real EF, HR and MA
 patients, against a bar of 4 of 6 that was set in discussion but not committed beforehand (see the
 closing note in `pilot_success_criteria.md`).
 
+A simpler arm was added afterwards: **Arm C, "direct-set"**, pre-registered as Amendment 2. Its
+CO rule passed in one patient set and failed in the other, and its mean CO error was larger than
+the production twin's (33.2% vs 24.9%). **Arm C is not adopted** (see "Arm C" below).
+
 ## What was run
 
-- **34 Pulse 4.3.1 runs. None crashed, and every run in the scan and the BP check settled** (≤ 2%
-  drift between the last two 60 s windows).
+- **48 Pulse 4.3.1 runs, all in Docker, one at a time. None crashed.** Every run in the scan and
+  the BP check settled, meaning ≤ 2% drift between the last two 60 s windows; one Arm C tuning run
+  did not, and it was not a final run.
   - **Arm A:** 9 runs (`arm_a_report.md`).
   - **Knob scan:** 14 runs (`sensitivity_report.md`).
   - **Blood-pressure check:** 11 runs (`bp_check_report.md`).
+  - **Arm C:** 14 tuning runs (`arm_c_report.md`). One extra Arm C run was thrown away when a
+    script bug aborted the first attempt; its rerun gave the same result.
 - **Patients:** 6 from Gu's TriSeg dataset (`pilot_patients.csv`).
   - 3 fixed in advance: 295, 136 and 120.
   - 3 chosen by a written rule, out of 15 of 370 patients that passed: 56, 242 and 264
@@ -85,6 +92,66 @@ closing note in `pilot_success_criteria.md`).
    - Only 129 of 361 complete patients had the two CO measurements within 10% of each other, and
      68 also had the two EFs within 7 points.
    - Source: `pilot_patients.csv`, `selection_log.md`.
+
+## Arm C: direct-set twins (not adopted)
+
+**How the twins were built** (pre-registered in Amendment 2):
+- Each patient's own body was used (with the BMI clamp, age 60), and each twin was given the
+  patient's own resting HR and blood pressure as Pulse baselines.
+- Blood pressure was moved to the nearest pair Pulse accepts: systolic capped at 120 for 295, 120
+  and 56, and diastolic at 80 for 120.
+- The weak-heart condition was on for EF ≤ 40.
+- StrokeVolumeMultiplier was tuned by bisection, at most 4 runs per patient, until twin EF was
+  within 2 points of echo EF. Patient 136 did not get there: the closest was 37.85 against 40.
+- Cardiac output and stroke volume were held out and used only for scoring.
+
+**Arm A-prod (production twin) vs Arm C, % error against the real value:**
+
+| Patient | Arm | EF | HR | MAP (formula) | SV | CO vs CO_td | CO vs CO_fick |
+|---|---|---|---|---|---|---|---|
+| 295 | A-prod / C | +1.0 / −1.5 | −9.2 / −0.4 | −15.7 / −17.9 | +42.2 / +45.3 | **+29.1 / +44.7** | −5.2 / +6.3 |
+| 136 | A-prod / C | −32.2 / −5.4 | +30.7 / −6.6 | −2.2 / −14.8 | −19.5 / +1.6 | **+5.2 / −5.2** | +57.8 / +42.3 |
+| 120 | A-prod / C | −6.0 / −0.2 | −21.5 / −7.7 | −15.7 / −10.9 | +82.1 / +77.3 | **+42.9 / +63.7** | +59.4 / +82.6 |
+| 56 | A-prod / C | +8.8 / +1.5 | +21.5 / −4.1 | −22.6 / −23.2 | −8.2 / −0.8 | **+11.5 / −4.9** | +5.1 / −10.4 |
+| 242 | A-prod / C | −23.5 / −1.0 | −27.2 / −20.1 | −18.9 / −18.2 | +49.9 / +67.3 | **+9.2 / +33.7** | +4.8 / +28.3 |
+| 264 | A-prod / C | +0.1 / +1.1 | −15.4 / −1.2 | +20.3 / +0.1 | +79.1 / +48.8 | **+51.5 / +47.0** | +50.3 / +45.8 |
+
+Mean absolute error across the 6 patients:
+
+| | CO vs CO_td | CO vs CO_fick | SV |
+|---|---|---|---|
+| Arm A-prod | 24.9% | 30.4% | 46.8% |
+| Arm C | 33.2% | 36.0% | 40.2% |
+
+Source: `arm_c_report.md`, `arm_c_results.csv`, `arm_a_results.csv`.
+
+**What improved.**
+- EF and HR, as expected, because they were set directly. EF is within 2.2 points for all 6.
+- Stroke volume was closer for 4 of 6 patients (136, 120, 56, 264).
+- CO vs CO_td was closer for 3 of 6: 56, 264, and 136 by only 0.04 points.
+
+**What got worse.**
+- CO vs CO_td was further off for 295, 120 and 242. For 242 it went from +9.2% to +33.7%.
+- Mean absolute CO_td error rose from 24.9% to 33.2%.
+- The pre-registered CO rule was met in the consistent set (2 of 3) and not in the original set
+  (1 of 3).
+
+**Set HR did not always hold.**
+- Patient 242 was set to 97.25 and ran at 77.7.
+- Patient 136 was set to 54.5 and ran at 50.9. Across its tuning runs HR ranged from 46.0 to 56.6,
+  falling as StrokeVolumeMultiplier rose.
+- The others stayed within about 8% of the set value.
+
+**Set blood pressure did not hold with the condition on.** For the 4 patients with the weak-heart
+condition, the twin's systolic ended 12.1–23.4 mmHg and its diastolic 10.6–18.7 mmHg below the
+set pair (for example, 295 was set to 120/67.5 and ran at 101.8/56.9). Formula-MAP errors stayed between −14.8% and −23.2%. With
+the condition off (120 and 264), the set pair held within about 3 mmHg.
+
+**Limits specific to Arm C.**
+- 6 patients, with one final run each.
+- The starting guesses came from a scan on one body (patient 120).
+- Age assumed 60.
+- One patient (136) missed the EF target.
 
 ## Limits
 
