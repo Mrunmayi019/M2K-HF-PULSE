@@ -11,6 +11,12 @@ Repo: https://github.com/Mrunmayi019/M2K-HF-PULSE — working branch is `main` d
 workflow; Kaveri is the only contributor). Purpose: a research paper on a personalized
 heart-failure digital-twin system, built on the Kitware Pulse physiology engine.
 
+> **If you're on `feature/continuous-state-sync`** (or asked to resume that work): stop reading
+> this file and go straight to `docs/continuous_state_sync_status.md` — it's a complete,
+> self-contained session log (what was investigated, full chronological findings, exact current
+> state, and precise next steps) for an in-progress, unreviewed continuous-state-synchronization
+> feature. `main` and everything below in this file are unaffected by that branch's work.
+
 ---
 
 ## 1. Set up the machine, first
@@ -73,6 +79,98 @@ citations to it across `readme.md`/`model_card.md`/`data_provenance.md`/`archite
 uncommitted machine copy per this section's own "-main vs -repo drift" story above. If it turns up
 later, restore it and re-check the inline rewrites made to those 6 files against its actual
 content (see the doc-audit citation list from that session for exactly what was rewritten and why).
+
+---
+
+## 2.5. Session 2026-09-07 — real-patient BCG validation (subjects 14, 102) — NOT YET COMMITTED
+
+**Read this if you're picking up BCG-validation work, or wondering why `data/bcg_validation/` and
+several `scripts/bcg_*` files exist.** Full methodology, citations, results, and every limitation
+are in `docs/bcg_validation_note.md` (self-contained — start there for the actual work). This
+entry is session-continuity/environment notes only.
+
+**Branch situation, flag before doing anything else:** this work was done on
+`feature/continuous-state-sync`, not `main` — almost certainly because that was the checked-out
+branch when the session started, not a deliberate choice. This work is thematically unrelated to
+continuous-state-sync. **Not yet decided:** whether to commit here, or move these files to a
+fresh branch off `main` first. The working tree also has pre-existing, unrelated uncommitted
+changes from that branch's own earlier session (`frontend/package.json`/`package-lock.json`,
+`models/phase3_eval_report.txt`, the whole `scenarios/` directory — all last-modified Aug 30-Sep 1,
+none of it touched this session). Don't sweep those into a commit for this work.
+
+**Git identity mismatch, flag, not fixed:** §1 above says every commit must be authored solely by
+Kaveri Sharma, but this machine's `git config user.name`/`user.email` are currently
+`Mrunmayi019` / `mrunmayimohite9@gmail.com` — not Kaveri's identity. Not changed here (this file's
+instructions to Claude Code say never touch git config); whoever commits this work needs to resolve
+which identity is actually correct for this session before committing, per §1's policy.
+
+**What's built:**
+- `bcg_to_cardiovascular_modifiers()` (`src/patient_builder/patient_file.py`) — maps BCG-derived
+  R-J interval and IJ/JK amplitude to `VenousComplianceMultiplier`/`SystemicComplianceMultiplier`,
+  same file/pattern as `ef_to_cardiovascular_modifiers()`. Takes optional `rj_reference_ms`/
+  `amplitude_reference` params (default to subject 102's own values) so either subject can anchor
+  the other's n=2 reference scale.
+- `extra_modifiers` parameter, additive, added to `build_scenario_file()`/`_scenario_actions()`
+  (`src/patient_builder/scenario_file.py`) — lets a real per-patient measurement override a
+  scenario's own generic severity-based value for the same field. `None` by default; every
+  existing synthetic-patient call site is unaffected.
+- `docs/bcg_validation_note.md` — the full writeup.
+- `docs/methodology.md` §12 (new) + a cross-reference added to §3's Tier 2 discussion.
+- `data/bcg_validation/{subject14,subject102,step1_diagnostic/{A_160cm,B_175cm}}/` — every
+  patient.json/scenario.json/scenario.log/scenarioResults.csv/full_results.csv this session
+  produced (see the validation note's own Files section for what each is).
+- 7 new scripts under `scripts/`: `bcg_real_patient_validation.py` / `bcg_real_patient_run.py`
+  (subject 14 build+run), `bcg_subject102_validation.py` / `bcg_subject102_run.py` (subject 102
+  build+run), `bcg_step1_diagnostic.py` (the height-isolation counterfactual),
+  `bcg_extract_subject14_features.py` / `bcg_extract_subject102_features.py` (the raw signal.csv
+  → R-J/I-J-K feature extraction — pure pandas/numpy, no Docker; these were written to save code
+  that had only existed in this session's own scratchpad, now reproducible from the repo).
+
+**What's explicitly left open, undecided by design:**
+- Whether/how to personalize Pulse's HR baseline — currently never set (deliberate existing
+  design, §4's "modify inputs not outputs" philosophy), demonstrated this session to produce a
+  ~45-55% SV/CO shortfall largely independent of that choice, but a real fix (if wanted) isn't
+  designed here.
+- The isolated `StrokeVolumeMultiplier` effect (currently confounded by the simultaneous `Exercise`
+  action) — would need a separate run with `Exercise` suppressed/delayed. Flagged as an option, not
+  attempted.
+- Whether any of this folds into a defense/thesis presentation — not discussed this session, purely
+  an engineering validation exercise so far.
+- The branch/identity questions above.
+
+**Working Docker invocation for `kitware/pulse:4.3.1`, written down because it cost real time to
+reconstruct this session (Docker Desktop had gone down partway through and needed a manual
+restart, and two Windows/Git-Bash-specific gotchas below aren't documented anywhere else in this
+repo):**
+
+```bash
+# From the repo root, in Git Bash on Windows:
+MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 \
+  bash -c "pip3 install -q pandas 2>&1 | tail -5 && python3 -m scripts.<your_script>"
+```
+
+- **`MSYS_NO_PATHCONV=1` is required** on Windows Git Bash — without it, MSYS silently mangles the
+  `-w /workspace` argument into a Windows path (`C:/Program Files/Git/workspace`), and `docker run`
+  fails with `the working directory '...' is invalid, it needs to be an absolute path`.
+- **Install only `pandas`, not the full `requirements.txt`.** The heavier packages
+  (`xgboost`/`scikit-learn`/`matplotlib`/`psycopg2-binary`) reliably killed the container ~60-80s
+  in with an opaque `unexpected EOF` / exit 255 and zero captured log output — looked like a Docker
+  Desktop crash at first, wasn't. None of `patient_builder`/`scenario_file`/`pulse_runner` need
+  anything beyond `pandas`.
+- **`run_pulse()`'s `timeout_sec` default (180s, used elsewhere in this repo) was too short** for
+  these specific EF~35%/`acute_deterioration` runs — they needed ~106-109s of real wall-clock time
+  for a 660s simulated scenario, which is fine, but a 180s subprocess timeout killed one attempt
+  mid-run with the simulation still making correct, steady progress. Used 420s here for margin;
+  raise further if a heavier scenario needs it.
+- **Verify the image isn't corrupted before a real run**, if anything seems off:
+  `docker run --rm kitware/pulse:4.3.1 bash -c "ls -la /pulse/bin/PulseScenarioDriver"` should show
+  exactly 13,534,624 bytes. If 0 bytes, see `docs/continuous_state_sync_status.md`'s
+  containerd-snapshotter finding (Docker Desktop → Settings → General → uncheck "Use containerd
+  for pulling and storing images") — not re-derived this session, just re-confirmed still fixed.
+- **The `PatientFile` path embedded in scenario.json must be the container path**
+  (`/workspace/...`), never the host Windows path — the repo root is mounted at `/workspace` via
+  `-v "$(pwd)":/workspace`, but nothing translates an absolute Windows path written into that JSON
+  field; it has to be written as `/workspace/...` from the start.
 
 ---
 
@@ -260,6 +358,20 @@ authoritative current list.
       a quick feasibility check (read Pulse's own action/state documentation, check
       `backend/`'s Pulse SDK bindings for anything drug-related) before committing engineering
       time — this might be out of reach without engine-level work. **Not started.**
+
+- [ ] **Fluid_overload scenario lacks a volume-loading mechanism** — found and root-caused
+      2026-09-01 (`docs/continuous_state_sync_status.md`, `docs/methodology.md`'s new Limitations
+      entry of the same name), a `main`-affecting finding, not specific to that branch.
+      `_scenario_actions()`'s `fluid_overload` branch (`src/patient_builder/scenario_file.py`)
+      applies only a `VenousComplianceMultiplier`, no volume-loading action — reducing venous
+      compliance alone mobilizes pooled blood into circulation (a recruitment effect) rather than
+      representing real fluid overload, so simulated HR/MAP/CO actually *improve* as severity
+      rises. This is the confirmed mechanistic root cause of §6.1's existing "barely varies with
+      severity" observation, not a new problem. Fix requires adding a real volume-loading Pulse
+      action to the scenario definition, then re-running Phase 2 validation and likely retraining
+      the severity regressor — scenario-design rework, not a quick parameter fix. **Not a patient-
+      safety gap**: `baseline_deficit_score`/`max()` (§6.1) already catches high-risk
+      `fluid_overload` patients via a baseline-MAP floor regardless. **Not started.**
 
 ### P3 — strengthens the paper's positioning
 

@@ -1,0 +1,663 @@
+[INFO] [0(s)] Creating CSV File : /workspace/data/synthetic_deterioration_stress_test/pulse/subject14_day11//scenarioResults.csv
+[INFO] [0(s)] Clearing engine
+[INFO] [0(s)] Initializing engine
+[INFO] [0(s)] Human Adult Whole Body
+[INFO] [0(s)] Version : 4.3.1
+[INFO] [0(s)] GitHash : 143ad0826
+[INFO] [0(s)] Build Time : Thu Sep 10 03:46:07 2026
+[INFO] [0(s)] Looking for files in .
+[INFO] [0(s)] [Provided Patient] Name: "Synthetic_bcg_subject14_trend_pulse"
+Age {
+  ScalarTime {
+    Value: 53
+    Unit: "yr"
+  }
+}
+Weight {
+  ScalarMass {
+    Value: 70
+    Unit: "kg"
+  }
+}
+Height {
+  ScalarLength {
+    Value: 160
+    Unit: "cm"
+  }
+}
+
+[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+[INFO] [0(s)] Patient ideal body weight computed and set to 56.8819 kg.
+[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[INFO] [0(s)] No patient body fat fraction set. Using the standard value of 0.21.
+[INFO] [0(s)] Patient lean body mass computed and set to 55.3 kg.
+[INFO] [0(s)] Patient body density computed and set to 1.05052 g/cm^3.
+[INFO] [0(s)] No patient heart rate baseline set. Using the standard value of 72 bpm.
+[INFO] [0(s)] No patient heart rate maximum set. Using a computed value of 170.9 bpm.
+[INFO] [0(s)] No patient heart rate minimum set. Using a default value of 0.001 bpm.
+[INFO] [0(s)] No patient systolic pressure baseline set. Using the standard value of 114 mmHg.
+[INFO] [0(s)] No patient diastolic pressure baseline set. Using the standard value of 73.5 mmHg.
+[INFO] [0(s)] No patient blood volume baseline set. Using a computed value of 4999.24 mL.
+[INFO] [0(s)] No patient respiration rate baseline set. Using the standard value of 12 bpm.
+[INFO] [0(s)] No patient right lung ratio set. Using the standard value of 0.525.
+[INFO] [0(s)] No patient total lung capacity set. Using a computed value of 4.55055 L.
+[INFO] [0(s)] No patient functional residual capacity set. Using a computed value of 1.70646 L.
+[INFO] [0(s)] No patient residual volume set. Using a computed value of 0.91011 L.
+[INFO] [0(s)] Patient tidal volume computed and set to 0.398173 L.
+[INFO] [0(s)] Patient vital capacity computed and set to 3.64044 L.
+[INFO] [0(s)] Patient expiratory reserve volume computed and set to 0.796346 L.
+[INFO] [0(s)] Patient inspiratory reserve volume computed and set to 2.44592 L.
+[INFO] [0(s)] Patient inspiratory capacity computed and set to 2.84409 L.
+[INFO] [0(s)] No patient alveoli surface area set. Using a computed value of 51.627 m^2.
+[INFO] [0(s)] No patient skin surface area set. Using a computed value of 1.73187 m^2.
+[INFO] [0(s)] No patient basal metabolic rate set. Using a computed value of 1493.38 kcal/day.
+[INFO] [0(s)] [Patient] 
+{
+ "Name": "Synthetic_bcg_subject14_trend_pulse",
+ "Age": {
+  "ScalarTime": {
+   "Value": 53,
+   "Unit": "yr"
+  }
+ },
+ "Weight": {
+  "ScalarMass": {
+   "Value": 70,
+   "Unit": "kg"
+  }
+ },
+ "Height": {
+  "ScalarLength": {
+   "Value": 160,
+   "Unit": "cm"
+  }
+ },
+ "BodyDensity": {
+  "ScalarMassPerVolume": {
+   "Value": 1.0505236628887222,
+   "Unit": "g/cm^3"
+  }
+ },
+ "BodyFatFraction": {
+  "Scalar0To1": {
+   "Value": 0.21
+  }
+ },
+ "BodyMassIndex": {
+  "Value": 27.343749999999996
+ },
+ "LeanBodyMass": {
+  "ScalarMass": {
+   "Value": 55.300000000000004,
+   "Unit": "kg"
+  }
+ },
+ "IdealBodyWeight": {
+  "ScalarMass": {
+   "Value": 56.881889763779512,
+   "Unit": "kg"
+  }
+ },
+ "AlveoliSurfaceArea": {
+  "ScalarArea": {
+   "Value": 51.626998813154827,
+   "Unit": "m^2"
+  }
+ },
+ "RightLungRatio": {
+  "Scalar0To1": {
+   "Value": 0.525
+  }
+ },
+ "SkinSurfaceArea": {
+  "ScalarArea": {
+   "Value": 1.7318662036219394,
+   "Unit": "m^2"
+  }
+ },
+ "BasalMetabolicRate": {
+  "ScalarPower": {
+   "Value": 1493.3810000000003,
+   "Unit": "kcal/day"
+  }
+ },
+ "BloodVolumeBaseline": {
+  "ScalarVolume": {
+   "Value": 4999.2383151430349,
+   "Unit": "mL"
+  }
+ },
+ "DiastolicArterialPressureBaseline": {
+  "ScalarPressure": {
+   "Value": 73.5,
+   "Unit": "mmHg"
+  }
+ },
+ "HeartRateBaseline": {
+  "ScalarFrequency": {
+   "Value": 72,
+   "Unit": "1/min"
+  }
+ },
+ "MeanArterialPressureBaseline": {
+  "ScalarPressure": {
+   "Value": 87,
+   "Unit": "mmHg"
+  }
+ },
+ "PulsePressureBaseline": {
+  "ScalarPressure": {
+   "Value": 40.5,
+   "Unit": "mmHg"
+  }
+ },
+ "RespirationRateBaseline": {
+  "ScalarFrequency": {
+   "Value": 12,
+   "Unit": "1/min"
+  }
+ },
+ "SystolicArterialPressureBaseline": {
+  "ScalarPressure": {
+   "Value": 114,
+   "Unit": "mmHg"
+  }
+ },
+ "TidalVolumeBaseline": {
+  "ScalarVolume": {
+   "Value": 0.39817322834645652,
+   "Unit": "L"
+  }
+ },
+ "HeartRateMaximum": {
+  "ScalarFrequency": {
+   "Value": 170.9,
+   "Unit": "1/min"
+  }
+ },
+ "HeartRateMinimum": {
+  "ScalarFrequency": {
+   "Value": 0.001,
+   "Unit": "1/min"
+  }
+ },
+ "ExpiratoryReserveVolume": {
+  "ScalarVolume": {
+   "Value": 0.79634645669291315,
+   "Unit": "L"
+  }
+ },
+ "FunctionalResidualCapacity": {
+  "ScalarVolume": {
+   "Value": 1.7064566929133853,
+   "Unit": "L"
+  }
+ },
+ "InspiratoryCapacity": {
+  "ScalarVolume": {
+   "Value": 2.8440944881889756,
+   "Unit": "L"
+  }
+ },
+ "InspiratoryReserveVolume": {
+  "ScalarVolume": {
+   "Value": 2.4459212598425193,
+   "Unit": "L"
+  }
+ },
+ "ResidualVolume": {
+  "ScalarVolume": {
+   "Value": 0.91011023622047216,
+   "Unit": "L"
+  }
+ },
+ "TotalLungCapacity": {
+  "ScalarVolume": {
+   "Value": 4.5505511811023611,
+   "Unit": "L"
+  }
+ },
+ "VitalCapacity": {
+  "ScalarVolume": {
+   "Value": 3.6404409448818891,
+   "Unit": "L"
+  }
+ }
+}
+
+[INFO] [0(s)] Resetting Substances
+[INFO] [0(s)] Reading substance files from .
+[INFO] [0(s)] Initializing Configuration
+[INFO] [0(s)] Merging OnDisk Configuration
+[INFO] [0(s)] Creating Circuits and Compartments
+[INFO] [0(s)] Setting Up Cardiovascular
+[INFO] [0(s)] Setting Up Renal
+[INFO] [0(s)] Setting Up Tissue
+[INFO] [0(s)] Setting Up Gastrointestinal
+[INFO] [0(s)] Setting Up ECMO
+[INFO] [0(s)] Setting Up External Temperature
+[INFO] [0(s)] Setting Up Internal Temperature
+[INFO] [0(s)] Setting Up Respiratory
+[INFO] [0(s)] Setting Up Anesthesia Machine
+[INFO] [0(s)] Setting Up BagValveMask
+[INFO] [0(s)] Setting Up Inhaler
+[INFO] [0(s)] Setting Up MechanicalVentilation
+[INFO] [0(s)] Setting Up MechanicalVentilator
+[INFO] [0(s)] Setting Up Nasal Cannula
+[INFO] [0(s)] Setting Up NonRebreather Mask
+[INFO] [0(s)] Setting Up Simple Mask
+[INFO] [0(s)] Initializing Gas Substances
+[INFO] [0(s)] Initializing Liquid Substances
+[INFO] [0(s)] Initializing Models
+[INFO] [0(s)] Tuning to patient parameters : HeartRate(bpm):72 Systolic(mmHg):114 Diastolic(mmHg):73.5
+[INFO] [0(s)] We are stable at 67.1
+[INFO] [0(s)] Tuning paths, Current values : HeartRate(bpm):72 Systolic(mmHg):112.48 Diastolic(mmHg):91.7745 Cardiac Output(mL/min):5151.46 Mean CVP(mmHg):4.208 MAP(mmHg):102.916 BloodVolume(mL): 4974.26
+[INFO] [0(s)] We are stable at 107.42
+[INFO] [0(s)] Tuning paths, Current values : HeartRate(bpm):72 Systolic(mmHg):119.638 Diastolic(mmHg):83.9097 Cardiac Output(mL/min):5145.71 Mean CVP(mmHg):4.20892 MAP(mmHg):102.778 BloodVolume(mL): 4974.12
+[INFO] [0(s)] We are stable at 163.7
+[INFO] [0(s)] Tuning paths, Current values : HeartRate(bpm):72 Systolic(mmHg):114.252 Diastolic(mmHg):75.3321 Cardiac Output(mL/min):5660.45 Mean CVP(mmHg):4.61018 MAP(mmHg):96.1388 BloodVolume(mL): 4974.23
+[INFO] [0(s)] We are stable at 203.18
+[INFO] [0(s)] Tuning paths, Current values : HeartRate(bpm):72 Systolic(mmHg):113.674 Diastolic(mmHg):74.3385 Cardiac Output(mL/min):5727.29 Mean CVP(mmHg):4.66134 MAP(mmHg):95.3847 BloodVolume(mL): 4974.35
+[INFO] [0(s)] We are stable at 219.98
+[INFO] [0(s)] Successfully tuned circuit (No Tissues). Final values : HeartRate(bpm):72 Systolic(mmHg):114.306 Diastolic(mmHg):73.6373 Cardiac Output(mL/min):5727.93 Mean CVP(mmHg):4.66199 MAP(mmHg):95.3877 BloodVolume(mL): 4974.4
+[INFO] [0(s)] Tuning Tissue resistances at 220s
+[INFO] [0(s)]   Initial BoneT2ToBoneT1 Flow : -0.00255598(mL/s)
+[INFO] [0(s)]   Initial BoneT2ToBoneT1 Resistance : 2098.25(mmHg s/mL)
+[INFO] [0(s)]   Initial BrainT2ToBrainT1 Flow : -4.13089e-06(mL/s)
+[INFO] [0(s)]   Initial BrainT2ToBrainT1 Resistance : 13793.1(mmHg s/mL)
+[INFO] [0(s)]   Initial FatT2ToFatT1 Flow : -0.00399559(mL/s)
+[INFO] [0(s)]   Initial FatT2ToFatT1 Resistance : 1360.54(mmHg s/mL)
+[INFO] [0(s)]   Initial GutT2ToGutT1 Flow : -0.000255063(mL/s)
+[INFO] [0(s)]   Initial GutT2ToGutT1 Resistance : 21599.6(mmHg s/mL)
+[INFO] [0(s)]   Initial LiverT2ToLiverT1 Flow : -0.000395839(mL/s)
+[INFO] [0(s)]   Initial LiverT2ToLiverT1 Resistance : 12239.8(mmHg s/mL)
+[INFO] [0(s)]   Initial LeftKidneyT2ToLeftKidneyT1 Flow : 0.000105459(mL/s)
+[INFO] [0(s)]   Initial LeftKidneyT2ToLeftKidneyT1 Resistance : 142140(mmHg s/mL)
+[INFO] [0(s)]   Initial RightKidneyT2ToRightKidneyT1 Flow : 0.000105459(mL/s)
+[INFO] [0(s)]   Initial RightKidneyT2ToRightKidneyT1 Resistance : 142140(mmHg s/mL)
+[INFO] [0(s)]   Initial LeftLungT2ToLeftLungT1 Flow : 2.23272e-05(mL/s)
+[INFO] [0(s)]   Initial LeftLungT2ToLeftLungT1 Resistance : 92764.8(mmHg s/mL)
+[INFO] [0(s)]   Initial MuscleT2ToMuscleT1 Flow : -0.0101184(mL/s)
+[INFO] [0(s)]   Initial MuscleT2ToMuscleT1 Resistance : 759.711(mmHg s/mL)
+[INFO] [0(s)]   Initial MyocardiumT2ToMyocardiumT1 Flow : -6.09796e-05(mL/s)
+[INFO] [0(s)]   Initial MyocardiumT2ToMyocardiumT1 Resistance : 66762.5(mmHg s/mL)
+[INFO] [0(s)]   Initial RightLungT2ToRightLungT1 Flow : 2.37756e-05(mL/s)
+[INFO] [0(s)]   Initial RightLungT2ToRightLungT1 Resistance : 83930(mmHg s/mL)
+[INFO] [0(s)]   Initial SkinT2ToSkinT1 Flow : -2.06211e-05(mL/s)
+[INFO] [0(s)]   Initial SkinT2ToSkinT1 Resistance : 6887.36(mmHg s/mL)
+[INFO] [0(s)]   Initial SpleenT2ToSpleenT1 Flow : -3.09185e-05(mL/s)
+[INFO] [0(s)]   Initial SpleenT2ToSpleenT1 Resistance : 146878(mmHg s/mL)
+[INFO] [0(s)] Tuning 9/13 paths at 240.02s
+[INFO] [0(s)] Tuning 9/13 paths at 260.04s
+[INFO] [0(s)] Tuning 8/13 paths at 280.06s
+[INFO] [0(s)] Tuning 6/13 paths at 300.08s
+[INFO] [0(s)] Tuning 3/13 paths at 320.1s
+[INFO] [0(s)] Tuning 1/13 paths at 340.12s
+[INFO] [0(s)] Tuning 0/13 paths at 360.14s
+[INFO] [0(s)] Finalizing CV Circuit...
+[INFO] [0(s)] Successfully tuned tissue circuit at 390.16s
+[INFO] [0(s)]   Final BoneT2ToBoneT1 Resistance : 524.563(mmHg s/mL)
+[INFO] [0(s)]   Final BoneT2ToBoneT1 Flow : -0.000196917(mL/s)
+[INFO] [0(s)]   Final BrainT2ToBrainT1 Resistance : 1724.14(mmHg s/mL)
+[INFO] [0(s)]   Final BrainT2ToBrainT1 Flow : -3.29605e-06(mL/s)
+[INFO] [0(s)]   Final FatT2ToFatT1 Resistance : 680.272(mmHg s/mL)
+[INFO] [0(s)]   Final FatT2ToFatT1 Flow : -5.76275e-05(mL/s)
+[INFO] [0(s)]   Final GutT2ToGutT1 Resistance : 1349.98(mmHg s/mL)
+[INFO] [0(s)]   Final GutT2ToGutT1 Flow : -5.59273e-07(mL/s)
+[INFO] [0(s)]   Final LiverT2ToLiverT1 Resistance : 382.494(mmHg s/mL)
+[INFO] [0(s)]   Final LiverT2ToLiverT1 Flow : -1.39519e-06(mL/s)
+[INFO] [0(s)]   Final LeftKidneyT2ToLeftKidneyT1 Resistance : 142140(mmHg s/mL)
+[INFO] [0(s)]   Final LeftKidneyT2ToLeftKidneyT1 Flow : 0.000121815(mL/s)
+[INFO] [0(s)]   Final RightKidneyT2ToRightKidneyT1 Resistance : 142140(mmHg s/mL)
+[INFO] [0(s)]   Final RightKidneyT2ToRightKidneyT1 Flow : 0.000121815(mL/s)
+[INFO] [0(s)]   Final LeftLungT2ToLeftLungT1 Resistance : 11595.6(mmHg s/mL)
+[INFO] [0(s)]   Final LeftLungT2ToLeftLungT1 Flow : 1.48869e-05(mL/s)
+[INFO] [0(s)]   Final MuscleT2ToMuscleT1 Resistance : 759.711(mmHg s/mL)
+[INFO] [0(s)]   Final MuscleT2ToMuscleT1 Flow : -2.74899e-05(mL/s)
+[INFO] [0(s)]   Final MyocardiumT2ToMyocardiumT1 Resistance : 4172.66(mmHg s/mL)
+[INFO] [0(s)]   Final MyocardiumT2ToMyocardiumT1 Flow : -2.1643e-06(mL/s)
+[INFO] [0(s)]   Final RightLungT2ToRightLungT1 Resistance : 10491.3(mmHg s/mL)
+[INFO] [0(s)]   Final RightLungT2ToRightLungT1 Flow : 1.46542e-05(mL/s)
+[INFO] [0(s)]   Final SkinT2ToSkinT1 Resistance : 215.23(mmHg s/mL)
+[INFO] [0(s)]   Final SkinT2ToSkinT1 Flow : 4.4903e-06(mL/s)
+[INFO] [0(s)]   Final SpleenT2ToSpleenT1 Resistance : 2294.96(mmHg s/mL)
+[INFO] [0(s)]   Final SpleenT2ToSpleenT1 Flow : -2.99486e-07(mL/s)
+[INFO] [0(s)] Successfully tuned circuit with tissue resistances. Final values : HeartRate(bpm):72 Systolic(mmHg):114.289 Diastolic(mmHg):73.6233 Cardiac Output(mL/min):5727.57 Mean CVP(mmHg):4.66077 MAP(mmHg):95.3718 BloodVolume(mL): 4972.03
+[INFO] [0(s)] Cardiovascular Graph does not have cmpt Pericardium
+[INFO] [0(s)] [Event Stabilizing 1]  Engine is stabilizing
+[INFO] [10.02(s)] Converging System... it took 1.05s to simulate the past 10s
+[INFO] [20.04(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [29.68(s)] 29.68s - Resetting the target for TidalVolume to 0.309116, the last target value was 0.328939
+[INFO] [30.06(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [31.02(s)] 31.02s - Resetting the target for OxygenSaturation to 0.981392, the last target value was 0.983864
+[INFO] [35.34(s)] 35.34s - Resetting the target for TidalVolume to 0.301796, the last target value was 0.309116
+[INFO] [37.7(s)] 37.7s - Resetting the target for OxygenSaturation to 0.978929, the last target value was 0.981392
+[INFO] [40.08(s)] Converging System... it took 1.1s to simulate the past 10s
+[INFO] [44.78(s)] 44.78s - Resetting the target for TidalVolume to 0.310592, the last target value was 0.301796
+[INFO] [46.02(s)] 46.02s - Resetting the target for OxygenSaturation to 0.976479, the last target value was 0.978929
+[INFO] [48.92(s)] 48.92s - Resetting the target for TidalVolume to 0.330085, the last target value was 0.310592
+[INFO] [50.1(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [53.04(s)] 53.04s - Resetting the target for TidalVolume to 0.364208, the last target value was 0.330085
+[INFO] [57.28(s)] 57.28s - Resetting the target for TidalVolume to 0.410885, the last target value was 0.364208
+[INFO] [60.12(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [61.76(s)] 61.76s - Resetting the target for TidalVolume to 0.45857, the last target value was 0.410885
+[INFO] [66.44(s)] 66.44s - Resetting the target for TidalVolume to 0.494532, the last target value was 0.45857
+[INFO] [70.14(s)] Converging System... it took 1.13s to simulate the past 10s
+[INFO] [71.3(s)] 71.3s - Resetting the target for TidalVolume to 0.511408, the last target value was 0.494532
+[INFO] [80.16(s)] Converging System... it took 1.09s to simulate the past 10s
+[INFO] [81.42(s)] 81.42s - Resetting the target for TidalVolume to 0.498853, the last target value was 0.511408
+[INFO] [86.6(s)] 86.6s - Resetting the target for TidalVolume to 0.479881, the last target value was 0.498853
+[INFO] [90.18(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [91.86(s)] 91.86s - Resetting the target for TidalVolume to 0.45943, the last target value was 0.479881
+[INFO] [97.1(s)] 97.1s - Resetting the target for TidalVolume to 0.44128, the last target value was 0.45943
+[INFO] [100.2(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [102.3(s)] 102.3s - Resetting the target for TidalVolume to 0.427418, the last target value was 0.44128
+[INFO] [107.44(s)] 107.44s - Resetting the target for TidalVolume to 0.418578, the last target value was 0.427418
+[INFO] [110.22(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [112.5(s)] 112.5s - Resetting the target for TidalVolume to 0.414746, the last target value was 0.418578
+[INFO] [120.24(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [122.38(s)] 122.38s - Resetting the target for TidalVolume to 0.420253, the last target value was 0.414746
+[INFO] [123.24(s)] 123.24s - Resetting the target for OxygenSaturation to 0.974022, the last target value was 0.976479
+[INFO] [127.26(s)] 127.26s - Resetting the target for TidalVolume to 0.427833, the last target value was 0.420253
+[INFO] [130.26(s)] Converging System... it took 1.12s to simulate the past 10s
+[INFO] [132.12(s)] 132.12s - Resetting the target for TidalVolume to 0.436897, the last target value was 0.427833
+[INFO] [137(s)] 137s - Resetting the target for TidalVolume to 0.445865, the last target value was 0.436897
+[INFO] [140.28(s)] Converging System... it took 1.09s to simulate the past 10s
+[INFO] [141.9(s)] 141.9s - Resetting the target for TidalVolume to 0.453246, the last target value was 0.445865
+[INFO] [146.82(s)] 146.82s - Resetting the target for TidalVolume to 0.458658, the last target value was 0.453246
+[INFO] [150.3(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [151.78(s)] 151.78s - Resetting the target for TidalVolume to 0.461506, the last target value was 0.458658
+[INFO] [156.4(s)] 156.4s - Resetting the target for SkinTemperature to 32.901, the last target value was 32.9835
+[INFO] [160.32(s)] Converging System... it took 1.08s to simulate the past 10s
+[INFO] [161.78(s)] 161.78s - Resetting the target for TidalVolume to 0.460215, the last target value was 0.461506
+[INFO] [166.8(s)] 166.8s - Resetting the target for TidalVolume to 0.457377, the last target value was 0.460215
+[INFO] [170.34(s)] Converging System... it took 1.09s to simulate the past 10s
+[INFO] [171.82(s)] 171.82s - Resetting the target for TidalVolume to 0.454207, the last target value was 0.457377
+[INFO] [176.84(s)] 176.84s - Resetting the target for TidalVolume to 0.451386, the last target value was 0.454207
+[INFO] [180.36(s)] Converging System... it took 1.07s to simulate the past 10s
+[INFO] [181.86(s)] 181.86s - Resetting the target for TidalVolume to 0.449354, the last target value was 0.451386
+[INFO] [190.38(s)] Converging System... it took 1.15s to simulate the past 10s
+[INFO] [196.88(s)] We have passed required and optional convergence criteria.
+[INFO] [196.88(s)] Convergence took 21.6s to simulate 197s to get engine to a steady state
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient heart rate = 72(1/min)
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient diastolic arterial pressure = 73.5948(mmHg)
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient systolic arterial pressure = 114.22(mmHg)
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient mean arterial pressure = 95.3237(mmHg)
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient tidal volume = 0.449556 L.
+[INFO] [196.88(s)] Initial Stabilization Homeostasis: Patient inspiratory reserve volume = 2.39454 L.
+[INFO] [196.88(s)] Activating Chemoreceptors
+[INFO] [196.88(s)] [Condition]
+{
+ "PatientCondition": {
+  "ChronicVentricularSystolicDysfunction": {
+   "PatientCondition": {
+    "Condition": {
+     "Comment": ""
+    }
+   }
+  }
+ }
+}
+
+[INFO] [196.88(s)] Converging provided condition to a steady state
+[INFO] [197.84(s)] [Event Antidiuresis 1]  Patient has Antidiuresis
+[INFO] [206.9(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [216.92(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [223.9(s)] 27.02s - Resetting the target for LeftAfferentArterioleResistance to 2.41355, the last target value was 2.42234
+[INFO] [223.9(s)] 27.02s - Resetting the target for RightAfferentArterioleResistance to 2.41355, the last target value was 2.42234
+[INFO] [226.42(s)] 29.54s - Resetting the target for LeftAfferentArterioleResistance to 2.40512, the last target value was 2.41355
+[INFO] [226.42(s)] 29.54s - Resetting the target for RightAfferentArterioleResistance to 2.40512, the last target value was 2.41355
+[INFO] [226.94(s)] Converging System... it took 1.12s to simulate the past 10s
+[INFO] [228.94(s)] 32.06s - Resetting the target for LeftAfferentArterioleResistance to 2.39698, the last target value was 2.40512
+[INFO] [228.94(s)] 32.06s - Resetting the target for RightAfferentArterioleResistance to 2.39698, the last target value was 2.40512
+[INFO] [231.46(s)] 34.58s - Resetting the target for LeftAfferentArterioleResistance to 2.38906, the last target value was 2.39698
+[INFO] [231.46(s)] 34.58s - Resetting the target for RightAfferentArterioleResistance to 2.38906, the last target value was 2.39698
+[INFO] [233.98(s)] 37.1s - Resetting the target for LeftAfferentArterioleResistance to 2.38133, the last target value was 2.38906
+[INFO] [233.98(s)] 37.1s - Resetting the target for RightAfferentArterioleResistance to 2.38133, the last target value was 2.38906
+[INFO] [236.5(s)] 39.62s - Resetting the target for LeftAfferentArterioleResistance to 2.37375, the last target value was 2.38133
+[INFO] [236.5(s)] 39.62s - Resetting the target for RightAfferentArterioleResistance to 2.37375, the last target value was 2.38133
+[INFO] [236.68(s)] 39.8s - Resetting the target for TidalVolume to 0.450806, the last target value was 0.452387
+[INFO] [236.96(s)] Converging System... it took 1.05s to simulate the past 10s
+[INFO] [239.02(s)] 42.14s - Resetting the target for LeftAfferentArterioleResistance to 2.3663, the last target value was 2.37375
+[INFO] [239.02(s)] 42.14s - Resetting the target for RightAfferentArterioleResistance to 2.3663, the last target value was 2.37375
+[INFO] [241.54(s)] 44.66s - Resetting the target for LeftAfferentArterioleResistance to 2.35896, the last target value was 2.3663
+[INFO] [241.54(s)] 44.66s - Resetting the target for RightAfferentArterioleResistance to 2.35896, the last target value was 2.3663
+[INFO] [244.06(s)] 47.18s - Resetting the target for LeftAfferentArterioleResistance to 2.35171, the last target value was 2.35896
+[INFO] [244.06(s)] 47.18s - Resetting the target for RightAfferentArterioleResistance to 2.35171, the last target value was 2.35896
+[INFO] [246.58(s)] 49.7s - Resetting the target for LeftAfferentArterioleResistance to 2.34455, the last target value was 2.35171
+[INFO] [246.58(s)] 49.7s - Resetting the target for RightAfferentArterioleResistance to 2.34455, the last target value was 2.35171
+[INFO] [246.98(s)] Converging System... it took 1.21s to simulate the past 10s
+[INFO] [249.1(s)] 52.22s - Resetting the target for LeftAfferentArterioleResistance to 2.33747, the last target value was 2.34455
+[INFO] [249.1(s)] 52.22s - Resetting the target for RightAfferentArterioleResistance to 2.33747, the last target value was 2.34455
+[INFO] [251.62(s)] 54.74s - Resetting the target for LeftAfferentArterioleResistance to 2.33045, the last target value was 2.33747
+[INFO] [251.62(s)] 54.74s - Resetting the target for RightAfferentArterioleResistance to 2.33045, the last target value was 2.33747
+[INFO] [254.14(s)] 57.26s - Resetting the target for LeftAfferentArterioleResistance to 2.3235, the last target value was 2.33045
+[INFO] [254.14(s)] 57.26s - Resetting the target for RightAfferentArterioleResistance to 2.3235, the last target value was 2.33045
+[INFO] [256.66(s)] 59.78s - Resetting the target for LeftAfferentArterioleResistance to 2.31661, the last target value was 2.3235
+[INFO] [256.66(s)] 59.78s - Resetting the target for RightAfferentArterioleResistance to 2.31661, the last target value was 2.3235
+[INFO] [257(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [258.48(s)] 61.6s - Resetting the target for OxygenSaturation to 0.971798, the last target value was 0.974238
+[INFO] [259.18(s)] 62.3s - Resetting the target for LeftAfferentArterioleResistance to 2.30978, the last target value was 2.31661
+[INFO] [259.18(s)] 62.3s - Resetting the target for RightAfferentArterioleResistance to 2.30978, the last target value was 2.31661
+[INFO] [261.7(s)] 64.82s - Resetting the target for LeftAfferentArterioleResistance to 2.303, the last target value was 2.30978
+[INFO] [261.7(s)] 64.82s - Resetting the target for RightAfferentArterioleResistance to 2.303, the last target value was 2.30978
+[INFO] [264.22(s)] 67.34s - Resetting the target for LeftAfferentArterioleResistance to 2.29628, the last target value was 2.303
+[INFO] [264.22(s)] 67.34s - Resetting the target for RightAfferentArterioleResistance to 2.29628, the last target value was 2.303
+[INFO] [266.74(s)] 69.86s - Resetting the target for CardiacOutput to 4724.6, the last target value was 4542.65
+[INFO] [266.74(s)] 69.86s - Resetting the target for LeftAfferentArterioleResistance to 2.28961, the last target value was 2.29628
+[INFO] [266.74(s)] 69.86s - Resetting the target for RightAfferentArterioleResistance to 2.28961, the last target value was 2.29628
+[INFO] [267.02(s)] Converging System... it took 1.14s to simulate the past 10s
+[INFO] [269.26(s)] 72.38s - Resetting the target for LeftAfferentArterioleResistance to 2.28299, the last target value was 2.28961
+[INFO] [269.26(s)] 72.38s - Resetting the target for RightAfferentArterioleResistance to 2.28299, the last target value was 2.28961
+[INFO] [271.78(s)] 74.9s - Resetting the target for LeftAfferentArterioleResistance to 2.27642, the last target value was 2.28299
+[INFO] [271.78(s)] 74.9s - Resetting the target for RightAfferentArterioleResistance to 2.27642, the last target value was 2.28299
+[INFO] [274.3(s)] 77.42s - Resetting the target for LeftAfferentArterioleResistance to 2.2699, the last target value was 2.27642
+[INFO] [274.3(s)] 77.42s - Resetting the target for RightAfferentArterioleResistance to 2.2699, the last target value was 2.27642
+[INFO] [276.82(s)] 79.94s - Resetting the target for LeftAfferentArterioleResistance to 2.26343, the last target value was 2.2699
+[INFO] [276.82(s)] 79.94s - Resetting the target for RightAfferentArterioleResistance to 2.26343, the last target value was 2.2699
+[INFO] [277.04(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [279.34(s)] 82.46s - Resetting the target for LeftAfferentArterioleResistance to 2.25701, the last target value was 2.26343
+[INFO] [279.34(s)] 82.46s - Resetting the target for RightAfferentArterioleResistance to 2.25701, the last target value was 2.26343
+[INFO] [281.86(s)] 84.98s - Resetting the target for LeftAfferentArterioleResistance to 2.25063, the last target value was 2.25701
+[INFO] [281.86(s)] 84.98s - Resetting the target for RightAfferentArterioleResistance to 2.25063, the last target value was 2.25701
+[INFO] [283.92(s)] 87.04s - Resetting the target for OxygenSaturation to 0.969368, the last target value was 0.971798
+[INFO] [284.38(s)] 87.5s - Resetting the target for LeftAfferentArterioleResistance to 2.2443, the last target value was 2.25063
+[INFO] [284.38(s)] 87.5s - Resetting the target for RightAfferentArterioleResistance to 2.2443, the last target value was 2.25063
+[INFO] [286.9(s)] 90.02s - Resetting the target for LeftAfferentArterioleResistance to 2.23801, the last target value was 2.2443
+[INFO] [286.9(s)] 90.02s - Resetting the target for RightAfferentArterioleResistance to 2.23801, the last target value was 2.2443
+[INFO] [287.06(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [289.42(s)] 92.54s - Resetting the target for LeftAfferentArterioleResistance to 2.23177, the last target value was 2.23801
+[INFO] [289.42(s)] 92.54s - Resetting the target for RightAfferentArterioleResistance to 2.23177, the last target value was 2.23801
+[INFO] [291.94(s)] 95.06s - Resetting the target for LeftAfferentArterioleResistance to 2.22557, the last target value was 2.23177
+[INFO] [291.94(s)] 95.06s - Resetting the target for RightAfferentArterioleResistance to 2.22557, the last target value was 2.23177
+[INFO] [294.46(s)] 97.58s - Resetting the target for LeftAfferentArterioleResistance to 2.21942, the last target value was 2.22557
+[INFO] [294.46(s)] 97.58s - Resetting the target for RightAfferentArterioleResistance to 2.21942, the last target value was 2.22557
+[INFO] [296.98(s)] 100.1s - Resetting the target for LeftAfferentArterioleResistance to 2.21331, the last target value was 2.21942
+[INFO] [296.98(s)] 100.1s - Resetting the target for RightAfferentArterioleResistance to 2.21331, the last target value was 2.21942
+[INFO] [297.08(s)] Converging System... it took 1.14s to simulate the past 10s
+[INFO] [299.5(s)] 102.62s - Resetting the target for LeftAfferentArterioleResistance to 2.20725, the last target value was 2.21331
+[INFO] [299.5(s)] 102.62s - Resetting the target for RightAfferentArterioleResistance to 2.20725, the last target value was 2.21331
+[INFO] [302.02(s)] 105.14s - Resetting the target for LeftAfferentArterioleResistance to 2.20122, the last target value was 2.20725
+[INFO] [302.02(s)] 105.14s - Resetting the target for RightAfferentArterioleResistance to 2.20122, the last target value was 2.20725
+[INFO] [307.1(s)] Converging System... it took 1.14s to simulate the past 10s
+[INFO] [311.64(s)] 114.76s - Resetting the target for TidalVolume to 0.452057, the last target value was 0.450806
+[INFO] [317.12(s)] Converging System... it took 1.19s to simulate the past 10s
+[INFO] [317.34(s)] 120.46s - Resetting the target for OxygenSaturation to 0.966941, the last target value was 0.969368
+[INFO] [318.84(s)] 121.96s - Resetting the target for SkinTemperature to 32.7686, the last target value was 32.8507
+[INFO] [321.58(s)] 124.7s - Resetting the target for TidalVolume to 0.453309, the last target value was 0.452057
+[INFO] [327.14(s)] Converging System... it took 1.12s to simulate the past 10s
+[INFO] [331.48(s)] 134.6s - Resetting the target for TidalVolume to 0.455471, the last target value was 0.453309
+[INFO] [336.4(s)] 139.52s - Resetting the target for TidalVolume to 0.4569, the last target value was 0.455471
+[INFO] [337.16(s)] Converging System... it took 1.18s to simulate the past 10s
+[INFO] [341.3(s)] 144.42s - Resetting the target for TidalVolume to 0.458551, the last target value was 0.4569
+[INFO] [346.18(s)] 149.3s - Resetting the target for TidalVolume to 0.460392, the last target value was 0.458551
+[INFO] [347.18(s)] Converging System... it took 1.09s to simulate the past 10s
+[INFO] [351.02(s)] 154.14s - Resetting the target for TidalVolume to 0.462369, the last target value was 0.460392
+[INFO] [355.86(s)] 158.98s - Resetting the target for TidalVolume to 0.464439, the last target value was 0.462369
+[INFO] [357.2(s)] Converging System... it took 1.07s to simulate the past 10s
+[INFO] [360.66(s)] 163.78s - Resetting the target for TidalVolume to 0.466547, the last target value was 0.464439
+[INFO] [365.44(s)] 168.56s - Resetting the target for TidalVolume to 0.468612, the last target value was 0.466547
+[INFO] [367.22(s)] Converging System... it took 1.1s to simulate the past 10s
+[INFO] [370.2(s)] 173.32s - Resetting the target for TidalVolume to 0.470582, the last target value was 0.468612
+[INFO] [374.94(s)] 178.06s - Resetting the target for TidalVolume to 0.472407, the last target value was 0.470582
+[INFO] [377.24(s)] Converging System... it took 1.11s to simulate the past 10s
+[INFO] [379.66(s)] 182.78s - Resetting the target for TidalVolume to 0.474107, the last target value was 0.472407
+[INFO] [384.36(s)] 187.48s - Resetting the target for TidalVolume to 0.475634, the last target value was 0.474107
+[INFO] [387.26(s)] Converging System... it took 1.1s to simulate the past 10s
+[INFO] [389.06(s)] 192.18s - Resetting the target for TidalVolume to 0.476985, the last target value was 0.475634
+[INFO] [397.28(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [398.42(s)] 201.54s - Resetting the target for TidalVolume to 0.479203, the last target value was 0.476985
+[INFO] [407.3(s)] Converging System... it took 1.06s to simulate the past 10s
+[INFO] [407.74(s)] 210.86s - Resetting the target for TidalVolume to 0.480873, the last target value was 0.479203
+[INFO] [417.02(s)] 220.14s - Resetting the target for TidalVolume to 0.482155, the last target value was 0.480873
+[INFO] [417.32(s)] Converging System... it took 1.09s to simulate the past 10s
+[INFO] [422.46(s)] 225.58s - Resetting the target for SkinTemperature to 32.6866, the last target value was 32.7686
+[INFO] [427.34(s)] Converging System... it took 1.13s to simulate the past 10s
+[INFO] [430.92(s)] 234.04s - Resetting the target for TidalVolume to 0.483484, the last target value was 0.482155
+[INFO] [437.36(s)] Converging System... it took 1.1s to simulate the past 10s
+[INFO] [445.94(s)] We have passed required and optional convergence criteria.
+[INFO] [445.94(s)] Convergence took 27.6s to simulate 249s to get engine to a steady state
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient heart rate = 72.2697(1/min)
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient diastolic arterial pressure = 62.1115(mmHg)
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient systolic arterial pressure = 97.0386(mmHg)
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient mean arterial pressure = 78.8038(mmHg)
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient tidal volume = 0.484353 L.
+[INFO] [445.94(s)] Secondary Stabilization Homeostasis: Patient inspiratory reserve volume = 2.35974 L.
+[INFO] [445.94(s)] Activating Baroreceptors
+[INFO] [445.94(s)] [Event Stabilizing 0]  Engine completed stabilizing
+[INFO] [0(s)] Starting Patient heart rate = 72.2697(1/min)
+[INFO] [0(s)] Starting Patient diastolic arterial pressure = 62.1115(mmHg)
+[INFO] [0(s)] Starting Patient systolic arterial pressure = 97.0386(mmHg)
+[INFO] [0(s)] Starting Patient mean arterial pressure = 78.8038(mmHg)
+[INFO] [0(s)] Starting Patient tidal volume = 0.484353 L.
+[INFO] [0(s)] Starting Patient inspiratory reserve volume = 2.35974 L.
+[INFO] [0(s)] Executing Scenario
+[INFO] [0(s)] [Action]
+{
+ "AdvanceTime": {
+  "Action": {
+   "Comment": ""
+  },
+  "Time": {
+   "ScalarTime": {
+    "Value": 60,
+    "Unit": "s",
+    "ReadOnly": false
+   }
+  }
+ }
+}
+
+[INFO] [60(s)] Current Time is 60s, it took 11.186s to simulate the past 60s
+[INFO] [60(s)] [Action]
+{
+ "PatientAction": {
+  "CardiovascularMechanicsModification": {
+   "PatientAction": {
+    "Action": {
+     "Comment": ""
+    }
+   },
+   "Modifiers": {
+    "SystemicResistanceMultiplier": {
+     "ScalarUnsigned": {
+      "Value": 0.925,
+      "Unit": "",
+      "ReadOnly": false
+     }
+    },
+    "SystemicComplianceMultiplier": {
+     "ScalarUnsigned": {
+      "Value": 1,
+      "Unit": "",
+      "ReadOnly": false
+     }
+    },
+    "VenousComplianceMultiplier": {
+     "ScalarUnsigned": {
+      "Value": 0.901,
+      "Unit": "",
+      "ReadOnly": false
+     }
+    },
+    "HeartRateMultiplier": {
+     "ScalarUnsigned": {
+      "Value": 1.2010800000000001,
+      "Unit": "",
+      "ReadOnly": false
+     }
+    },
+    "StrokeVolumeMultiplier": {
+     "ScalarUnsigned": {
+      "Value": 0.874,
+      "Unit": "",
+      "ReadOnly": false
+     }
+    }
+   },
+   "Incremental": true
+  }
+ }
+}
+
+[INFO] [60(s)] [Action]
+{
+ "PatientAction": {
+  "Exercise": {
+   "PatientAction": {
+    "Action": {
+     "Comment": ""
+    }
+   },
+   "Intensity": {
+    "Scalar0To1": {
+     "Value": 0.302,
+     "Unit": "",
+     "ReadOnly": false
+    }
+   }
+  }
+ }
+}
+
+[INFO] [60(s)] [Action]
+{
+ "AdvanceTime": {
+  "Action": {
+   "Comment": ""
+  },
+  "Time": {
+   "ScalarTime": {
+    "Value": 10,
+    "Unit": "min",
+    "ReadOnly": false
+   }
+  }
+ }
+}
+
+[INFO] [60.02(s)] [Event Fatigue 1] Patient has Fatigue
+[INFO] [60.12(s)] Baroreceptors Saturated 
+[INFO] [60.24(s)] Starting Baroreceptor timer 
+[INFO] [75.06(s)] [Event Hypoglycemia 1]  Patient has Hypoglycemia
+[INFO] [76.56(s)] [Event Hypoxia 1]  Patient has Hypoxia
+[INFO] [84.78(s)] [Event Tachycardia 1]  Patient has Tachycardia
+[INFO] [97.36(s)] [Event Tachypnea 1]  Patient has Tachypnea
+[INFO] [120(s)] Current Time is 120s, it took 11.104s to simulate the past 60s
+[INFO] [180(s)] Current Time is 180s, it took 11.152s to simulate the past 60s
+[INFO] [240(s)] Current Time is 240s, it took 10.886s to simulate the past 60s
+[INFO] [259.06(s)] [Event BrainOxygenDeficit 1]  Oxygen tension in the brain is dangerously low
+[INFO] [259.08(s)] [Event BrainOxygenDeficit 0]  Oxygen tension in the brain has increased above the danger threshold
+[INFO] [300(s)] Current Time is 300s, it took 11.717s to simulate the past 60s
+[INFO] [306.52(s)] [Event BrainOxygenDeficit 1]  Oxygen tension in the brain is dangerously low
+[INFO] [306.54(s)] [Event BrainOxygenDeficit 0]  Oxygen tension in the brain has increased above the danger threshold
+[INFO] [360(s)] Current Time is 360s, it took 11.628s to simulate the past 60s
+[INFO] [420(s)] Current Time is 420s, it took 12.137s to simulate the past 60s
+[INFO] [480(s)] Current Time is 480s, it took 12.032s to simulate the past 60s
+[INFO] [480.26(s)] Baroreceptor MAP Baseline updated to 64.124 mmHg
+[INFO] [540(s)] Current Time is 540s, it took 11.822s to simulate the past 60s
+[INFO] [600(s)] Current Time is 600s, it took 11.042s to simulate the past 60s
+[INFO] [660(s)] Current Time is 660s, it took 11.753s to simulate the past 60s
+[INFO] [660(s)] It took 126.466s to run this simulation
+[INFO] [660(s)] [Final SimTime] 660(s)
+[INFO] [660(s)] [Expected Final SimTime] 660(s)

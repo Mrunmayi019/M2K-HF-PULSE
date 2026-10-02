@@ -1,0 +1,28 @@
+{
+  "Name": "Synthetic_bcg_subject14_hrb",
+  "Sex": "Male",
+  "Age": {
+    "ScalarTime": {
+      "Value": 53.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 160.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 70.0,
+      "Unit": "kg"
+    }
+  },
+  "HeartRateBaseline": {
+    "ScalarFrequency": {
+      "Value": 77.0,
+      "Unit": "1/min"
+    }
+  }
+}
