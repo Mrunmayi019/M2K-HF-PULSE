@@ -346,3 +346,98 @@ class TestProjectionConsistency:
         assert assessment_a.risk_bucket == assessment_b.risk_bucket
         assert assessment_a.nyha_class == assessment_b.nyha_class
         assert assessment_a.deterioration_direction == assessment_b.deterioration_direction
+
+
+class TestComputeProjectionOptOut:
+    def test_default_path_still_computes_projections(self, db):
+        """compute_projection defaults to True -- production/demo call sites never pass the
+        argument at all, so this pins that the default preserves exact prior behavior."""
+        patient_id = "P_PROJ_DEFAULT"
+        seed_patient_and_window(db, patient_id=patient_id, ef=38.0, bnp=1200.0)
+
+        with patch(
+            "src.api.continuous_state_pipeline._load_scenario_classifier_models",
+            return_value=_fake_classifier("cardiac_stress", 0.35),
+        ), patch(
+            "src.api.continuous_state_pipeline.run_initial",
+            return_value=('{"fake": "state"}', {"simulation_time_s": STABILIZATION_S + DAILY_ENCOUNTER_DURATION_S}, _fake_pulse_df()),
+        ), patch(
+            "src.pulse_runner.runner.run_pulse",
+            return_value=_fake_pulse_df(),
+        ):
+            state = run_daily_continuous_pipeline(patient_id, db)  # compute_projection omitted
+        assert state is not None
+
+        assessment = (
+            db.query(models.RiskAssessment)
+            .filter(models.RiskAssessment.patient_id == patient_id)
+            .order_by(models.RiskAssessment.created_at.desc())
+            .first()
+        )
+        assert assessment is not None
+        assert assessment.projection_json is not None
+        assert set(assessment.projection_json.keys()) == {"7", "14", "30"}
+
+    def test_compute_projection_false_matches_default_path_except_projection(self, db):
+        """With compute_projection=False, risk_score/nyha_class/the alert decision must be
+        identical to the default (True) path for the same inputs -- only projection_json differs
+        (None instead of the computed dict)."""
+        patient_default = "P_PROJ_ON"
+        patient_opt_out = "P_PROJ_OFF"
+        for pid in (patient_default, patient_opt_out):
+            seed_patient_and_window(db, patient_id=pid, ef=38.0, bnp=1200.0)
+
+        with patch(
+            "src.api.continuous_state_pipeline._load_scenario_classifier_models",
+            return_value=_fake_classifier("cardiac_stress", 0.35),
+        ), patch(
+            "src.api.continuous_state_pipeline.run_initial",
+            return_value=('{"fake": "state"}', {"simulation_time_s": STABILIZATION_S + DAILY_ENCOUNTER_DURATION_S}, _fake_pulse_df()),
+        ), patch(
+            "src.pulse_runner.runner.run_pulse",
+            return_value=_fake_pulse_df(),
+        ):
+            state_on = run_daily_continuous_pipeline(patient_default, db, compute_projection=True)
+
+        with patch(
+            "src.api.continuous_state_pipeline._load_scenario_classifier_models",
+            return_value=_fake_classifier("cardiac_stress", 0.35),
+        ), patch(
+            "src.api.continuous_state_pipeline.run_initial",
+            return_value=('{"fake": "state"}', {"simulation_time_s": STABILIZATION_S + DAILY_ENCOUNTER_DURATION_S}, _fake_pulse_df()),
+        ):
+            # No runner.run_pulse mock needed here -- with projection off, project_physiology()
+            # (the only caller of runner.run_pulse in this pipeline) is never invoked. If this
+            # assumption is ever wrong, the test fails loudly with an unmocked real subprocess
+            # call rather than silently passing.
+            state_off = run_daily_continuous_pipeline(patient_opt_out, db, compute_projection=False)
+
+        assert state_on is not None and state_off is not None
+
+        assessment_on = (
+            db.query(models.RiskAssessment)
+            .filter(models.RiskAssessment.patient_id == patient_default)
+            .order_by(models.RiskAssessment.created_at.desc())
+            .first()
+        )
+        assessment_off = (
+            db.query(models.RiskAssessment)
+            .filter(models.RiskAssessment.patient_id == patient_opt_out)
+            .order_by(models.RiskAssessment.created_at.desc())
+            .first()
+        )
+
+        assert assessment_off.projection_json is None
+        assert assessment_on.projection_json is not None
+
+        # Everything else -- risk_score, nyha_class, and the alert decision -- must be identical.
+        assert assessment_on.risk_score == assessment_off.risk_score
+        assert assessment_on.risk_bucket == assessment_off.risk_bucket
+        assert assessment_on.nyha_class == assessment_off.nyha_class
+        assert assessment_on.deterioration_direction == assessment_off.deterioration_direction
+        assert assessment_on.risk_caveats == assessment_off.risk_caveats
+        assert assessment_on.score_provenance["alert"] == assessment_off.score_provenance["alert"]
+        assert (
+            assessment_on.score_provenance["alert_basis"]
+            == assessment_off.score_provenance["alert_basis"]
+        )

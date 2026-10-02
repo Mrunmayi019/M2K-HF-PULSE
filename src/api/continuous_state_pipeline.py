@@ -140,24 +140,33 @@ def _resolve_clinical_values(
     )
 
 
-def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseState | None:
+def run_daily_continuous_pipeline(
+    patient_id: str, db: Session, compute_projection: bool = True
+) -> models.PulseState | None:
     """One day's continuous-state-sync step. Raises NotEnoughDataError if the 21-day wearable
     window isn't full yet (same gate as services.py's existing pipeline). On success, returns the
     newly created PulseState row (already committed) -- a SimulationRun + RiskAssessment row are
     also created as a side effect (see module docstring), discoverable via the normal
     /patients/{id}/status|history|projection|report endpoints like any other assessment.
 
-    PROPOSED 2026-10-02 (docs/integration_pre_results.md): on a Pulse failure (run_initial()/
-    resume_and_advance() raising), returns None instead of raising -- a SimulationRun(status=
-    "failed") row is recorded first via services.mark_simulation_run_failed(), the exact same
-    helper and shape _run_assessment_pipeline() uses on failure, so routes.py's _build_status()
-    and the unstable-run alert fallback (fix/unstable-alert-fallback) work identically regardless
-    of which pipeline produced the failure. No PulseState row is created on failure -- the most
-    recent PulseState (queried fresh as `last_state` below, every call) remains whatever the last
-    *successful* day wrote, so the next call resumes from the last good state automatically; this
-    was already true before this change (PulseState rows are append-only and the old code only
-    ever constructed one after a successful run_initial()/resume_and_advance() call), not a new
-    guarantee added here.
+    `compute_projection` (default True, preserving exact prior behavior): set False to skip the
+    project_physiology() call and store `projection_json=None` instead -- test/scenario-test-only,
+    for wall-time (project_physiology() makes 3 extra real Pulse calls per day, one per horizon).
+    Safe because projection is a pure write-only, display-only side effect of this day's
+    assessment (docs/integration_pre_results.md) -- risk_score, nyha_class, the alert decision, and
+    what the next day's PulseState reads back are all computed before this call and never read
+    projection output back. Production/demo code paths never pass False.
+
+    On a Pulse failure (run_initial()/resume_and_advance() raising), returns None instead of
+    raising -- a SimulationRun(status="failed") row is recorded first via services.mark_
+    simulation_run_failed(), the exact same helper and shape _run_assessment_pipeline() uses on
+    failure, so routes.py's _build_status() and the unstable-run alert fallback (fix/unstable-
+    alert-fallback) work identically regardless of which pipeline produced the failure. No
+    PulseState row is created on failure -- the most recent PulseState (queried fresh as
+    `last_state` below, every call) remains whatever the last *successful* day wrote, so the next
+    call resumes from the last good state automatically; this was already true before that change
+    (PulseState rows are append-only and the old code only ever constructed one after a successful
+    run_initial()/resume_and_advance() call), not a new guarantee added then.
     """
     patient = db.get(models.Patient, patient_id)
     if patient is None:
@@ -292,27 +301,35 @@ def run_daily_continuous_pipeline(patient_id: str, db: Session) -> models.PulseS
     rate_info = compute_deterioration_rate(trends_df)
     days_forward = days_to_next_stage(risk["risk_score"], rate_info["composite_rate"])
 
-    projection = project_physiology(
-        patient=demo_row,
-        scenario_type=scenario_type,
-        current_severity=severity,
-        # Raw, scale-agnostic rate -- project_physiology()/project_severity() do their own
-        # severity-scoped conversion internally. Passing a risk_score-pre-converted rate here
-        # (SD_RATE_TO_RISK_SCORE_PER_DAY) was the bug fixed 2026-09-10 in services.py
-        # (docs/methodology.md Sec 8) -- this call site was never updated to match.
-        composite_rate=rate_info["composite_rate"],
-        horizons=DEFAULT_HORIZONS_DAYS,
-        output_dir=output_dir / "projection",
-    )
-    projection_json = {
-        str(horizon): {
-            "projected_severity": r["projected_severity"],
-            "risk_score": r.get("risk_score"),
-            "risk_bucket": r.get("risk_bucket"),
-            "status": r["status"],
+    if compute_projection:
+        projection = project_physiology(
+            patient=demo_row,
+            scenario_type=scenario_type,
+            current_severity=severity,
+            # Raw, scale-agnostic rate -- project_physiology()/project_severity() do their own
+            # severity-scoped conversion internally. Passing a risk_score-pre-converted rate here
+            # (SD_RATE_TO_RISK_SCORE_PER_DAY) was the bug fixed 2026-09-10 in services.py
+            # (docs/methodology.md Sec 8) -- this call site was never updated to match.
+            composite_rate=rate_info["composite_rate"],
+            horizons=DEFAULT_HORIZONS_DAYS,
+            output_dir=output_dir / "projection",
+        )
+        projection_json = {
+            str(horizon): {
+                "projected_severity": r["projected_severity"],
+                "risk_score": r.get("risk_score"),
+                "risk_bucket": r.get("risk_bucket"),
+                "status": r["status"],
+            }
+            for horizon, r in projection.items()
         }
-        for horizon, r in projection.items()
-    }
+    else:
+        # Test-only opt-out (docs/integration_pre_results.md): project_physiology() is a pure
+        # write-only, display-only side effect of this day's assessment -- confirmed by tracing
+        # every downstream consumer (risk_score, nyha_class, the alert decision, and what the
+        # NEXT day's PulseState reads back all come from today's actual Pulse run, computed above
+        # this block, never from projection output). Skipping it changes nothing else.
+        projection_json = None
 
     risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
 
