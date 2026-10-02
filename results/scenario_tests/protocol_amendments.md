@@ -418,3 +418,36 @@ decision (that also needs Pulse's risk score/confidence, out of scope for an off
 reported as classifier/regressor sensitivity only, labelled as such in RESULTS.md.
 
 Committed together with the v4 pilot result below.
+
+## 2026-10-03: Pilot rerun v4 (reproducible-seed fix) result, and harness freeze
+
+**v4 result**: P10 seed 42, 21/21 monitored days complete, 0 failed days, all alerts `scorer`-
+sourced (no `unstable_completed`/`failed_fallback` in this run). Days 1-5 (story starts day 4):
+
+| day | event | pred_scenario | pred_severity | risk | alert |
+|---|---|---|---|---|---|
+| 1 | -- | stable | 0.0533 | 0.0001 | False (none) |
+| 2 | -- | stable | 0.1022 | 0.0000 | False (none) |
+| 3 | -- | deconditioning | 0.1303 | 0.0050 | False (none) |
+| 4 | everything_ramp | cardiac_stress | 0.1748 | 0.4783 | True (scorer) |
+| 5 | everything_ramp | cardiac_stress | 0.2525 | 0.7869 | True (scorer) |
+
+**The residual pre-story alerting from v3 is fully resolved under reproducible seeding**: days
+1-3 (before P10's story starts) now stay below the alert threshold (severity 0.053/0.102/0.130,
+all < 0.15) with no alert, and the alert begins exactly on day 4, scorer-driven, when the story
+itself starts. Day 21 reaches severity 0.777/risk 1.0, tracking the story's severity_target
+(0.45) as designed. Confirms the two fixes (noise-SD, then seeding) together resolved what
+looked in v2/v3 like the story failing to control onset -- it was two compounding test-harness
+bugs, not a pipeline problem. Full day-by-day CSV: `daily_results_P10_seed42_pilot_v4_final.csv`.
+
+### Harness freeze
+
+Per your instruction: since v4 completes sensibly, **no further changes to the harness, cohort,
+or schedules from this point on.** From here, only a mismatch between the harness and the
+documented system/generator conventions (e.g. a noise SD that doesn't match
+`reference_stats.yaml`/`generate_wearable_trends.py`, or a seeding scheme that isn't actually
+reproducible) counts as a bug to fix. Any other outcome -- including one that's surprising,
+unwelcome, or doesn't match a pre-registered expectation -- is a finding to report in RESULTS.md,
+not something to adjust the harness, cohort, or schedules to fix. Freeze takes effect as of
+commit `<FREEZE_SHA>` (this entry's commit -- see below). Proceeding to the full batch
+(10 patients x 3 seeds, N=6 parallel), then the analysis and write-up.
