@@ -240,3 +240,25 @@ fallback alert working; report P02/P07/P08 specifically on how the system respon
 (deliberately still-sudden) abrupt events.
 
 Proceeding now to rerun the pilot (P10, seed 42).
+
+## 2026-10-03: Pilot rerun result (P10, seed 42, amended cohort)
+
+**21/21 days complete, 0 failed** -- a complete reversal of the pre-amendment pilot's 8-day crash
+streak (days 9-16). Original kept as `daily_results_P10_seed42_pilot_v1_preamendment.csv` for
+direct comparison. `simulation_time_s` stepped uniformly +600s across all 21 days, no gaps.
+Day 1-2 predicted `stable` at severity 0.056-0.062 (matching the pre-registered day-1 offline
+check, 0.0533, almost exactly) with no alert; alert correctly engaged from day 3 once
+`deconditioning` severity crossed the threshold, and stayed on for the rest of the run as severity
+climbed into the 0.76-0.91 range. One day (day 11) predicted `acute_deterioration` at severity
+0.84 -- inside the documented crash-zone range -- and this time **completed without crashing**;
+the system still correctly flagged it `unstable`/`alert_basis=classifier_only` regardless of the
+successful completion, exactly as designed (a crash-zone parameter combination is untrusted
+whether or not it happens to finish cleanly). Total wall time 17.3 min (vs. 12.0 min
+pre-amendment -- expected, since nothing short-circuited via a fast ~8s failure this time).
+
+**This confirms the amendment addressed the real problem**, not just this one patient's
+particular crash: severity still climbs to a similarly extreme range late in the run (0.76-0.91,
+not far from the original's 0.81-0.90) because P10's *story* genuinely is severe by day 21 -- but
+the engine no longer crashes repeatedly getting there, and the one crash-zone day it does predict
+completes cleanly instead of failing 8 times in a row. Proceeding to the full batch
+(10 patients x 3 seeds, N=6 parallel).
