@@ -1,0 +1,40 @@
+{
+  "Name": "Synthetic_gu56_armC_run1",
+  "Sex": "Male",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 191.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 96.6,
+      "Unit": "kg"
+    }
+  },
+  "HeartRateBaseline": {
+    "ScalarFrequency": {
+      "Value": 58.5,
+      "Unit": "1/min"
+    }
+  },
+  "SystolicArterialPressureBaseline": {
+    "ScalarPressure": {
+      "Value": 120.0,
+      "Unit": "mmHg"
+    }
+  },
+  "DiastolicArterialPressureBaseline": {
+    "ScalarPressure": {
+      "Value": 79.5,
+      "Unit": "mmHg"
+    }
+  }
+}

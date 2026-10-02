@@ -1,0 +1,256 @@
+{
+  "gu295": {
+    "settings": {
+      "hr_baseline_bpm": 78.0,
+      "bp_original": [
+        127.5,
+        67.5
+      ],
+      "bp_used": [
+        120.0,
+        67.5
+      ],
+      "condition": true,
+      "target_ef": 25.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.0,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 81.5,
+        "ef_pct": 24.613,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 1
+  },
+  "gu136": {
+    "settings": {
+      "hr_baseline_bpm": 54.5,
+      "bp_original": [
+        101.0,
+        63.0
+      ],
+      "bp_used": [
+        101.0,
+        63.0
+      ],
+      "condition": true,
+      "target_ef": 40.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.2255,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 106.6,
+        "ef_pct": 47.533,
+        "settled": true
+      },
+      {
+        "run_no": 2,
+        "sv": 0.9127,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 107.3,
+        "ef_pct": 29.633,
+        "settled": false
+      },
+      {
+        "run_no": 3,
+        "sv": 1.0691,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 106.9,
+        "ef_pct": 37.848,
+        "settled": true
+      },
+      {
+        "run_no": 4,
+        "sv": 1.1473,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 107.2,
+        "ef_pct": 42.875,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 3
+  },
+  "gu120": {
+    "settings": {
+      "hr_baseline_bpm": 91.5,
+      "bp_original": [
+        130.5,
+        90.0
+      ],
+      "bp_used": [
+        120.0,
+        80.0
+      ],
+      "condition": false,
+      "target_ef": 58.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.0673,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 76.6,
+        "ef_pct": 52.852,
+        "settled": true
+      },
+      {
+        "run_no": 2,
+        "sv": 1.2336,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 73.3,
+        "ef_pct": 61.787,
+        "settled": true
+      },
+      {
+        "run_no": 3,
+        "sv": 1.1504,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 73.0,
+        "ef_pct": 57.899,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 3
+  },
+  "gu56": {
+    "settings": {
+      "hr_baseline_bpm": 58.5,
+      "bp_original": [
+        128.5,
+        79.5
+      ],
+      "bp_used": [
+        120.0,
+        79.5
+      ],
+      "condition": true,
+      "target_ef": 25.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.0,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 114.2,
+        "ef_pct": 29.207,
+        "settled": true
+      },
+      {
+        "run_no": 2,
+        "sv": 0.8,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 117.5,
+        "ef_pct": 25.384,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 2
+  },
+  "gu242": {
+    "settings": {
+      "hr_baseline_bpm": 97.25,
+      "bp_original": [
+        115.25,
+        78.875
+      ],
+      "bp_used": [
+        115.25,
+        78.875
+      ],
+      "condition": true,
+      "target_ef": 33.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.1164,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 79.0,
+        "ef_pct": 28.061,
+        "settled": true
+      },
+      {
+        "run_no": 2,
+        "sv": 1.2582,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 78.8,
+        "ef_pct": 36.807,
+        "settled": true
+      },
+      {
+        "run_no": 3,
+        "sv": 1.1873,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 77.3,
+        "ef_pct": 32.672,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 3
+  },
+  "gu264": {
+    "settings": {
+      "hr_baseline_bpm": 85.0,
+      "bp_original": [
+        91.0,
+        63.0
+      ],
+      "bp_used": [
+        91.0,
+        63.0
+      ],
+      "condition": false,
+      "target_ef": 56.0
+    },
+    "runs": [
+      {
+        "run_no": 1,
+        "sv": 1.0288,
+        "crashed": false,
+        "error": null,
+        "fatal_marker_lines": [],
+        "wall_clock_s": 80.3,
+        "ef_pct": 56.625,
+        "settled": true
+      }
+    ],
+    "done": true,
+    "final_run_no": 1
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "Name": "Synthetic_gu295_armC_run1",
+  "Sex": "Female",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 168.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 83.26079999999999,
+      "Unit": "kg"
+    }
+  },
+  "HeartRateBaseline": {
+    "ScalarFrequency": {
+      "Value": 78.0,
+      "Unit": "1/min"
+    }
+  },
+  "SystolicArterialPressureBaseline": {
+    "ScalarPressure": {
+      "Value": 120.0,
+      "Unit": "mmHg"
+    }
+  },
+  "DiastolicArterialPressureBaseline": {
+    "ScalarPressure": {
+      "Value": 67.5,
+      "Unit": "mmHg"
+    }
+  }
+}

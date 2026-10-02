@@ -1,0 +1,30 @@
+[gu295 run1] SV=1.0000 ...
+[gu295 run1] EF=24.61 (target 25) settled=True in 96.7s
+Traceback (most recent call last):
+  File "/usr/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/workspace/scripts/calibration_pilot_arm_c.py", line 222, in <module>
+    {"run": run, "analyze": analyze}[sys.argv[1]]()
+  File "/workspace/scripts/calibration_pilot_arm_c.py", line 137, in run
+    RUN_STATUS.write_text(json.dumps(status, indent=2))
+  File "/usr/lib/python3.9/json/__init__.py", line 234, in dumps
+    return cls(
+  File "/usr/lib/python3.9/json/encoder.py", line 201, in encode
+    chunks = list(chunks)
+  File "/usr/lib/python3.9/json/encoder.py", line 431, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/usr/lib/python3.9/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.9/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.9/json/encoder.py", line 325, in _iterencode_list
+    yield from chunks
+  File "/usr/lib/python3.9/json/encoder.py", line 405, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.9/json/encoder.py", line 438, in _iterencode
+    o = _default(o)
+  File "/usr/lib/python3.9/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type bool is not JSON serializable
