@@ -72,3 +72,23 @@ c) **Second set, "measurement-consistent".** Chosen from real measurements only,
 
 d) **Arm B design.** In Arm B, HR is set directly from HR_vitals (via `hr_baseline_bpm`), and
    calibration searches for EF and MAP only. CO stays held out.
+
+---
+
+## Closing note — 2026-10-02
+
+**The pilot is closed. Arm B was not built or run, so the success rule above (and its Amendment 1
+extension) was never evaluated.** There is no Arm B result, positive or negative.
+
+Reason: before the blood-pressure lever check was run, a feasibility bar was set in planning
+discussion: Arm B is only worth building if each patient's real EF, HR and MAP are within what
+the twin can reach for at least 4 of the 6 pilot patients. The check found 1 of 6 (patient 136).
+See `data/calibration_pilot/bp_check_report.md`, answer 4. Most misses are MAP. With the
+weak-heart condition on, the highest MAP the twin reached was 78.5 mmHg by the (2·DBP + SBP)/3
+formula, and the blood-pressure baseline is the only lever that moves MAP.
+
+**This feasibility bar was agreed in discussion before the check ran, but it was not committed to
+this repository beforehand.** Unlike the success rule and Amendment 1, it therefore has no
+commit-history proof that it predates the result. It is recorded here only after the fact.
+
+Summary of the whole pilot: `docs/calibration_pilot/pilot_summary.md`.
