@@ -203,5 +203,40 @@ failure streak was already handled and reported, not hidden.
 
 ---
 
-**Stopping here per instruction**, pending approval of design changes A (neutral EF/BNP band) and
-B (smoother transition shapes) before any rerun.
+## 2026-10-03 (continued): A and B approved and implemented
+
+**A approved as proposed** — implemented exactly: EF 48-57% / BNP 200-290 pg/mL, assigned in
+patient-ID order (P01->48/200 ... P10->57/290), in `src/evaluation/scenario_tests/build_cohort.py`.
+
+**B approved with a limit: fix authoring artifacts, don't remove realistic sudden events.**
+Implemented via two new helpers, `_ramp()` (two-point linear phase-in) and `_piecewise_ramp()`
+(phase-in through several successive plateaus), replacing single-day cliffs with 2-3 day
+transitions:
+
+| Patient | What changed | What stayed sudden (unchanged) |
+|---|---|---|
+| P02 | nothing -- already a 3-day peak (days 5-7) as written | weight gain over days 5-7, exactly as originally written |
+| P03 | nothing -- weight creep was already a smooth linear day-over-day ramp | -- |
+| P04 | steps -30% now phases in over days 9-11 (was a cliff at day 10); poor-sleep onset now phases in over days 13-15 (was a cliff at day 14) | -- |
+| P05 | each of the 3 step-reduction tiers (-20%/-40%/-60%) now transitions over ~2 days at its boundary (days 3-5, 8-10, 14-16) instead of switching instantly | -- |
+| P06 | nothing -- severity/HR/HRV/steps were already continuous; exertion episodes are a genuine acute event | exertion episodes on days 6, 10, 14, 18 stay single-day |
+| P07 | onset compressed to days 10-12 (3 days, per explicit instruction -- was 4 days, 10-13) and the steps drop now phases in over the same window | the onset is still realistically fast (3 days), not smoothed into a long ramp -- this is "sudden deterioration," not gradual |
+| P08 | poor-sleep fortnight's onset (day 8) and recovery (by day 15) now phase in over ~2 days each | the 4 acute stress episodes (days 5, 9, 12, 16) stay single-day events |
+| P09 | nothing -- no cliffs existed | -- |
+| P10 | steps -50% now phases in over days 3-6 (was a cliff at day 4); poor-sleep onset/recovery now phases in over ~2 days each (was cliffs at day 8/day 14) | the 2 acute stress episodes (days 6, 10) stay single-day events |
+
+**No predicted severity/risk/alert trajectory was previewed for any of these new schedules.** The
+only offline check run was the day-1 baseline-severity table already shown above (§A) -- unaffected
+by B, since all B changes take effect on day >=3 at the earliest and that table only used day-1
+data. `cohort.yaml` regenerated and committed alongside this log entry, before any rerun.
+
+**Severity caps are now explicitly expected-range notes, not rules** (per instruction) -- recorded
+here so `RESULTS.md` can state this plainly rather than re-deriving it.
+
+**New analysis-section commitments** (to be added to `analyze.py`/`RESULTS.md` §5, not yet run):
+report both models' top-10 feature importances (confirming/updating the weight-importance finding
+below for P02/P03's discussion); report the pilot explicitly as an observation demonstrating the
+fallback alert working; report P02/P07/P08 specifically on how the system responded to their
+(deliberately still-sudden) abrupt events.
+
+Proceeding now to rerun the pilot (P10, seed 42).

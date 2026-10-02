@@ -8,6 +8,15 @@ Framing (repeated in `RESULTS.md`): these tests check that the pipeline responds
 controlled synthetic patient stories; they are not clinical validation. No claim of heart-failure
 detection or diagnosis is made anywhere in this document or in the results it precedes.
 
+**Amendment note (2026-10-03, full reasoning in `results/scenario_tests/protocol_amendments.md`):**
+following the P10 pilot, `config/scenario_tests/cohort.yaml` was regenerated with (A) a neutral
+EF/BNP band across all 10 patients (was previously matched to each story's severity, a confound)
+and (B) smoother multi-day transitions for chronic/lifestyle changes that were previously
+single-day cliffs (genuinely acute events were deliberately left sudden). **The expectations below
+are unchanged from the original pre-registration** — they describe what each *story* is designed
+to produce, independent of this baseline/authoring fix, and are not edited to match any observed
+or anticipated result.
+
 ## Pre-registered groups
 
 - **Should catch** (5): P04, P05, P06, P07, P10

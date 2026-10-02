@@ -28,6 +28,23 @@ Seeds (42/43/44) affect ONLY the small realistic day-to-day noise layer added at
 (src/evaluation/scenario_tests/run_patient_seed.py) -- this script's own schedule is fully
 deterministic and seed-independent, satisfying "one patient-seed per process" reproducibility.
 
+AMENDMENT 2026-10-03 (results/scenario_tests/protocol_amendments.md): two changes from the
+original cohort, made BEFORE seeing any predicted-severity/risk/alert trajectory from the new
+schedules (only the day-1 baseline-severity check was run, per explicit instruction, and that
+result is unaffected by either change since it's computed from day-1 data only):
+  (A) EF/BNP moved to a neutral band (48-57% / 200-290 pg/mL), assigned by patient-ID order, not
+      by expected_group -- the original cohort's EF/BNP (matched to each story's severity) was a
+      confound: it made every should_catch patient sicker at baseline, not just sicker in
+      trajectory, found via the P10 pilot.
+  (B) Chronic/background trend transitions (step reductions, poor-sleep onset) that were
+      previously a single-day cliff now phase in over 2-3 days, matching how real lifestyle
+      changes and real population training data (generate_wearable_trends.py's smooth _trend_
+      curve(), never a mid-window discontinuity) actually look. Genuinely ACUTE, single-day
+      physiological events are deliberately NOT smoothed: P02's weight gain still peaks sharply
+      over days 5-7 as originally written; P06/P08/P10's discrete exertion/stress episodes stay
+      single-day events; P07's acute onset is compressed to days 10-12 (realistically fast, not
+      instant) per explicit instruction.
+
 Run: PYTHONPATH=. python3 -m src.evaluation.scenario_tests.build_cohort
 """
 from __future__ import annotations
@@ -76,6 +93,35 @@ def _weekday_step_factor(day: int) -> float:
     """Every 6th/7th day of the 21-day window reads as a lower-activity 'weekend' -- same
     weekday/weekend step variation real wearable data shows, independent of any story event."""
     return 0.82 if (day - 1) % 7 in (5, 6) else 1.0
+
+
+def _ramp(day: int, start_day: int, end_day: int, before_val: float, after_val: float) -> float:
+    """Linear phase-in from before_val to after_val across [start_day, end_day] (inclusive),
+    flat at before_val prior and flat at after_val after -- replaces a single-day cliff with a
+    multi-day transition (amendment B, protocol_amendments.md), matching how a real lifestyle
+    change phases in rather than switching instantly."""
+    if day <= start_day:
+        return before_val
+    if day >= end_day:
+        return after_val
+    frac = (day - start_day) / (end_day - start_day)
+    return before_val + (after_val - before_val) * frac
+
+
+def _piecewise_ramp(day: int, anchors: list[tuple[int, float]]) -> float:
+    """Linear interpolation through explicit (day, value) anchor points -- for a story with
+    several successive plateaus (e.g. P05's three step-reduction tiers), each boundary between
+    anchors becomes a short ramp instead of a cliff."""
+    if day <= anchors[0][0]:
+        return anchors[0][1]
+    if day >= anchors[-1][0]:
+        return anchors[-1][1]
+    for (d0, v0), (d1, v1) in zip(anchors, anchors[1:]):
+        if d0 <= day <= d1:
+            if d1 == d0:
+                return v1
+            return v0 + (v1 - v0) * (day - d0) / (d1 - d0)
+    return anchors[-1][1]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -146,22 +192,20 @@ def schedule_p04(base):
         else:
             sev = 0.20 + (0.50 - 0.20) * (d - 4) / (21 - 4)  # linear 0.20 -> 0.50, day4..day21
         weight = w + (0.4 * max(d - 3, 0))  # independent of severity-scaled delta -- explicit "+0.4kg/day" story
-        step_mult = 1.0
-        if d >= 10:
-            step_mult = 0.70  # ~30% fall, breathless
+        # Amendment B: ~30% step fall phases in over days 9-11 (was an instant cliff at day 10).
+        step_mult = _ramp(d, 9, 11, 1.0, 0.70)
         this_hr = hr + deltas["resting_hr_bpm"] * sev
         this_hrv = hrv + deltas["hrv_rmssd_ms"] * sev
-        poor_sleep = d >= 14
-        if poor_sleep:
-            this_hr += 5.0
-            this_hrv -= this_hrv * 0.15  # -15% on top of already-reduced HRV
-            this_sleep = sleep - 1.0
-        else:
-            this_sleep = sleep
+        # Amendment B: poor-sleep onset phases in over days 13-15 (was an instant cliff at day 14).
+        sleep_frac = _ramp(d, 13, 15, 0.0, 1.0)
+        this_hr += 5.0 * sleep_frac
+        this_hrv -= this_hrv * 0.15 * sleep_frac
+        this_sleep = sleep - 1.0 * sleep_frac
+        poor_sleep_active = sleep_frac > 0
         rows.append(_day(
             d, sev, weight, steps * step_mult * _weekday_step_factor(d), this_hr, this_hrv, this_sleep,
-            event=("poor_sleep" if poor_sleep else ("breathless" if d >= 10 else ("fluid_ramp" if d >= 4 else None))),
-            sleep_input_only=poor_sleep,
+            event=("poor_sleep" if poor_sleep_active else ("breathless" if d >= 9 else ("fluid_ramp" if d >= 4 else None))),
+            sleep_input_only=poor_sleep_active,
         ))
     return rows
 
@@ -173,18 +217,22 @@ def schedule_p04(base):
 def schedule_p05(base):
     hr, steps, hrv, sleep, w = base["resting_hr_bpm"], base["steps_per_day"], base["hrv_rmssd_ms"], base["sleep_hours"], base["weight_kg"]
     deltas = DELTAS_AT_SEVERITY_1["deconditioning"]
+    # Amendment B: each tier boundary (was an instant cliff) now phases in over ~2 days --
+    # onset day3->5, tier1->2 day8->10, tier2->3 day14->16 -- still landing on the story's
+    # original plateaus (-20% days4-9, -40% days10-15, -60% days16-21) at their centers.
+    step_anchors = [(1, 1.0), (3, 1.0), (5, 0.80), (8, 0.80), (10, 0.60), (14, 0.60), (16, 0.40), (21, 0.40)]
     rows = []
     for d in range(1, MONITORED_DAYS + 1):
+        sev = 0.20 if d < 4 else 0.20 + (0.35 - 0.20) * (d - 4) / (21 - 4)
+        step_mult = _piecewise_ramp(d, step_anchors)
         if d < 4:
-            sev, step_mult, event = 0.20, 1.0, None
+            event = None
+        elif d <= 9:
+            event = "steps_down_20pct"
+        elif d <= 15:
+            event = "steps_down_40pct"
         else:
-            sev = 0.20 + (0.35 - 0.20) * (d - 4) / (21 - 4)
-            if d <= 9:
-                step_mult, event = 0.80, "steps_down_20pct"
-            elif d <= 15:
-                step_mult, event = 0.60, "steps_down_40pct"
-            else:
-                step_mult, event = 0.40, "steps_down_60pct"
+            event = "steps_down_60pct"
         this_hr = hr + deltas["resting_hr_bpm"] * sev
         this_hrv = hrv + deltas["hrv_rmssd_ms"] * sev
         rows.append(_day(d, sev, w, steps * step_mult * _weekday_step_factor(d), this_hr, this_hrv, sleep, event=event))
@@ -228,16 +276,19 @@ def schedule_p07(base):
     deltas = DELTAS_AT_SEVERITY_1["acute_deterioration"]
     rows = []
     for d in range(1, MONITORED_DAYS + 1):
+        # Amendment B (explicit instruction): onset compressed to days 10-12 (realistically fast
+        # for a genuine acute deterioration -- 2-3 days, not one day, and not the original 4-day
+        # 10-13 window either).
         if d < 10:
             sev, event = 0.20, None
-        elif d <= 13:
-            sev = 0.20 + (0.40 - 0.20) * (d - 9) / (13 - 9)  # jump over days 10-13
-            event = "acute_jump"
+        elif d <= 12:
+            sev = 0.20 + (0.40 - 0.20) * (d - 9) / (12 - 9)
+            event = "acute_onset"
         else:
             sev, event = 0.40, "acute_held"
         this_hr = hr + deltas["resting_hr_bpm"] * sev
         this_hrv = hrv + deltas["hrv_rmssd_ms"] * sev
-        step_mult = 1.0 if d < 10 else 0.5  # sharp drop from day 10
+        step_mult = _ramp(d, 9, 12, 1.0, 0.5)  # steps drop phases in alongside the same onset window
         rows.append(_day(d, sev, w, steps * step_mult * _weekday_step_factor(d), this_hr, this_hrv, sleep, event=event))
     return rows
 
@@ -250,15 +301,17 @@ def schedule_p07(base):
 def schedule_p08(base):
     hr, steps, hrv, sleep, w = base["resting_hr_bpm"], base["steps_per_day"], base["hrv_rmssd_ms"], base["sleep_hours"], base["weight_kg"]
     stress_days = {5, 9, 12, 16}
+    # Amendment B: poor-sleep onset (day8) and recovery (back to normal by day15) both phase in
+    # over ~2 days instead of an instant switch -- the acute stress episodes below stay single-day
+    # events per explicit instruction (a real stressful event doesn't "ramp in").
+    sleep_anchors = [(1, 0.0), (7, 0.0), (9, 1.0), (13, 1.0), (15, 0.0), (21, 0.0)]
     rows = []
     for d in range(1, MONITORED_DAYS + 1):
-        this_hr, this_hrv, this_sleep = hr, hrv, sleep
-        event, sleep_only = None, False
-        if 8 <= d <= 14:
-            this_hr += 6.5
-            this_hrv -= this_hrv * 0.20
-            this_sleep -= 1.2
-            event, sleep_only = "poor_sleep_fortnight", True
+        sleep_frac = _piecewise_ramp(d, sleep_anchors)
+        this_hr = hr + 6.5 * sleep_frac
+        this_hrv = hrv - hrv * 0.20 * sleep_frac
+        this_sleep = sleep - 1.2 * sleep_frac
+        event, sleep_only = ("poor_sleep_fortnight" if sleep_frac > 0 else None), (sleep_frac > 0)
         if d in stress_days:
             this_hr += 10.0
             this_hrv -= 5.0
@@ -294,19 +347,23 @@ def schedule_p10(base):
     hr, steps, hrv, sleep, w = base["resting_hr_bpm"], base["steps_per_day"], base["hrv_rmssd_ms"], base["sleep_hours"], base["weight_kg"]
     deltas = DELTAS_AT_SEVERITY_1["acute_deterioration"]
     stress_days = {6, 10}
+    # Amendment B: steps drop (was an instant cliff at day 4) phases in over days 3-6; poor-sleep
+    # onset/recovery (was an instant cliff at day 8 / day 14) phases in over ~2 days each. Stress
+    # episodes stay single-day events per explicit instruction.
+    sleep_anchors = [(1, 0.0), (7, 0.0), (9, 1.0), (13, 1.0), (15, 0.0), (21, 0.0)]
     rows = []
     for d in range(1, MONITORED_DAYS + 1):
         sev = 0.20 if d < 4 else 0.20 + (0.45 - 0.20) * (d - 4) / (21 - 4)
         weight = w + (0.4 * max(d - 3, 0))
         this_hr = hr + deltas["resting_hr_bpm"] * sev
         this_hrv = hrv + deltas["hrv_rmssd_ms"] * sev
-        this_sleep = sleep
-        step_mult = 1.0 if d < 4 else 0.50
+        step_mult = _ramp(d, 3, 6, 1.0, 0.50)
+        sleep_frac = _piecewise_ramp(d, sleep_anchors)
+        this_hr += 6.0 * sleep_frac
+        this_hrv -= this_hrv * 0.15 * sleep_frac
+        this_sleep = sleep - 1.0 * sleep_frac
         event, sleep_only = ("everything_ramp" if d >= 4 else None), False
-        if 8 <= d <= 14:
-            this_hr += 6.0
-            this_hrv -= this_hrv * 0.15
-            this_sleep -= 1.0
+        if sleep_frac > 0:
             event, sleep_only = "poor_sleep", True
         if d in stress_days:
             this_hr += 12.0
@@ -321,70 +378,70 @@ PATIENTS = {
     "P01": dict(
         story="Stable patient, ordinary life", expected_group="should_stay_quiet",
         age=58, sex="Female", height_cm=162.0, weight_kg=70.0,
-        baseline_ef_pct=64.0, baseline_bnp_pg_ml=90.0,
+        baseline_ef_pct=48.0, baseline_bnp_pg_ml=200.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=68.0, steps_per_day=6200.0, hrv_rmssd_ms=36.0, sleep_hours=7.1, spo2_pct=97.5, weight_kg=70.0),
         schedule_fn=schedule_p01,
     ),
     "P02": dict(
         story="Salty weekend", expected_group="edge_case",
         age=50, sex="Male", height_cm=178.0, weight_kg=88.0,
-        baseline_ef_pct=60.0, baseline_bnp_pg_ml=110.0,
+        baseline_ef_pct=49.0, baseline_bnp_pg_ml=210.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=72.0, steps_per_day=6800.0, hrv_rmssd_ms=34.0, sleep_hours=7.0, spo2_pct=97.0, weight_kg=88.0),
         schedule_fn=schedule_p02,
     ),
     "P03": dict(
         story="Slow, quiet weight gain", expected_group="edge_case",
         age=75, sex="Female", height_cm=158.0, weight_kg=68.0,
-        baseline_ef_pct=58.0, baseline_bnp_pg_ml=180.0,
+        baseline_ef_pct=50.0, baseline_bnp_pg_ml=220.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=74.0, steps_per_day=5200.0, hrv_rmssd_ms=30.0, sleep_hours=6.8, spo2_pct=96.0, weight_kg=68.0),
         schedule_fn=schedule_p03,
     ),
     "P04": dict(
         story="Fluid overload building up", expected_group="should_catch",
         age=70, sex="Male", height_cm=170.0, weight_kg=95.0,
-        baseline_ef_pct=30.0, baseline_bnp_pg_ml=650.0,
+        baseline_ef_pct=51.0, baseline_bnp_pg_ml=230.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=78.0, steps_per_day=5500.0, hrv_rmssd_ms=28.0, sleep_hours=6.9, spo2_pct=94.5, weight_kg=95.0),
         schedule_fn=schedule_p04,
     ),
     "P05": dict(
         story="Gradual deconditioning", expected_group="should_catch",
         age=82, sex="Female", height_cm=155.0, weight_kg=60.0,
-        baseline_ef_pct=55.0, baseline_bnp_pg_ml=320.0,
+        baseline_ef_pct=52.0, baseline_bnp_pg_ml=240.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=70.0, steps_per_day=4200.0, hrv_rmssd_ms=26.0, sleep_hours=7.0, spo2_pct=95.5, weight_kg=60.0),
         schedule_fn=schedule_p05,
     ),
     "P06": dict(
         story="Cardiac stress", expected_group="should_catch",
         age=60, sex="Male", height_cm=180.0, weight_kg=100.0,
-        baseline_ef_pct=58.0, baseline_bnp_pg_ml=280.0,
+        baseline_ef_pct=53.0, baseline_bnp_pg_ml=250.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=75.0, steps_per_day=6600.0, hrv_rmssd_ms=32.0, sleep_hours=7.0, spo2_pct=96.0, weight_kg=100.0),
         schedule_fn=schedule_p06,
     ),
     "P07": dict(
         story="Sudden deterioration", expected_group="should_catch",
         age=68, sex="Female", height_cm=165.0, weight_kg=80.0,
-        baseline_ef_pct=28.0, baseline_bnp_pg_ml=700.0,
+        baseline_ef_pct=54.0, baseline_bnp_pg_ml=260.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=80.0, steps_per_day=5800.0, hrv_rmssd_ms=27.0, sleep_hours=7.0, spo2_pct=94.0, weight_kg=80.0),
         schedule_fn=schedule_p07,
     ),
     "P08": dict(
         story="Stressful fortnight, healthy heart", expected_group="should_stay_quiet",
         age=45, sex="Male", height_cm=175.0, weight_kg=82.0,
-        baseline_ef_pct=65.0, baseline_bnp_pg_ml=80.0,
+        baseline_ef_pct=55.0, baseline_bnp_pg_ml=270.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=65.0, steps_per_day=7200.0, hrv_rmssd_ms=42.0, sleep_hours=7.3, spo2_pct=97.5, weight_kg=82.0),
         schedule_fn=schedule_p08,
     ),
     "P09": dict(
         story="Active, stable patient", expected_group="should_stay_quiet",
         age=52, sex="Female", height_cm=168.0, weight_kg=65.0,
-        baseline_ef_pct=66.0, baseline_bnp_pg_ml=70.0,
+        baseline_ef_pct=56.0, baseline_bnp_pg_ml=280.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=60.0, steps_per_day=8500.0, hrv_rmssd_ms=45.0, sleep_hours=7.5, spo2_pct=98.0, weight_kg=65.0),
         schedule_fn=schedule_p09,
     ),
     "P10": dict(
         story="Everything goes wrong", expected_group="should_catch",
         age=73, sex="Male", height_cm=172.0, weight_kg=92.0,
-        baseline_ef_pct=25.0, baseline_bnp_pg_ml=900.0,
+        baseline_ef_pct=57.0, baseline_bnp_pg_ml=290.0,  # amendment A: neutral band
         baseline=dict(resting_hr_bpm=82.0, steps_per_day=5400.0, hrv_rmssd_ms=24.0, sleep_hours=6.7, spo2_pct=93.5, weight_kg=92.0),
         schedule_fn=schedule_p10,
     ),

@@ -1,5 +1,5 @@
 meta:
-  generated_at: '2026-10-02T20:34:26.797779+00:00'
+  generated_at: '2026-10-02T21:03:22.226616+00:00'
   results_tag: results-rc1
   note: 'Provisional, unreviewed: pending PR #4 merge (see docs/integration_pre_results.md).'
   seeds:
@@ -26,8 +26,8 @@ patients:
       height_cm: 162.0
       weight_kg: 70.0
     baseline_clinical_report:
-      ejection_fraction_pct: 64.0
-      nt_probnp_pg_ml: 90.0
+      ejection_fraction_pct: 48.0
+      nt_probnp_pg_ml: 200.0
     baseline_wearable:
       resting_hr_bpm: 68.0
       steps_per_day: 6200.0
@@ -255,8 +255,8 @@ patients:
       height_cm: 178.0
       weight_kg: 88.0
     baseline_clinical_report:
-      ejection_fraction_pct: 60.0
-      nt_probnp_pg_ml: 110.0
+      ejection_fraction_pct: 49.0
+      nt_probnp_pg_ml: 210.0
     baseline_wearable:
       resting_hr_bpm: 72.0
       steps_per_day: 6800.0
@@ -484,8 +484,8 @@ patients:
       height_cm: 158.0
       weight_kg: 68.0
     baseline_clinical_report:
-      ejection_fraction_pct: 58.0
-      nt_probnp_pg_ml: 180.0
+      ejection_fraction_pct: 50.0
+      nt_probnp_pg_ml: 220.0
     baseline_wearable:
       resting_hr_bpm: 74.0
       steps_per_day: 5200.0
@@ -713,8 +713,8 @@ patients:
       height_cm: 170.0
       weight_kg: 95.0
     baseline_clinical_report:
-      ejection_fraction_pct: 30.0
-      nt_probnp_pg_ml: 650.0
+      ejection_fraction_pct: 51.0
+      nt_probnp_pg_ml: 230.0
     baseline_wearable:
       resting_hr_bpm: 78.0
       steps_per_day: 5500.0
@@ -810,13 +810,13 @@ patients:
       resting_hr_bpm: 81.5
       hrv_rmssd_ms: 26.3
       sleep_hours: 6.9
-      event: fluid_ramp
+      event: breathless
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 10
       severity_target: 0.3059
       weight_kg: 97.8
-      steps_per_day: 3850
+      steps_per_day: 4675
       resting_hr_bpm: 81.7
       hrv_rmssd_ms: 26.2
       sleep_hours: 6.9
@@ -857,9 +857,9 @@ patients:
       severity_target: 0.3765
       weight_kg: 99.4
       steps_per_day: 3157
-      resting_hr_bpm: 87.5
-      hrv_rmssd_ms: 21.9
-      sleep_hours: 5.9
+      resting_hr_bpm: 85.0
+      hrv_rmssd_ms: 23.8
+      sleep_hours: 6.4
       event: poor_sleep
       weight_input_level_only: false
       sleep_input_level_only: true
@@ -942,8 +942,8 @@ patients:
       height_cm: 155.0
       weight_kg: 60.0
     baseline_clinical_report:
-      ejection_fraction_pct: 55.0
-      nt_probnp_pg_ml: 320.0
+      ejection_fraction_pct: 52.0
+      nt_probnp_pg_ml: 240.0
     baseline_wearable:
       resting_hr_bpm: 70.0
       steps_per_day: 4200.0
@@ -985,7 +985,7 @@ patients:
     - day: 4
       severity_target: 0.2
       weight_kg: 60.0
-      steps_per_day: 3360
+      steps_per_day: 3780
       resting_hr_bpm: 71.6
       hrv_rmssd_ms: 25.0
       sleep_hours: 7.0
@@ -1035,7 +1035,7 @@ patients:
     - day: 9
       severity_target: 0.2441
       weight_kg: 60.0
-      steps_per_day: 3360
+      steps_per_day: 2940
       resting_hr_bpm: 72.0
       hrv_rmssd_ms: 24.8
       sleep_hours: 7.0
@@ -1095,7 +1095,7 @@ patients:
     - day: 15
       severity_target: 0.2971
       weight_kg: 60.0
-      steps_per_day: 2520
+      steps_per_day: 2100
       resting_hr_bpm: 72.4
       hrv_rmssd_ms: 24.5
       sleep_hours: 7.0
@@ -1171,8 +1171,8 @@ patients:
       height_cm: 180.0
       weight_kg: 100.0
     baseline_clinical_report:
-      ejection_fraction_pct: 58.0
-      nt_probnp_pg_ml: 280.0
+      ejection_fraction_pct: 53.0
+      nt_probnp_pg_ml: 250.0
     baseline_wearable:
       resting_hr_bpm: 75.0
       steps_per_day: 6600.0
@@ -1400,8 +1400,8 @@ patients:
       height_cm: 165.0
       weight_kg: 80.0
     baseline_clinical_report:
-      ejection_fraction_pct: 28.0
-      nt_probnp_pg_ml: 700.0
+      ejection_fraction_pct: 54.0
+      nt_probnp_pg_ml: 260.0
     baseline_wearable:
       resting_hr_bpm: 80.0
       steps_per_day: 5800.0
@@ -1501,33 +1501,33 @@ patients:
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 10
-      severity_target: 0.25
+      severity_target: 0.2667
       weight_kg: 80.0
-      steps_per_day: 2900
-      resting_hr_bpm: 86.2
-      hrv_rmssd_ms: 23.2
+      steps_per_day: 4833
+      resting_hr_bpm: 86.7
+      hrv_rmssd_ms: 23.0
       sleep_hours: 7.0
-      event: acute_jump
+      event: acute_onset
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 11
-      severity_target: 0.3
+      severity_target: 0.3333
       weight_kg: 80.0
-      steps_per_day: 2900
-      resting_hr_bpm: 87.5
-      hrv_rmssd_ms: 22.5
+      steps_per_day: 3867
+      resting_hr_bpm: 88.3
+      hrv_rmssd_ms: 22.0
       sleep_hours: 7.0
-      event: acute_jump
+      event: acute_onset
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 12
-      severity_target: 0.35
+      severity_target: 0.4
       weight_kg: 80.0
       steps_per_day: 2900
-      resting_hr_bpm: 88.8
-      hrv_rmssd_ms: 21.8
+      resting_hr_bpm: 90.0
+      hrv_rmssd_ms: 21.0
       sleep_hours: 7.0
-      event: acute_jump
+      event: acute_onset
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 13
@@ -1537,7 +1537,7 @@ patients:
       resting_hr_bpm: 90.0
       hrv_rmssd_ms: 21.0
       sleep_hours: 7.0
-      event: acute_jump
+      event: acute_held
       weight_input_level_only: false
       sleep_input_level_only: false
     - day: 14
@@ -1629,8 +1629,8 @@ patients:
       height_cm: 175.0
       weight_kg: 82.0
     baseline_clinical_report:
-      ejection_fraction_pct: 65.0
-      nt_probnp_pg_ml: 80.0
+      ejection_fraction_pct: 55.0
+      nt_probnp_pg_ml: 270.0
     baseline_wearable:
       resting_hr_bpm: 65.0
       steps_per_day: 7200.0
@@ -1713,9 +1713,9 @@ patients:
       severity_target: 0.2
       weight_kg: 82.0
       steps_per_day: 7200
-      resting_hr_bpm: 71.5
-      hrv_rmssd_ms: 33.6
-      sleep_hours: 6.1
+      resting_hr_bpm: 68.2
+      hrv_rmssd_ms: 37.8
+      sleep_hours: 6.7
       event: poor_sleep_fortnight
       weight_input_level_only: false
       sleep_input_level_only: true
@@ -1773,9 +1773,9 @@ patients:
       severity_target: 0.2
       weight_kg: 82.0
       steps_per_day: 5904
-      resting_hr_bpm: 71.5
-      hrv_rmssd_ms: 33.6
-      sleep_hours: 6.1
+      resting_hr_bpm: 68.2
+      hrv_rmssd_ms: 37.8
+      sleep_hours: 6.7
       event: poor_sleep_fortnight
       weight_input_level_only: false
       sleep_input_level_only: true
@@ -1858,8 +1858,8 @@ patients:
       height_cm: 168.0
       weight_kg: 65.0
     baseline_clinical_report:
-      ejection_fraction_pct: 66.0
-      nt_probnp_pg_ml: 70.0
+      ejection_fraction_pct: 56.0
+      nt_probnp_pg_ml: 280.0
     baseline_wearable:
       resting_hr_bpm: 60.0
       steps_per_day: 8500.0
@@ -2087,8 +2087,8 @@ patients:
       height_cm: 172.0
       weight_kg: 92.0
     baseline_clinical_report:
-      ejection_fraction_pct: 25.0
-      nt_probnp_pg_ml: 900.0
+      ejection_fraction_pct: 57.0
+      nt_probnp_pg_ml: 290.0
     baseline_wearable:
       resting_hr_bpm: 82.0
       steps_per_day: 5400.0
@@ -2130,7 +2130,7 @@ patients:
     - day: 4
       severity_target: 0.2
       weight_kg: 92.4
-      steps_per_day: 2700
+      steps_per_day: 4500
       resting_hr_bpm: 87.0
       hrv_rmssd_ms: 21.0
       sleep_hours: 6.7
@@ -2140,7 +2140,7 @@ patients:
     - day: 5
       severity_target: 0.2147
       weight_kg: 92.8
-      steps_per_day: 2700
+      steps_per_day: 3600
       resting_hr_bpm: 87.4
       hrv_rmssd_ms: 20.8
       sleep_hours: 6.7
@@ -2171,9 +2171,9 @@ patients:
       severity_target: 0.2588
       weight_kg: 94.0
       steps_per_day: 2700
-      resting_hr_bpm: 94.5
-      hrv_rmssd_ms: 17.1
-      sleep_hours: 5.7
+      resting_hr_bpm: 91.5
+      hrv_rmssd_ms: 18.6
+      sleep_hours: 6.2
       event: poor_sleep
       weight_input_level_only: false
       sleep_input_level_only: true
@@ -2231,9 +2231,9 @@ patients:
       severity_target: 0.3471
       weight_kg: 96.4
       steps_per_day: 2214
-      resting_hr_bpm: 96.7
-      hrv_rmssd_ms: 16.0
-      sleep_hours: 5.7
+      resting_hr_bpm: 93.7
+      hrv_rmssd_ms: 17.4
+      sleep_hours: 6.2
       event: poor_sleep
       weight_input_level_only: false
       sleep_input_level_only: true

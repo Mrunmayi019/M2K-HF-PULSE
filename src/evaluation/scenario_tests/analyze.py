@@ -191,6 +191,37 @@ def plot_patient_timeline(df: pd.DataFrame, patient_id: str, story: str):
 # ---------------------------------------------------------------------------------------------
 # 6. Signal ablation on P10
 # ---------------------------------------------------------------------------------------------
+def feature_importances() -> pd.DataFrame:
+    """Top-10 feature importances for both the scenario classifier and the severity regressor --
+    added per protocol_amendments.md (2026-10-03) to show plainly where weight (and every other
+    wearable signal) ranks, connecting directly to the P02/P03 discussion (both stories are
+    weight-driven with severity_target held flat -- how much the models can even respond to a
+    weight-only signal depends on how much weight actually matters to them)."""
+    import joblib
+    clf = joblib.load(REPO_ROOT / "models" / "scenario_classifier.joblib")
+    reg = joblib.load(REPO_ROOT / "models" / "severity_regressor.joblib")
+    # Derive the real column order from build_inference_features() itself (dummy trend data, 21
+    # distinct days so no vital's slope/delta is degenerate) rather than reconstructing it by
+    # hand -- avoids any risk of silently mismatching the models' actual training column order.
+    from src.scenario_classifier.features import build_inference_features, feature_columns
+    dummy_trends = pd.DataFrame({
+        "patient_id": ["X"] * 21, "day": list(range(21)),
+        "resting_hr_bpm": np.linspace(70, 75, 21), "spo2_pct": np.linspace(97, 96, 21),
+        "weight_kg": np.linspace(80, 81, 21), "steps_per_day": np.linspace(6000, 5000, 21),
+        "sleep_hours": np.linspace(7, 6.5, 21), "hrv_rmssd_ms": np.linspace(35, 30, 21),
+    })
+    dummy_row = {"patient_id": "X", "age": 60, "sex": "Male", "bmi": 25.0,
+                 "ejection_fraction_pct": 50.0, "nt_probnp_pg_ml": 200.0}
+    dummy_feats = build_inference_features(dummy_row, dummy_trends)
+    cols = feature_columns(dummy_feats)
+    rows = []
+    for model_name, model in (("scenario_classifier", clf), ("severity_regressor", reg)):
+        importances = pd.Series(model.feature_importances_, index=cols).sort_values(ascending=False)
+        for rank, (feat, imp) in enumerate(importances.head(10).items(), start=1):
+            rows.append({"model": model_name, "rank": rank, "feature": feat, "importance": round(imp, 4)})
+    return pd.DataFrame(rows)
+
+
 def p10_ablation(df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     import joblib
     from src.scenario_classifier.features import build_inference_features, feature_columns
@@ -343,6 +374,9 @@ def main():
     cohort = yaml.safe_load(COHORT_PATH.read_text())
     for pid, cfg in cohort["patients"].items():
         plot_patient_timeline(df, pid, cfg["story"])
+
+    importances = feature_importances()
+    importances.to_csv(RESULTS_DIR / "feature_importances.csv", index=False)
 
     ablation = p10_ablation(df)
     ablation.to_csv(RESULTS_DIR / "p10_ablation.csv", index=False)
