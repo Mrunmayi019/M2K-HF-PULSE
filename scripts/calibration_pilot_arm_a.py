@@ -1,4 +1,4 @@
-"""Calibration pilot, Step 4: Arm A baselines for the 3 Gu et al. patients (6 Pulse runs).
+"""Calibration pilot, Step 4: Arm A baselines for the Gu et al. pilot patients.
 
 Arms (defined before any run in docs/calibration_pilot/pilot_success_criteria.md):
   - A_prod    (primary): build_patient_file() + build_scenario_file("stable", severity=0, real EF,
@@ -15,10 +15,12 @@ Arms (defined before any run in docs/calibration_pilot/pilot_success_criteria.md
 Timeline (both arms): 60s builder AdvanceTime -> [A_formula: modification] -> 120s rest = 180s.
 Metrics come from the final 60s (t >= 120s).
 
-Three modes, because Pulse only exists inside the container but the analysis uses the host venv:
-  1. host:      ./venv/Scripts/python.exe -m scripts.calibration_pilot_arm_a build
+Three modes, because Pulse only exists inside the container but the analysis uses the host venv.
+build/run take optional `--set original|consistent` and `--arms A_prod [A_formula]` filters, so
+adding patients doesn't rebuild or rerun runs that already exist:
+  1. host:      ./venv/Scripts/python.exe -m scripts.calibration_pilot_arm_a build [filters]
   2. container: MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)":/workspace -w /workspace \
-                  kitware/pulse:4.3.1 bash -c "pip3 install -q pandas && python3 -m scripts.calibration_pilot_arm_a run"
+                  kitware/pulse:4.3.1 bash -c "pip3 install -q pandas && python3 -m scripts.calibration_pilot_arm_a run [filters]"
   3. host:      ./venv/Scripts/python.exe -m scripts.calibration_pilot_arm_a analyze
 
 Crash handling: runs go through the existing run_pulse() unchanged (nonzero exit, fatal log
@@ -64,16 +66,34 @@ def run_dir(arm: str, idx: int) -> pathlib.Path:
     return OUT_ROOT / "runs" / arm / f"gu{idx}"
 
 
-def build() -> None:
+def _cli_filters() -> tuple[tuple[str, ...], str | None]:
+    args = sys.argv[2:]
+    arms = ARMS
+    if "--arms" in args:
+        i = args.index("--arms") + 1
+        arms = tuple(a for a in args[i:] if not a.startswith("--"))
+    set_name = args[args.index("--set") + 1] if "--set" in args else None
+    return arms, set_name
+
+
+def _selected_patients(set_name: str | None) -> pd.DataFrame:
     patients = pd.read_csv(PATIENTS_CSV)
-    knobs = {}
-    for p in patients.to_dict("records"):
+    if set_name is not None:
+        patients = patients[patients["set"] == set_name]
+    return patients
+
+
+def build() -> None:
+    arms, set_name = _cli_filters()
+    knobs_path = OUT_ROOT / "arm_a_knobs.json"
+    knobs = json.loads(knobs_path.read_text()) if knobs_path.exists() else {}
+    for p in _selected_patients(set_name).to_dict("records"):
         idx = int(p["gu_index_1based"])
         patient = {"patient_id": f"gu{idx}", "sex": p["sex"], "age": p["age"],
                    "height_cm": p["height_cm"], "weight_kg": p["weight_kg"]}
         modifiers = ef_to_cardiovascular_modifiers(p["real_ef_pct"], SEVERITY)
-        knobs[idx] = modifiers
-        for arm in ARMS:
+        knobs[str(idx)] = modifiers
+        for arm in arms:
             d = run_dir(arm, idx)
             d.mkdir(parents=True, exist_ok=True)
             container_patient = f"{CONTAINER_OUT_ROOT}/runs/{arm}/gu{idx}/patient.json"
@@ -84,44 +104,50 @@ def build() -> None:
                 scenario["AnyAction"].insert(1, _cardiovascular_modification_action(modifiers, {}))
             (d / "patient.json").write_text(json.dumps(build_patient_file(patient), indent=2))
             (d / "scenario.json").write_text(json.dumps(scenario, indent=2))
-    (OUT_ROOT / "arm_a_knobs.json").write_text(json.dumps(knobs, indent=2))
+    knobs_path.write_text(json.dumps(knobs, indent=2))
     print(json.dumps(knobs, indent=2))
 
 
-def run() -> None:
+def run_one(scenario_path: pathlib.Path, expected_duration_s: float) -> dict:
+    """One run through the unchanged run_pulse(): crash flag plus the exact log lines that matched
+    runner.FATAL_LOG_MARKERS (empty when none did)."""
     from src.pulse_runner.runner import PulseExecutionError, _scan_log_for_fatal_markers, run_pulse
 
-    patients = pd.read_csv(PATIENTS_CSV)
+    start = time.monotonic()
+    try:
+        run_pulse(str(scenario_path), expected_duration_s=expected_duration_s, timeout_sec=TIMEOUT_SEC)
+        crashed, error = False, None
+    except PulseExecutionError as e:
+        crashed, error = True, str(e)
+    return {
+        "crashed": crashed,
+        "error": error,
+        "fatal_marker_lines": _scan_log_for_fatal_markers(scenario_path.with_suffix(".log")),
+        "wall_clock_s": round(time.monotonic() - start, 1),
+    }
+
+
+def run() -> None:
+    arms, set_name = _cli_filters()
+    patients = _selected_patients(set_name)
     status = json.loads(RUN_STATUS.read_text()) if RUN_STATUS.exists() else {}
-    for arm in ARMS:
+    for arm in arms:
         for idx in patients["gu_index_1based"]:
             scenario_path = run_dir(arm, int(idx)).resolve() / "scenario.json"
             print(f"[{arm} / gu{idx}] running ...", flush=True)
-            start = time.monotonic()
-            try:
-                run_pulse(str(scenario_path), expected_duration_s=EXPECTED_DURATION_S, timeout_sec=TIMEOUT_SEC)
-                crashed, error = False, None
-            except PulseExecutionError as e:
-                crashed, error = True, str(e)
-            log_path = scenario_path.with_suffix(".log")
-            marker_lines = _scan_log_for_fatal_markers(log_path)
-            status.setdefault(arm, {})[f"gu{idx}"] = {
-                "crashed": crashed,
-                "error": error,
-                "fatal_marker_lines": marker_lines,
-                "wall_clock_s": round(time.monotonic() - start, 1),
-            }
+            result = run_one(scenario_path, EXPECTED_DURATION_S)
+            status.setdefault(arm, {})[f"gu{idx}"] = result
             RUN_STATUS.write_text(json.dumps(status, indent=2))  # after every run
-            print(f"[{arm} / gu{idx}] crashed={crashed} in {status[arm][f'gu{idx}']['wall_clock_s']}s", flush=True)
-            if error:
-                print(f"    {error[:1500]}", flush=True)
+            print(f"[{arm} / gu{idx}] crashed={result['crashed']} in {result['wall_clock_s']}s", flush=True)
+            if result["error"]:
+                print(f"    {result['error'][:1500]}", flush=True)
 
 
-def per_beat_ef(t: np.ndarray, v: np.ndarray, hr_bpm: float) -> np.ndarray:
-    """EF for each complete beat in the window: a beat runs from one end-diastolic volume peak to
-    the next; EF = (EDV - ESV) / EDV with EDV at the beat's opening peak and ESV the minimum before
-    the closing peak. Peaks are local maxima at least 60% of one cardiac period apart, so the
-    partial beats at either window edge are dropped rather than estimated."""
+def per_beat_volumes(t: np.ndarray, v: np.ndarray, hr_bpm: float) -> tuple[np.ndarray, np.ndarray]:
+    """(EDV, ESV) for each complete beat in the window: a beat runs from one end-diastolic volume
+    peak to the next, with EDV at the beat's opening peak and ESV the minimum before the closing
+    peak. Peaks are local maxima at least 60% of one cardiac period apart, so the partial beats at
+    either window edge are dropped rather than estimated."""
     dt = float(np.median(np.diff(t)))
     min_gap = max(1, int(0.6 * (60.0 / hr_bpm) / dt))
     candidates = np.where((v[1:-1] >= v[:-2]) & (v[1:-1] > v[2:]))[0] + 1
@@ -132,8 +158,24 @@ def per_beat_ef(t: np.ndarray, v: np.ndarray, hr_bpm: float) -> np.ndarray:
                 peaks[-1] = i
             continue
         peaks.append(i)
-    efs = [(v[a] - v[a:b].min()) / v[a] for a, b in zip(peaks[:-1], peaks[1:])]
-    return np.array(efs) * 100.0
+    edv = np.array([v[a] for a in peaks[:-1]])
+    esv = np.array([v[a:b].min() for a, b in zip(peaks[:-1], peaks[1:])])
+    return edv, esv
+
+
+def window_metrics(df: pd.DataFrame, start_s: float, end_s: float) -> dict:
+    """Twin metrics over [start_s, end_s]: EF/EDV/ESV per complete beat (mean, plus EF SD), and
+    MAP/CO/HR as time means. SV = CO / HR (Amendment 1 b)."""
+    w = df[(df[COL_TIME] >= start_s) & (df[COL_TIME] <= end_s)]
+    hr = w[COL_HR].mean()
+    edv, esv = per_beat_volumes(w[COL_TIME].to_numpy(), w[COL_LV_VOLUME].to_numpy(), hr)
+    efs = (edv - esv) / edv * 100.0
+    co = w[COL_CO].mean() / 1000.0
+    return {
+        "ef_pct": efs.mean(), "ef_sd_pct": efs.std(ddof=1), "n_beats": len(efs),
+        "edv_ml": edv.mean(), "esv_ml": esv.mean(), "sv_ml": co * 1000.0 / hr,
+        "map_mmhg": w[COL_MAP].mean(), "co_l_min": co, "hr_bpm": hr,
+    }
 
 
 def pct_err(twin: float, real: float) -> float:
@@ -141,15 +183,17 @@ def pct_err(twin: float, real: float) -> float:
 
 
 def analyze() -> None:
-    patients = pd.read_csv(PATIENTS_CSV)
+    patients = pd.read_csv(PATIENTS_CSV).set_index("gu_index_1based")
     status = json.loads(RUN_STATUS.read_text())
     knobs = json.loads((OUT_ROOT / "arm_a_knobs.json").read_text())
     rows = []
     for arm in ARMS:
-        for p in patients.to_dict("records"):
-            idx = int(p["gu_index_1based"])
-            s = status[arm][f"gu{idx}"]
+        for key, s in status.get(arm, {}).items():
+            idx = int(key.removeprefix("gu"))
+            p = patients.loc[idx]
             k = knobs[str(idx)]
+            real_sv_td = p["real_co_l_min"] * 1000.0 / p["real_hr_bpm"]
+            real_sv_fick = p["real_co_fick_l_min"] * 1000.0 / p["real_hr_bpm"]
             row = {
                 "arm": arm, "gu_index_1based": idx, "crashed": s["crashed"],
                 "fatal_marker_lines": " | ".join(s["fatal_marker_lines"]),
@@ -160,25 +204,29 @@ def analyze() -> None:
                 "knob_systemic_resistance_multiplier": k["systemic_resistance_multiplier"],
                 "knob_systemic_compliance_multiplier": k["systemic_compliance_multiplier"],
                 "multipliers_reached_pulse": arm == "A_formula",
+                "set": p["set"], "real_mri_ef_pct": p["real_mri_ef_pct"],
+                "real_co_fick_l_min": p["real_co_fick_l_min"],
+                "real_sv_td_ml": round(real_sv_td, 2), "real_sv_fick_ml": round(real_sv_fick, 2),
             }
             if not s["crashed"]:
                 df = pd.read_csv(run_dir(arm, idx) / "scenarioResults.csv")
                 end = df[COL_TIME].iloc[-1]
-                w = df[df[COL_TIME] >= end - ANALYSIS_WINDOW_S]
-                hr = w[COL_HR].mean()
-                efs = per_beat_ef(w[COL_TIME].to_numpy(), w[COL_LV_VOLUME].to_numpy(), hr)
-                twin = {"ef_pct": efs.mean(), "map_mmhg": w[COL_MAP].mean(),
-                        "co_l_min": w[COL_CO].mean() / 1000.0, "hr_bpm": hr}
+                m = window_metrics(df, end - ANALYSIS_WINDOW_S, end)
                 row.update({
                     "window_start_s": round(end - ANALYSIS_WINDOW_S, 2), "window_end_s": round(end, 2),
-                    "twin_ef_pct": round(twin["ef_pct"], 2), "twin_ef_sd_pct": round(efs.std(ddof=1), 3),
-                    "twin_ef_n_beats": len(efs),
-                    "twin_map_mmhg": round(twin["map_mmhg"], 2),
-                    "twin_co_l_min": round(twin["co_l_min"], 3), "twin_hr_bpm": round(twin["hr_bpm"], 2),
-                    "err_ef_pct": pct_err(twin["ef_pct"], p["real_ef_pct"]),
-                    "err_map_pct": pct_err(twin["map_mmhg"], p["real_map_mmhg"]),
-                    "err_co_pct": pct_err(twin["co_l_min"], p["real_co_l_min"]),
-                    "err_hr_pct": pct_err(twin["hr_bpm"], p["real_hr_bpm"]),
+                    "twin_ef_pct": round(m["ef_pct"], 2), "twin_ef_sd_pct": round(m["ef_sd_pct"], 3),
+                    "twin_ef_n_beats": m["n_beats"],
+                    "twin_map_mmhg": round(m["map_mmhg"], 2),
+                    "twin_co_l_min": round(m["co_l_min"], 3), "twin_hr_bpm": round(m["hr_bpm"], 2),
+                    "err_ef_pct": pct_err(m["ef_pct"], p["real_ef_pct"]),
+                    "err_map_pct": pct_err(m["map_mmhg"], p["real_map_mmhg"]),
+                    "err_co_pct": pct_err(m["co_l_min"], p["real_co_l_min"]),
+                    "err_hr_pct": pct_err(m["hr_bpm"], p["real_hr_bpm"]),
+                    "twin_edv_ml": round(m["edv_ml"], 2), "twin_esv_ml": round(m["esv_ml"], 2),
+                    "twin_sv_ml": round(m["sv_ml"], 2),
+                    "err_co_fick_pct": pct_err(m["co_l_min"], p["real_co_fick_l_min"]),
+                    "err_sv_td_pct": pct_err(m["sv_ml"], real_sv_td),
+                    "err_sv_fick_pct": pct_err(m["sv_ml"], real_sv_fick),
                 })
             rows.append(row)
     out = pd.DataFrame(rows)

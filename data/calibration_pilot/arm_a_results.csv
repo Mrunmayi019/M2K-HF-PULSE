@@ -1,7 +1,10 @@
-arm,gu_index_1based,crashed,fatal_marker_lines,real_ef_pct,real_map_mmhg,real_co_l_min,real_hr_bpm,knob_systolic_dysfunction_condition,knob_stroke_volume_multiplier,knob_systemic_resistance_multiplier,knob_systemic_compliance_multiplier,multipliers_reached_pulse,window_start_s,window_end_s,twin_ef_pct,twin_ef_sd_pct,twin_ef_n_beats,twin_map_mmhg,twin_co_l_min,twin_hr_bpm,err_ef_pct,err_map_pct,err_co_pct,err_hr_pct
-A_prod,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,False,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2
-A_prod,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,False,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7
-A_prod,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,False,120.0,180.0,54.55,0.004,71,95.18,5.246,71.83,-6.0,-8.0,42.9,-21.5
-A_formula,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,True,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2
-A_formula,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,True,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7
-A_formula,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,True,120.0,180.0,52.47,0.014,72,95.12,5.474,73.2,-9.5,-8.1,49.1,-20.0
+arm,gu_index_1based,crashed,fatal_marker_lines,real_ef_pct,real_map_mmhg,real_co_l_min,real_hr_bpm,knob_systolic_dysfunction_condition,knob_stroke_volume_multiplier,knob_systemic_resistance_multiplier,knob_systemic_compliance_multiplier,multipliers_reached_pulse,set,real_mri_ef_pct,real_co_fick_l_min,real_sv_td_ml,real_sv_fick_ml,window_start_s,window_end_s,twin_ef_pct,twin_ef_sd_pct,twin_ef_n_beats,twin_map_mmhg,twin_co_l_min,twin_hr_bpm,err_ef_pct,err_map_pct,err_co_pct,err_hr_pct,twin_edv_ml,twin_esv_ml,twin_sv_ml,err_co_fick_pct,err_sv_td_pct,err_sv_fick_pct
+A_prod,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,False,original,20.66,4.63,43.59,59.36,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2,245.54,183.55,61.99,-5.2,42.2,4.4
+A_prod,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,False,original,30.49,3.02,83.12,55.41,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7,246.64,179.76,66.88,57.8,-19.5,20.7
+A_prod,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,False,original,28.4,3.29,40.11,35.96,120.0,180.0,54.55,0.004,71,95.18,5.246,71.83,-6.0,-8.0,42.9,-21.5,133.89,60.86,73.03,59.4,82.1,103.1
+A_prod,56,False,,25.0,95.83,4.4,58.5,True,1.0,1.0,1.0,False,consistent,23.39,4.67,75.21,79.83,120.0,180.0,27.19,0.006,71,79.25,4.908,71.06,8.8,-17.3,11.5,21.5,254.03,184.96,69.06,5.1,-8.2,-13.5
+A_prod,242,False,,33.0,91.0,4.03,97.25,True,1.0,1.0,1.0,False,consistent,31.8,4.2,41.44,43.19,120.0,180.0,25.25,0.006,70,78.79,4.4,70.81,-23.5,-13.4,9.2,-27.2,246.07,183.93,62.14,4.8,49.9,43.9
+A_prod,264,False,,56.0,72.33,3.87,85.0,False,0.873,0.924,0.924,False,consistent,49.44,3.9,45.53,45.88,120.0,180.0,56.03,0.003,70,95.35,5.861,71.89,0.1,31.8,51.5,-15.4,145.5,63.97,81.53,50.3,79.1,77.7
+A_formula,295,False,,25.0,87.5,3.4,78.0,True,1.0,1.0,1.0,True,original,20.66,4.63,43.59,59.36,120.0,180.0,25.25,0.006,71,78.77,4.391,70.83,1.0,-10.0,29.1,-9.2,245.54,183.55,61.99,-5.2,42.2,4.4
+A_formula,136,False,,40.0,75.67,4.53,54.5,True,1.0,1.0,1.0,True,original,30.49,3.02,83.12,55.41,120.0,180.0,27.12,0.006,71,79.08,4.766,71.26,-32.2,4.5,5.2,30.7,246.64,179.76,66.88,57.8,-19.5,20.7
+A_formula,120,False,,58.0,103.5,3.67,91.5,False,0.891,0.935,0.935,True,original,28.4,3.29,40.11,35.96,120.0,180.0,52.47,0.014,72,95.12,5.474,73.2,-9.5,-8.1,49.1,-20.0,142.53,67.75,74.77,66.4,86.4,108.0

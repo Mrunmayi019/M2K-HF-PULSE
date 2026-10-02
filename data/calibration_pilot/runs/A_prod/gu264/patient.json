@@ -1,0 +1,22 @@
+{
+  "Name": "Synthetic_gu264",
+  "Sex": "Male",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 173.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 88.0,
+      "Unit": "kg"
+    }
+  }
+}

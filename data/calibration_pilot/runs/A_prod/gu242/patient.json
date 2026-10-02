@@ -1,0 +1,22 @@
+{
+  "Name": "Synthetic_gu242",
+  "Sex": "Female",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 173.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 84.8,
+      "Unit": "kg"
+    }
+  }
+}

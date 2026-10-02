@@ -1,0 +1,22 @@
+{
+  "Name": "Synthetic_gu120_off_sv_0.8",
+  "Sex": "Female",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 163.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 68.9,
+      "Unit": "kg"
+    }
+  }
+}

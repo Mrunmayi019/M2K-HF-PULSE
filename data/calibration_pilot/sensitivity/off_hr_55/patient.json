@@ -1,0 +1,28 @@
+{
+  "Name": "Synthetic_gu120_off_hr_55",
+  "Sex": "Female",
+  "Age": {
+    "ScalarTime": {
+      "Value": 60.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 163.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 68.9,
+      "Unit": "kg"
+    }
+  },
+  "HeartRateBaseline": {
+    "ScalarFrequency": {
+      "Value": 55.0,
+      "Unit": "1/min"
+    }
+  }
+}
