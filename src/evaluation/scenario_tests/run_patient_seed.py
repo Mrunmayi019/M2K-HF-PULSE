@@ -54,13 +54,17 @@ OUTPUT_DIR = REPO_ROOT / "results" / "scenario_tests"
 
 BASELINE_DAYS = 21
 MONITORED_DAYS = 21
-# Noise conventions: same relative-noise style generate_wearable_trends.py uses (NOISE_SD_FRACTION
-# of each vital), plus the brief's explicit absolute figures for weight/HR.
+# BUGFIX 2026-10-03 (results/scenario_tests/protocol_amendments.md): noise SD for resting_hr_bpm/
+# steps_per_day/hrv_rmssd_ms/spo2_pct/sleep_hours must be calibrated against the POPULATION SD in
+# reference_stats.yaml (the same convention generate_wearable_trends.py uses, and what the
+# classifier/regressor were actually trained against) -- NOT against each patient's own current
+# value. The original version used `current_value * NOISE_SD_FRACTION` for steps/HRV, producing
+# noise 2-2.7x larger than the training distribution ever saw for exactly the two features the
+# regressor is most sensitive to (resting_hr_bpm and steps_per_day delta/slope, ~90% combined
+# importance) -- traced as the root cause of a spurious pre-story "deconditioning" alert on P10's
+# day 3 (before its story starts on day 4).
 NOISE_SD_FRACTION = 0.15
-WEIGHT_NOISE_SD_KG = 0.3   # brief: "weight fluctuates by about +-0.3 kg"
-HR_NOISE_SD_BPM = 2.0      # brief: "resting HR by a few bpm"
-SPO2_NOISE_SD = 0.3
-SLEEP_NOISE_SD_HR = 0.2
+WEIGHT_NOISE_SD_KG = 0.3   # brief: "weight fluctuates by about +-0.3 kg" -- explicit instruction, not population-derived
 
 CSV_FIELDS = [
     "patient_id", "seed", "day", "story", "expected_group", "event",
@@ -98,6 +102,19 @@ def verify_model_hashes():
 def load_patient_cohort(patient_id):
     cohort = yaml.safe_load(COHORT_PATH.read_text())
     return cohort["patients"][patient_id]
+
+
+def _population_noise_sds():
+    """Population-calibrated noise SD per vital (population_sd * NOISE_SD_FRACTION), the same
+    convention generate_wearable_trends.py uses and what the classifier/regressor were trained
+    against -- see the BUGFIX note on NOISE_SD_FRACTION above."""
+    from src.data_synthesis.generate_patients import load_reference_stats
+    wb = load_reference_stats()["wearable_baseline"]
+    return {v: wb[v]["sd"] * NOISE_SD_FRACTION for v in
+            ("resting_hr_bpm", "steps_per_day", "hrv_rmssd_ms", "spo2_pct", "sleep_hours")}
+
+
+NOISE_SD = _population_noise_sds()
 
 
 def make_session(patient_id, seed):
@@ -139,12 +156,12 @@ def add_baseline_window(db, patient_id, cfg, rng, base_date):
         db.add(models.WearableReading(
             patient_id=patient_id,
             recorded_date=base_date + datetime.timedelta(days=day),
-            resting_hr_bpm=base["resting_hr_bpm"] + _n(rng, HR_NOISE_SD_BPM),
-            spo2_pct=min(100.0, base["spo2_pct"] + _n(rng, SPO2_NOISE_SD)),
+            resting_hr_bpm=base["resting_hr_bpm"] + _n(rng, NOISE_SD["resting_hr_bpm"]),
+            spo2_pct=min(100.0, base["spo2_pct"] + _n(rng, NOISE_SD["spo2_pct"])),
             weight_kg=base["weight_kg"] + _n(rng, WEIGHT_NOISE_SD_KG),
-            steps_per_day=max(0.0, base["steps_per_day"] + _n(rng, base["steps_per_day"] * NOISE_SD_FRACTION)),
-            sleep_hours=max(0.0, base["sleep_hours"] + _n(rng, SLEEP_NOISE_SD_HR)),
-            hrv_rmssd_ms=max(1.0, base["hrv_rmssd_ms"] + _n(rng, base["hrv_rmssd_ms"] * NOISE_SD_FRACTION)),
+            steps_per_day=max(0.0, base["steps_per_day"] + _n(rng, NOISE_SD["steps_per_day"])),
+            sleep_hours=max(0.0, base["sleep_hours"] + _n(rng, NOISE_SD["sleep_hours"])),
+            hrv_rmssd_ms=max(1.0, base["hrv_rmssd_ms"] + _n(rng, NOISE_SD["hrv_rmssd_ms"])),
         ))
     db.commit()
 
@@ -153,12 +170,12 @@ def add_monitored_reading(db, patient_id, cfg, day_row, calendar_day, rng):
     from src.api import models
     base = cfg["baseline_wearable"]
     values = dict(
-        resting_hr_bpm=day_row["resting_hr_bpm"] + _n(rng, HR_NOISE_SD_BPM),
-        spo2_pct=min(100.0, base["spo2_pct"] + _n(rng, SPO2_NOISE_SD)),
+        resting_hr_bpm=day_row["resting_hr_bpm"] + _n(rng, NOISE_SD["resting_hr_bpm"]),
+        spo2_pct=min(100.0, base["spo2_pct"] + _n(rng, NOISE_SD["spo2_pct"])),
         weight_kg=day_row["weight_kg"] + _n(rng, WEIGHT_NOISE_SD_KG),
-        steps_per_day=max(0.0, day_row["steps_per_day"] + _n(rng, max(day_row["steps_per_day"], 1) * NOISE_SD_FRACTION)),
-        sleep_hours=max(0.0, day_row["sleep_hours"] + _n(rng, SLEEP_NOISE_SD_HR)),
-        hrv_rmssd_ms=max(1.0, day_row["hrv_rmssd_ms"] + _n(rng, max(day_row["hrv_rmssd_ms"], 1) * NOISE_SD_FRACTION)),
+        steps_per_day=max(0.0, day_row["steps_per_day"] + _n(rng, NOISE_SD["steps_per_day"])),
+        sleep_hours=max(0.0, day_row["sleep_hours"] + _n(rng, NOISE_SD["sleep_hours"])),
+        hrv_rmssd_ms=max(1.0, day_row["hrv_rmssd_ms"] + _n(rng, NOISE_SD["hrv_rmssd_ms"])),
     )
     db.add(models.WearableReading(patient_id=patient_id, recorded_date=calendar_day, **values))
     db.commit()

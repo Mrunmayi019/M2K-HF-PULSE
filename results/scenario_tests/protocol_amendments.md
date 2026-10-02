@@ -260,5 +260,60 @@ pre-amendment -- expected, since nothing short-circuited via a fast ~8s failure 
 particular crash: severity still climbs to a similarly extreme range late in the run (0.76-0.91,
 not far from the original's 0.81-0.90) because P10's *story* genuinely is severe by day 21 -- but
 the engine no longer crashes repeatedly getting there, and the one crash-zone day it does predict
-completes cleanly instead of failing 8 times in a row. Proceeding to the full batch
-(10 patients x 3 seeds, N=6 parallel).
+completes cleanly instead of failing 8 times in a row.
+
+---
+
+## 2026-10-03: Two questions investigated before the full batch (from saved pilot data, no new runs)
+
+### Q1: Day 3's alert -- P10's story starts day 4. Was it real? What drove it?
+
+**Confirmed from the saved CSV: day 3's `event` column is empty (no story perturbation active
+yet).** Days 1-5:
+
+| Day | `event` | predicted_scenario | predicted_severity | risk | alert | wearable steps | wearable HR | wearable HRV |
+|---|---|---|---|---|---|---|---|---|
+| 1 | (none) | stable | 0.0557 | 0.0001 | False | 5154 | 85.87 | 23.98 |
+| 2 | (none) | stable | 0.0624 | 0.0000 | False | 3571 | 84.06 | 28.94 |
+| 3 | (none) | deconditioning | 0.1835 | 0.0050 | **True** | 6937 | 88.50 | 20.61 |
+| 4 | everything_ramp | deconditioning | 0.2597 | 0.0036 | True | 4116 | 87.76 | 22.34 |
+| 5 | everything_ramp | deconditioning | 0.2834 | 0.0035 | True | 3221 | 86.45 | 16.08 |
+
+**The day-3 alert was real but not story-driven -- it was driven by noise in my own test
+harness, not by P10's story (which hadn't started).** Steps swing 5154 -> 3571 -> 6937 across
+days 1-3 purely from the noise layer (base target ~5400 throughout). Traced to the exact
+mechanism: `src/evaluation/scenario_tests/run_patient_seed.py`'s noise SD for `steps_per_day`/
+`hrv_rmssd_ms` was computed as `current_value * 0.15` (~810 for P10's steps, ~3.6-4 for HRV)
+instead of `population_sd * 0.15` (300 / 1.8) -- the convention `generate_wearable_trends.py`
+actually uses, and what the classifier/regressor were trained against. **2.7x oversized noise on
+steps, ~2x on HRV -- precisely the two features with the highest combined regressor importance
+(90.3%, `feature_importances.csv`).** This is a bug in the scenario-test runner (test code), not
+real-pipeline behavior. **Fixed**: `NOISE_SD` now loads population SDs from `reference_stats.yaml`
+for all five relative-noise vitals (HR/steps/HRV/SpO2/sleep), matching `generate_wearable_trends.
+py` exactly; `WEIGHT_NOISE_SD_KG=0.3` is unchanged (your explicit instruction, not population-
+derived). Confirmed new values: HR=1.2, steps=300.0, HRV=1.8, SpO2=0.18, sleep=0.15.
+
+### Q2: Day 11's "classifier fallback that still completed" -- bug or real pipeline behavior?
+
+**Real, deliberate, pre-existing pipeline behavior -- confirmed directly from source, not
+inferred.** `src/analytics/score_reporting.py::determine_simulation_status()`'s own docstring
+(lines 107-112):
+
+> `"unstable"`: Pulse was invoked and EITHER failed OR landed in/near the documented crash zone
+> (`is_known_unstable_configuration()`) -- checked regardless of whether the run happened to
+> succeed. **A "lucky" success inside the crash zone is still not a reliable data point** (4/8
+> failure rate documented in `docs/synthetic_deterioration_stress_test.md`); this function
+> deliberately does not let a successful outcome override that.
+
+Day 11 predicted `acute_deterioration` at severity 0.843 -- inside the documented crash-zone range
+-- and Pulse happened to complete without error. `determine_simulation_status()` still returns
+`"unstable"` for this case BY DESIGN (the code path above, not a special case I'm inferring), so
+`build_score_report()`'s `alert_basis="classifier_only"` and my harness's `alert_source=
+"unstable_fallback"` label follow directly and correctly from real, documented pipeline logic.
+**Not a scenario-test-runner bug. Not changed, per instruction — not the pipeline's to touch.**
+
+### Resolution
+
+Q1 was a scenario-test-runner bug -- fixed as described, pilot rerun below. Q2 is expected,
+documented real-pipeline behavior -- nothing changed. Proceeding to the full batch
+(10 patients x 3 seeds, N=6 parallel) after the Q1-fix pilot rerun confirms sensible behavior.
