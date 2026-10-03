@@ -17,11 +17,7 @@ import joblib
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from src.analytics.deterioration_rate import (
-    SD_RATE_TO_RISK_SCORE_PER_DAY,
-    compute_deterioration_rate,
-    days_to_next_stage,
-)
+from src.analytics.deterioration_rate import compute_deterioration_rate, days_to_next_stage
 from src.analytics.projection import DEFAULT_HORIZONS_DAYS, project_physiology
 from src.analytics.risk_score import compute_risk_score
 from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
@@ -30,7 +26,7 @@ from src.api import models
 from src.data_synthesis.generate_patients import load_reference_stats
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S, build_scenario_file
-from src.pulse_runner.runner import PulseExecutionError, run_pulse
+from src.pulse_runner.runner import run_pulse_with_preflight
 from src.scenario_classifier.features import build_inference_features, feature_columns
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -81,6 +77,38 @@ ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE = (
     "design -- docs/methodology.md §4.2). It reflects heart rate only and is not an input to the "
     "scenario classifier or severity regressor. Do not read patient-specific meaning into its shape."
 )
+
+def mark_simulation_run_failed(db: Session, run: models.SimulationRun, error_message: str) -> None:
+    """PROPOSED 2026-10-02, part of the continuous-state-sync / real-outcome-validation /
+    unstable-alert-fallback integration (docs/integration_pre_results.md): shared by
+    src/api/services.py and src/api/continuous_state_pipeline.py so a Pulse failure is recorded
+    identically regardless of which pipeline produced it. This is the exact behavior
+    _run_assessment_pipeline() already had inline in both of its failure branches -- extracted
+    here, not changed, so routes.py's _build_status() and the unstable-run alert fallback
+    (fix/unstable-alert-fallback) see the same SimulationRun(status="failed") shape either way."""
+    run.status = "failed"
+    run.error_message = error_message
+    run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+    db.commit()
+
+
+def build_risk_caveats(scenario_type: str, ef_is_fallback: bool, risk_bucket: str) -> str:
+    """Shared by src/api/services.py and src/api/continuous_state_pipeline.py so both pipelines
+    attach identical risk_caveats text for the same inputs -- previously duplicated inline here
+    and in continuous_state_pipeline.py, which had drifted to omit ECG_REFERENCE_TEMPLATE_CAVEAT_
+    MESSAGE entirely (found during the continuous-state-sync / real-outcome-validation merge,
+    2026-10-02). See the three *_CAVEAT_MESSAGE constants above for what each piece means."""
+    if scenario_type != "fluid_overload":
+        fluid_overload_caveat = None
+    elif ef_is_fallback and risk_bucket == "LOW":
+        fluid_overload_caveat = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
+    else:
+        fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
+
+    return " ".join(
+        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
+    )
+
 
 _model_cache: dict[str, object] = {}
 
@@ -246,21 +274,25 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         scenario_path.write_text(json.dumps(scenario, indent=2))
 
         expected_duration_s = STABILIZATION_S + 10.0 * 60
-        df = run_pulse(str(scenario_path), expected_duration_s=expected_duration_s, timeout_sec=180)
-    except PulseExecutionError as e:
-        run.status = "failed"
-        run.error_message = str(e)
-        run.scenario_json_path = str(scenario_path)
-        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        db.commit()
-        return
+        # run_pulse_with_preflight() (Sprint 2, docs/methodology.md Sec 8) warns (RuntimeWarning)
+        # before running if (scenario_type, severity) falls in the documented crash zone -- it
+        # still runs by default (never silently skips a run this pipeline expects); catches
+        # PulseExecutionError internally and reports it via pulse_result["error"] instead of
+        # raising, so the failure handling below is unchanged in observable behavior.
+        pulse_result = run_pulse_with_preflight(
+            str(scenario_path), scenario_type, severity,
+            expected_duration_s=expected_duration_s, timeout_sec=180,
+        )
     except Exception as e:  # defensive: never leave a run stuck at "running" on an unexpected error
-        run.status = "failed"
-        run.error_message = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
-        run.completed_at = datetime.datetime.now(datetime.timezone.utc)
-        db.commit()
+        mark_simulation_run_failed(db, run, f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
         return
 
+    if not pulse_result["pulse_succeeded"]:
+        run.scenario_json_path = str(scenario_path)
+        mark_simulation_run_failed(db, run, pulse_result["error"])
+        return
+
+    df = pulse_result["df"]
     sim_features = analyze_simulation(df)
     run.waveform_data = extract_waveform_data(df)
     risk = compute_risk_score(
@@ -285,7 +317,10 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         patient=demo_row,
         scenario_type=scenario_type,
         current_severity=severity,
-        deterioration_rate_per_day=rate_info["composite_rate"] * SD_RATE_TO_RISK_SCORE_PER_DAY,
+        # Raw, scale-agnostic rate -- project_physiology()/project_severity() do their own
+        # severity-scoped conversion internally. Passing a risk_score-pre-converted rate here
+        # (SD_RATE_TO_RISK_SCORE_PER_DAY) was the bug fixed 2026-09-10 (docs/methodology.md Sec 8).
+        composite_rate=rate_info["composite_rate"],
         horizons=DEFAULT_HORIZONS_DAYS,
         output_dir=output_dir / "projection",
     )
@@ -299,16 +334,7 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         for horizon, r in projection.items()
     }
 
-    if scenario_type != "fluid_overload":
-        fluid_overload_caveat = None
-    elif ef_is_fallback and risk["risk_bucket"] == "LOW":
-        fluid_overload_caveat = EF_FALLBACK_MASKS_FLUID_OVERLOAD_CAVEAT_MESSAGE
-    else:
-        fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
-
-    risk_caveats = " ".join(
-        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
-    )
+    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
 
     db.add(
         models.RiskAssessment(

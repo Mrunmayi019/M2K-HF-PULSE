@@ -11,26 +11,42 @@ from __future__ import annotations
 import json
 import pathlib
 
+from src.analytics.deterioration_rate import SD_RATE_TO_SEVERITY_PER_DAY
 from src.analytics.risk_score import compute_risk_score
 from src.analytics.simulation_features import analyze_simulation
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S, build_scenario_file
-from src.pulse_runner.runner import PulseExecutionError, run_pulse
+from src.pulse_runner.runner import run_pulse_with_preflight
 
 DEFAULT_HORIZONS_DAYS = (7, 14, 30)
 DEFAULT_OUTPUT_DIR = pathlib.Path("/workspace/scenarios/projection")
 
 
-def project_severity(current_severity: float, deterioration_rate_per_day: float, horizon_days: int) -> float:
+def project_severity(current_severity: float, composite_rate: float, horizon_days: int) -> float:
     """Linear extrapolation of severity forward `horizon_days`, clamped to [0, 1].
 
-    `deterioration_rate_per_day` is in risk_score-equivalent units/day (see
-    src/analytics/deterioration_rate.py's `SD_RATE_TO_RISK_SCORE_PER_DAY` for how a wearable-trend
-    composite rate is converted to this same scale) -- severity and risk_score share the same 0-1
-    range by construction (see data_synthesis/generate_patients.py's severity assignment), so a
-    risk_score-equivalent daily rate is used directly to project severity forward too.
+    FIXED 2026-09-10 (see docs/methodology.md Sec 8, "severity and risk_score are not on
+    comparable scales" -- now marked resolved there). This function previously took a rate
+    pre-converted via `SD_RATE_TO_RISK_SCORE_PER_DAY` (risk_score's own scale conversion) and
+    applied it directly to `current_severity` (a different scale) -- confirmed as a real bug on
+    the real 117-row Phase 4 dataset: risk_score's floor for acute_deterioration (0.491) sits
+    above severity's own mean (0.385), so a rate calibrated for risk_score does not move severity
+    at the rate it was actually calibrated for.
+
+    Fixed the same way `deterioration_rate.days_to_next_stage()` already handles the equivalent
+    risk_score case: this function now takes the raw, scale-agnostic `composite_rate`
+    (population-SD-equivalents/day, from `compute_deterioration_rate()`) and does its OWN
+    conversion internally via `SD_RATE_TO_SEVERITY_PER_DAY` -- a constant scoped specifically to
+    severity, independent of `SD_RATE_TO_RISK_SCORE_PER_DAY`. This is a structural fix (a caller
+    can no longer accidentally pass the wrong pre-converted rate, the same mistake that caused the
+    original bug) -- it does NOT mean the numeric conversion itself is now validated:
+    `SD_RATE_TO_SEVERITY_PER_DAY` is still an unvalidated placeholder (same status as its
+    risk_score counterpart) pending real severity-trajectory calibration data, which this project
+    does not have. Deliberately NOT fused with risk_score's own projection (see
+    `docs/methodology.md` Sec 8's "blocked on data" note) -- the two are projected independently.
     """
-    projected = current_severity + deterioration_rate_per_day * horizon_days
+    severity_rate_per_day = composite_rate * SD_RATE_TO_SEVERITY_PER_DAY
+    projected = current_severity + severity_rate_per_day * horizon_days
     return max(0.0, min(projected, 1.0))
 
 
@@ -59,12 +75,17 @@ def _run_at_severity(
     scenario_path.write_text(json.dumps(scenario, indent=2))
 
     expected_duration_s = STABILIZATION_S + duration_min * 60
-    try:
-        df = run_pulse(str(scenario_path), expected_duration_s=expected_duration_s, timeout_sec=180)
-    except PulseExecutionError as e:
-        return {"status": "failed", "error": str(e)}
+    # run_pulse_with_preflight() (Sprint 2, docs/methodology.md Sec 8): warns before running if
+    # (scenario_type, severity) is in the documented crash zone -- projected severities are just
+    # as likely to land there as a patient's own, so this guardrail applies here too, not just
+    # the initial assessment. Still runs by default (never silently skips).
+    pulse_result = run_pulse_with_preflight(
+        str(scenario_path), scenario_type, severity, expected_duration_s=expected_duration_s, timeout_sec=180
+    )
+    if not pulse_result["pulse_succeeded"]:
+        return {"status": "failed", "error": pulse_result["error"]}
 
-    features = analyze_simulation(df)
+    features = analyze_simulation(pulse_result["df"])
     risk = compute_risk_score(
         hr_rise=features["hr_rise"],
         map_drop=features["map_drop"],
@@ -80,7 +101,7 @@ def project_physiology(
     patient: dict,
     scenario_type: str,
     current_severity: float,
-    deterioration_rate_per_day: float,
+    composite_rate: float,
     horizons: tuple[int, ...] = DEFAULT_HORIZONS_DAYS,
     output_dir: pathlib.Path = DEFAULT_OUTPUT_DIR,
     duration_min: float = 10.0,
@@ -88,10 +109,16 @@ def project_physiology(
     """Requires Docker (run_pulse() needs PulseScenarioDriver). For each horizon: projects
     severity, re-simulates via Pulse, extracts features, and scores risk. Returns
     {horizon_days: {projected_severity, **run_result}}.
+
+    `composite_rate` is the raw, scale-agnostic population-SD-equivalents/day rate from
+    `compute_deterioration_rate()` -- pass it through unconverted (same convention as
+    `deterioration_rate.days_to_next_stage()`); `project_severity()` below applies its own
+    severity-scoped conversion. Do not pre-convert this via `SD_RATE_TO_RISK_SCORE_PER_DAY` before
+    calling this function -- that was the bug fixed 2026-09-10 (docs/methodology.md Sec 8).
     """
     results = {}
     for horizon_days in horizons:
-        projected_severity = project_severity(current_severity, deterioration_rate_per_day, horizon_days)
+        projected_severity = project_severity(current_severity, composite_rate, horizon_days)
         run_result = _run_at_severity(patient, scenario_type, projected_severity, output_dir, duration_min)
         results[horizon_days] = {"projected_severity": projected_severity, **run_result}
     return results

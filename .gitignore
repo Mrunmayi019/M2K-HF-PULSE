@@ -2,9 +2,9 @@ __pycache__/
 *.pyc
 .DS_Store
 .venv/
-scenarios/*.json
-scenarios/*.log
-scenarios/*.csv
+scenarios/**/*.json
+scenarios/**/*.log
+scenarios/**/*.csv
 scenarios/batch/
 scenarios/batch_pilot/
 scenarios/projection/
@@ -15,8 +15,24 @@ data/db/
 # data even de-identified (unlike PerHeart's Zenodo CC license). summary.md (aggregate-only, no
 # per-patient rows) is fine to keep committed.
 data/mimic_outcome_validation/results.csv
+# Same PhysioNet Restricted Health Data License as MIMIC-IV (LICENSE.txt clause 3: "will not
+# share access to PhysioNet restricted data with anyone else") -- these results.csv files carry
+# real per-patient inpatient.number + clinical values. summary.md (aggregate-only) stays committed.
+data/zigong_outcome_validation/results.csv
+data/zigong_model1_clinical_only_validation/results.csv
+data/zigong_clinical_only_model_validation/results.csv
+data/zigong_native_risk_model/train_features.csv
+data/zigong_native_risk_model/test_features.csv
+data/zigong_maggic11_validation/results.csv
 data/validation_runs/*/work/
 *.env
 PUBLICATION_TODO.md
 models/*.joblib
 models/*.png
+# Large, fully regeneratable raw per-timestep Pulse simulation dumps (0.02s resolution, several MB
+# each) -- small evidence files alongside them (patient.json, scenario.json, scenario.log,
+# rj_ijk_features.csv, trend CSVs) stay committed, matching this project's existing convention.
+data/bcg_validation/**/scenarioResults.csv
+data/bcg_validation/**/full_results.csv
+data/synthetic_deterioration_stress_test/**/scenarioResults.csv
+data/synthetic_deterioration_stress_test/**/full_results.csv

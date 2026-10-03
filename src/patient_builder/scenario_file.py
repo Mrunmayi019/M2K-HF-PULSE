@@ -85,9 +85,21 @@ def _exercise_action(intensity: float) -> dict:
     return {"PatientAction": {"Exercise": {"Intensity": {"Scalar0To1": {"Value": round(intensity, 3)}}}}}
 
 
-def _scenario_actions(scenario_type: str, severity: float, modifiers: dict) -> list[dict]:
+def _scenario_actions(
+    scenario_type: str, severity: float, modifiers: dict, extra_modifiers: dict | None = None
+) -> list[dict]:
     """Returns the list of (non-AdvanceTime) actions for a scenario type, plus any extra
-    CardiovascularMechanicsModification multipliers layered on top of the EF-driven base."""
+    CardiovascularMechanicsModification multipliers layered on top of the EF-driven base.
+
+    `extra_modifiers`, when given, is merged in AFTER the scenario type's own generic
+    severity-based extra -- so a key present in both (e.g. VenousComplianceMultiplier) is
+    overridden by extra_modifiers, not combined with it. Added for real-patient runs where a
+    per-patient measured value (e.g. bcg_to_cardiovascular_modifiers' output) should take
+    precedence over the generic severity heuristic for that same lever, rather than stacking two
+    independent cuts on the same field (the exact double-counting failure mode already documented
+    for the EF condition + continuous multiplier in ef_to_cardiovascular_modifiers). None for every
+    existing synthetic-patient call site, so this is additive and doesn't change prior behavior.
+    """
     if scenario_type == "stable":
         return []
 
@@ -95,10 +107,12 @@ def _scenario_actions(scenario_type: str, severity: float, modifiers: dict) -> l
         # Congestive picture: venous compliance drops (less able to buffer volume), on top of
         # the EF-driven stroke volume / systemic resistance changes.
         extra = {"VenousComplianceMultiplier": max(0.5, 1.0 - 0.4 * severity)}
+        extra.update(extra_modifiers or {})
         return [_cardiovascular_modification_action(modifiers, extra)]
 
     if scenario_type == "cardiac_stress":
         extra = {"HeartRateMultiplier": 1.0 + 0.3 * severity}
+        extra.update(extra_modifiers or {})
         return [
             _cardiovascular_modification_action(modifiers, extra),
             _exercise_action(severity),
@@ -115,6 +129,7 @@ def _scenario_actions(scenario_type: str, severity: float, modifiers: dict) -> l
             "SystemicResistanceMultiplier": max(0.85, 1.0 - 0.1 * severity),
             "SystemicComplianceMultiplier": max(0.85, 1.0 - 0.1 * severity),
         }
+        extra.update(extra_modifiers or {})
         return [_cardiovascular_modification_action(modifiers, extra)]
 
     if scenario_type == "acute_deterioration":
@@ -124,6 +139,7 @@ def _scenario_actions(scenario_type: str, severity: float, modifiers: dict) -> l
             "VenousComplianceMultiplier": max(0.4, 1.0 - 0.5 * severity),
             "HeartRateMultiplier": 1.0 + 0.4 * severity,
         }
+        extra.update(extra_modifiers or {})
         return [
             _cardiovascular_modification_action(modifiers, extra),
             _exercise_action(severity * 0.6),
@@ -138,7 +154,12 @@ def build_scenario_file(
     severity: float,
     ejection_fraction_pct: float,
     duration_min: float = 10.0,
+    extra_modifiers: dict | None = None,
 ) -> dict:
+    """`extra_modifiers` -- e.g. bcg_to_cardiovascular_modifiers()'s output for a real patient
+    with measured BCG data -- overrides the scenario type's own generic severity-based extra for
+    any matching key (see _scenario_actions' docstring). None for every synthetic-patient call
+    site already in this codebase; unused by default."""
     severity = max(0.0, min(severity, 1.0))
     modifiers = ef_to_cardiovascular_modifiers(ejection_fraction_pct, severity)
 
@@ -155,7 +176,7 @@ def build_scenario_file(
     if conditions:
         patient_configuration["Conditions"] = {"AnyCondition": conditions}
 
-    actions = _scenario_actions(scenario_type, severity, modifiers)
+    actions = _scenario_actions(scenario_type, severity, modifiers, extra_modifiers)
 
     return {
         "PatientConfiguration": patient_configuration,

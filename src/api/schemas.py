@@ -139,6 +139,46 @@ class RiskAssessmentPayload(BaseModel):
     days_to_next_stage: Optional[int] = None
     scenario_type: Optional[str] = None
     severity: Optional[float] = None
+    severity_band: Optional[str] = Field(
+        default=None,
+        description=(
+            "Descriptive label for `severity` -- 'within_stable_range' or 'exceeds_stable_range', "
+            "relative to this project's own training-data stable-scenario severity ceiling "
+            "(0.15, docs/methodology.md Sec 8). Explicitly NOT a clinical alert threshold: no "
+            "cutoff has been derived from real outcome data. Do not treat this as equivalent to "
+            "risk_bucket."
+        ),
+    )
+    score_provenance: Optional[dict] = Field(
+        default=None,
+        description=(
+            "{'classifier_severity', 'pulse_risk_score', 'source', 'severity_score', "
+            "'severity_band', 'alert', 'alert_basis', 'confidence', 'simulation_status', "
+            "'threshold_clinically_validated'} -- src.analytics.score_reporting."
+            "build_score_report()'s full output. 'source' is 'not_fused' whenever "
+            "both scores are present (the only state reachable when this payload exists at all) -- "
+            "severity and risk_score are never combined into one number (docs/methodology.md "
+            "Sec 8's 'blocked on data' note: no real outcome-calibration data exists yet for a "
+            "fused score). 'simulation_status' ('valid'|'unstable'|'not_run') and 'confidence' "
+            "(0-1, derived from simulation_status) are Sprint 2 additions -- 'unstable' covers both "
+            "an outright Pulse failure and a 'lucky' success inside the documented "
+            "acute_deterioration crash zone (severity 0.6-0.85), either way not a reliable data "
+            "point. 'alert' ('alert'|'no_alert'|'indeterminate') is produced by a function "
+            "structurally separate from score production (project_severity() and friends only "
+            "ever produce a number, never an alert decision). When 'simulation_status' is "
+            "'unstable' and severity exceeds the stable range, 'alert' is still 'alert' (classifier "
+            "fallback) and 'alert_basis' is 'classifier_only'; 'alert_basis' is "
+            "'classifier_and_simulation' only for a 'valid' run -- its underlying threshold logic "
+            "remains an unvalidated engineering placeholder pending real outcome data, same as "
+            "'severity_band'; do not read 'alert' as a clinically validated determination. "
+            "'threshold_clinically_validated' (Sprint 2.5) is always `false` -- a fixed, explicit "
+            "statement that none of this payload's thresholds (STABLE_SEVERITY_CAP, "
+            "MIN_CONFIDENCE_FOR_ALERT, CONFIDENCE_BY_STATUS, ENTER/EXIT_THRESHOLD, "
+            "SCENARIO_TYPE_PERSISTENCE_N, or risk_score.py's own LOW/MODERATE_HIGH_BOUNDARY) has "
+            "been checked against real outcome data, so a caller never has to infer this from "
+            "scattered docstrings."
+        ),
+    )
     ejection_fraction_pct: Optional[float] = None
     nt_probnp_pg_ml: Optional[float] = None
     vital_slopes: Optional[dict] = None
@@ -152,6 +192,24 @@ class StatusResponse(BaseModel):
     simulation_status: Literal["collecting", "pending", "running", "complete", "failed"]
     reading_count: int
     latest_assessment: Optional[RiskAssessmentPayload] = None
+    latest_assessment_stale: bool = Field(
+        default=False,
+        description=(
+            "True when a SimulationRun newer than `latest_assessment` failed -- the assessment "
+            "shown is from an earlier run and no longer reflects the patient's latest "
+            "classification. `simulation_status` is 'failed' in this case, not 'complete'."
+        ),
+    )
+    current_alert: Optional[dict] = Field(
+        default=None,
+        description=(
+            "The most up-to-date alert decision, in src.analytics.score_reporting."
+            "build_score_report()'s shape. From `latest_assessment`'s score_provenance normally; "
+            "from the failed run's stored classifier severity/scenario_type when a newer run "
+            "failed (source 'classifier_only', simulation_status 'unstable', alert_basis "
+            "'classifier_only'). None when there is nothing to decide from yet."
+        ),
+    )
     latest_wearable: Optional[WearableReadingResponse] = None
     error_message: Optional[str] = None
     waveform_data: Optional[dict] = Field(

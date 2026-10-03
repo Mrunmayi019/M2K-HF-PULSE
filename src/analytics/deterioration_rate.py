@@ -37,7 +37,27 @@ WORSENING_SIGN = {
 # for "how many population-SDs/day of wearable drift equals how much daily risk_score change".
 # Treated the same way this project treats other assumed_default constants: named, documented,
 # and flagged as not empirically fit. See docs/data_provenance.md.
+#
+# Used ONLY for risk_score-scale consumers (days_to_next_stage() below). Do NOT reuse this for
+# projecting `severity` (ML Model 1's classifier output) -- severity and risk_score are NOT on
+# comparable scales (docs/methodology.md Sec 8, "severity and risk_score are not on comparable
+# scales", discovered 2026-09-10: risk_score's own floor for acute_deterioration, 0.491, sits
+# above severity's mean, 0.385, in the real 117-row Phase 4 dataset). Reusing this constant to
+# project severity was exactly the bug fixed in src/analytics/projection.py's project_severity()
+# that session -- SD_RATE_TO_SEVERITY_PER_DAY below is the separate, severity-scoped constant for
+# that use, deliberately independent so the two calibrations can never be conflated again by
+# construction, not just by caller discipline.
 SD_RATE_TO_RISK_SCORE_PER_DAY = 0.05
+
+# Severity-scale counterpart to SD_RATE_TO_RISK_SCORE_PER_DAY above, used only by
+# src/analytics/projection.py's project_severity(). Same status: an explicitly hand-tuned
+# engineering placeholder, not derived from real severity-trajectory calibration data (none
+# exists -- see docs/methodology.md Sec 8's "blocked on data" note). Deliberately given the same
+# starting magnitude as SD_RATE_TO_RISK_SCORE_PER_DAY only because there is no basis yet to pick a
+# different number for either scale independently -- this fixes the *structural* conflation bug
+# (severity and risk_score can now be recalibrated independently), not the *numerical* one (this
+# specific value is still unvalidated and pending real data either way).
+SD_RATE_TO_SEVERITY_PER_DAY = 0.05
 
 # Composite rate below this magnitude (population-SD-equivalents/day) is treated as noise, not a
 # real trend -- an engineering choice, not a clinical citation.

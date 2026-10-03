@@ -32,6 +32,18 @@ SCENARIO_EF_PROFILE = {
 
 NYHA_CLASSES = ["I", "II", "III", "IV"]
 
+# "stable" patients' severity is capped low regardless of the uniform draw -- named (not a bare
+# 0.15 magic number) since src/analytics/score_reporting.py's severity_band() reuses this exact
+# value as its one non-arbitrary reference point (docs/synthetic_deterioration_stress_test.md's
+# validated "exceeds what stable looks like" marker, docs/methodology.md Sec 8).
+#
+# EXPLICIT CATEGORY, stated plainly rather than left as an ambiguous "reference"/"marker": this is
+# an ENGINEERING CONSTANT, not a clinical threshold. It originated as a synthetic-data-generation
+# parameter (this line) and is reused elsewhere purely because it is the one non-arbitrary NUMBER
+# already in this codebase -- not because 0.15 carries any clinical meaning about real heart
+# failure severity. It has never been derived from or checked against real outcome data.
+STABLE_SEVERITY_CAP = 0.15
+
 
 def load_reference_stats(path: pathlib.Path = REFERENCE_STATS_PATH) -> dict:
     with open(path) as f:
@@ -76,7 +88,7 @@ def _assign_scenario(rng: np.random.Generator, stats: dict, n: int) -> pd.DataFr
     scenario_type = rng.choice(stats["scenario_types"], size=n)
     severity = rng.uniform(0, 1, n)
     # "stable" is stable by definition -- cap its severity low regardless of the uniform draw.
-    severity = np.where(scenario_type == "stable", severity * 0.15, severity)
+    severity = np.where(scenario_type == "stable", severity * STABLE_SEVERITY_CAP, severity)
     return pd.DataFrame({"scenario_type": scenario_type, "severity": np.round(severity, 3)})
 
 

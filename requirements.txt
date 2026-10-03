@@ -1,11 +1,18 @@
-pandas
-numpy
+# scikit-learn/numpy/pandas/xgboost are pinned exactly: models/scenario_classifier.joblib and
+# models/severity_regressor.joblib were trained with scikit-learn 1.9.0 (docs/integration_pre_
+# results.md), and loading them under a different version triggers sklearn's own
+# InconsistentVersionWarning plus small-but-real prediction drift (see that doc for the ~0.006-
+# 0.008 severity difference this caused before pinning). Confirmed these exact versions install
+# cleanly and load the models with zero warnings on BOTH the host (Python 3.12 venv) and the
+# backend/Dockerfile image (Python 3.11) -- not just one or the other.
+pandas==3.0.6
+numpy==2.4.6
 scipy
 pyyaml
 pytest
-scikit-learn
+scikit-learn==1.9.0
 matplotlib
-xgboost
+xgboost==3.2.0
 fastapi
 uvicorn
 sqlalchemy

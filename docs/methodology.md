@@ -71,15 +71,21 @@ both confirmed by what actually shipped rather than a schedule guess:
    for echo/PPG was ever sourced or vetted.
 2. **Tier 1 alone already met the project's own accuracy targets.** The scenario classifier
    trained on Tier 1 features (clinical snapshot + wearable-trend aggregates, no vascular-
-   compliance term) reached 92.3% test accuracy and severity MAE 0.048 (§5) — comfortably past the
-   informal >80% target the roadmap set for this model. Tier 2 was never load-bearing for a result
-   the system actually needed to hit; adding it would have been complexity without a corresponding
-   accuracy gap to close.
+   compliance term) reached 90.7% test accuracy and severity MAE 0.047 (§5, current baseline) —
+   comfortably past the informal >80% target the roadmap set for this model. Tier 2 was never
+   load-bearing for a result the system actually needed to hit; adding it would have been
+   complexity without a corresponding accuracy gap to close.
 
 Tier 2 therefore remains exactly what it was scoped as — optional and unimplemented — not a cut
 scope item disguised as a stretch goal. It is listed again in §9 as legitimate future work, since
 an echo/PPG-derived compliance term is a real, literature-supported way to sharpen the digital
 twin's cardiovascular personalization if a suitable dataset is later acquired.
+
+**Update:** §12 documents a since-built, related-but-distinct extension — a real vascular-
+compliance term driven by ballistocardiography (BCG), substituted for the echo/PPG data that was
+still never acquired. This does not retroactively count as Tier 2 being built (BCG is a different
+signal from what Tier 2 specified), but it is the closest this project has come to a real, non-EF
+vascular-personalization input.
 
 ## 4. Pulse Integration Methodology
 
@@ -231,16 +237,40 @@ unstratified 15% slice risks near-empty classes for 5-way evaluation. Random For
 were left at defaults (`n_estimators=300`, no depth cap) — no tuning harness was built, since the
 task didn't call for one.
 
-**Results (held-out test set, 300 patients):** 92.3% scenario accuracy (macro F1 0.92), severity
-MAE 0.048 / RMSE 0.063. Full classification report and confusion matrix are written to
-`models/phase3_eval_report.txt` on every training run (small text file, committed as evidence;
-the `.joblib` model weights and `.png` plots alongside it are gitignored and regenerated with
-`python3 -m src.scenario_classifier.train`). Notably, `cardiac_stress` (HFpEF-profile, preserved
-EF) and `acute_deterioration` (HFrEF-profile, low EF) — the pair Phase 2's Pulse validation (§4,
-`cardiac_stress` vs `acute_deterioration` table) found hardest to distinguish from HR/MAP time
-series alone — are cleanly separated here (1–3 misclassifications out of ~60 each way), because
-`ejection_fraction_pct` is directly available as an input feature to this model, unlike the
-Pulse-output-only comparison in Phase 2.
+**Results (held-out test set, 300 patients), current baseline:** 90.7% scenario accuracy (macro
+F1 0.91), severity MAE 0.047 / RMSE 0.061. Full classification report and confusion matrix are
+written to `models/phase3_eval_report.txt` on every training run (small text file, committed as
+evidence; the `.joblib` model weights and `.png` plots alongside it are gitignored and regenerated
+with `python3 -m src.scenario_classifier.train`). Notably, `cardiac_stress` (HFpEF-profile,
+preserved EF) and `acute_deterioration` (HFrEF-profile, low EF) — the pair Phase 2's Pulse
+validation (§4, `cardiac_stress` vs `acute_deterioration` table) found hardest to distinguish from
+HR/MAP time series alone — are cleanly separated here (1–4 misclassifications out of ~60 each
+way), because `ejection_fraction_pct` is directly available as an input feature to this model,
+unlike the Pulse-output-only comparison in Phase 2.
+
+*(Note added 2026-09-10, while investigating a "give the classifier rolling-window context"
+proposal ("Option A"): this section previously stated 92.3% / MAE 0.048 / RMSE 0.063 as the
+"current" result well after that number had stopped being reproducible. That original figure was
+real, not a documentation error — it was the true held-out result for the 30-feature version of
+this model that included `nyha_class` as an ordinal feature. Removing `nyha_ordinal` from
+`CLINICAL_FEATURE_COLUMNS` (§9 "done" items, commit `064f742`, 2026-08-03) fixed a much larger
+live train/inference mismatch — severity MAE 0.271 live vs. 0.048 offline, because a brand-new
+patient's real NYHA class isn't knowable at inference time and was silently defaulted — at a small,
+deliberately-accepted offline cost: test accuracy 92.3% → 90.7%, severity MAE effectively
+unchanged (0.048 → 0.047). That trade-off and its rationale were already recorded correctly in §7
+and §9 below (and in `models/model_card.md`), including the delta shown in `git show 064f742 --
+models/phase3_eval_report.txt`, which is the actual committed evidence for 90.7%/0.047/0.061 — but
+this §5 headline line, and the Tier-1-sufficiency argument in §1, were never updated to match and
+kept citing the pre-fix number as if current. Found and corrected here after Option A's mandated
+held-out re-validation (see below) compared its new numbers against this stale 92.3%/0.048/0.063
+figure and couldn't reproduce it even with the unmodified, pre-Option-A feature set — reproducing
+instead the exact 90.7%/0.047/0.061 / confusion matrix already sitting in
+`models/phase3_eval_report.txt`. No dataset regeneration and no split-logic change were involved.
+Separately, note the committed `models/phase3_eval_report.txt` as of commit `5e99cde` reads 91.3%
+test accuracy — with zero code or data changes between that commit and `064f742`'s 90.7%, so
+`RandomForestClassifier`/`RandomForestRegressor` with a fixed `random_state=42` is not perfectly
+reproducible across different scikit-learn/numpy environments; the spread observed so far is
+small and bounded (~1 point of test accuracy), known, and not investigated further.)*
 
 **Phase 4 (batch simulation dataset, done).** `src/pulse_runner/batch_runner.py` runs a stratified
 sample of synthetic patients through Pulse in parallel and `src/analytics/simulation_features.py` extracts a
@@ -671,7 +701,9 @@ resolved — it does not contradict Phase 4's finding, just doesn't reproduce it
 
 **Scenario classification agreement: 100% (25/25)** — the live classifier output matched each
 patient's true `scenario_type` on every patient, consistent with (and slightly better than) the
-offline 92.3% test-set accuracy (§5).
+92.3% offline test-set accuracy this model had at the time of this run (§5's headline number as of
+this Phase 8 validation, pre-dating the `nyha_ordinal` removal fix below and §5's current
+90.7% baseline).
 
 **Severity MAE: 0.271 — a real, diagnosed discrepancy from the offline 0.048 MAE, not just
 expected live-vs-test noise.** Inspecting the per-patient predictions
@@ -781,6 +813,343 @@ process; admission-level rather than patient-level sampling (13,047 patients acr
 admissions mildly violates the AUC CI's independence assumption, uncorrected in this pass); and
 only in-hospital mortality was tested — post-discharge mortality (`patients.dod`) and 30/90-day HF
 readmission are flagged as future work, not pursued here.
+
+### 7.Y Zigong heart-failure cohort real-outcome test — baseline-deficit mechanism only, composite
+### outcome, 2026-09-11
+
+**Scope, stated up front exactly as §7.X's is: this tests the SAME one mechanism as §7.X** —
+`risk_score.py`'s `baseline_deficit_score` term, a pure function of `map_start` — against a real,
+independent, second cohort (PhysioNet, DUA-signed, restricted access: "Hospitalized patients with
+heart failure: integrating electronic healthcare records and external outcome data", v1.3, Zigong,
+China), this time against a broader composite outcome (death-or-readmission within 6 months). It
+does **not** validate the full `risk_score.py` output, Model 1, or the Pulse simulation layer —
+same gap as §7.X, still open.
+
+**Why LVEF/NYHA/BNP — all present and reported descriptively in this dataset — are not fed into
+this test.** Checked before building anything: no existing function in this codebase maps
+(LVEF, NYHA, BNP) → `risk_score` or severity. `risk_score.py`'s 5 acute-change features
+(`hr_rise`/`map_drop`/`co_drop_pct`/`compensation_flag`/`instability_flag`) are all Pulse-simulated
+encounter outputs, and this dataset is a single per-admission EHR snapshot — no encounter to
+simulate. `staging.py`'s `classify_nyha()` runs the opposite direction (EF/BNP +an already-computed
+`risk_score` + `instability_flag` → NYHA class, not the reverse). Model 1 needs a 21-day
+ambulatory wearable-trend window this dataset structurally cannot supply — fabricating one would
+be exactly the "inventing proxies" pattern §7.X already rejected for MIMIC-IV, for the same reason
+(no EF there either). Building a new LVEF/NYHA/BNP proxy scorer was raised and explicitly declined
+for this pass (repo owner's call, 2026-09-11) — real modeling work requiring its own citations, not
+a measurement of what already exists. `map_start` (this dataset's `map` column, mean arterial
+pressure, 0% missing) is the only field with an existing, unmodified, non-fabricated path into any
+of this project's real-valued outputs — the same one §7.X already used, which is exactly why this
+is a genuine second test of that one mechanism, not a new one.
+
+**Cleaning** (`scripts/zigong_outcome_validation.py`), rules agreed before computing anything,
+individually and combined, on n=2008 raw admissions: `pulse`==0 (1 row), `respiration`==0 (1),
+`systolic.blood.pressure`==0 (3), `height`<1.0m (4), `BMI`>60 (4) — union of all five, 7 rows
+dropped (some overlap across rules) → **n=2001 after cleaning**.
+
+**Cohort:** complete-case (LVEF + NYHA + BNP + all 6 binary outcome flags present), built from the
+cleaned data — **n=625** (the pre-cleaning reconnaissance figure was 626 on raw n=2008; cleaning
+removed exactly one row that also happened to be in this complete-case set). **Composite outcome**
+(`death.within.6.months` OR `re.admission.within.6.months`) event rate **41.3%** (258/625) —
+readmission-dominated (39.7% alone) with death within the same window rare (1.6% alone), a larger
+and more balanced event rate than either §7.X's 14.2% in-hospital mortality or this cohort's own
+death-alone rate.
+
+**Result** (`data/zigong_outcome_validation/summary.md` for full output):
+
+- **AUC = 0.533 (95% CI 0.490–0.575, percentile bootstrap, 2,000 resamples, seed=42)** for
+  `baseline_deficit_score` predicting the 6-month composite outcome, complete-case cohort (n=625).
+  **The CI crosses 0.5 — not distinguishable from chance on this cohort.**
+- **PR-AUC = 0.463 (95% CI 0.412–0.520)** against a 0.413 event-rate baseline — a small lift over
+  the baseline rate, consistent with the near-chance AUC rather than contradicting it.
+- **Bonus, full cleaned cohort (n=2001, not gated by LVEF/NYHA/BNP presence since `map` itself is
+  0% missing):** AUC = 0.548 (95% CI 0.525–0.573) — CI just clears 0.5, but still weak; PR-AUC =
+  0.457 (95% CI 0.426–0.490).
+- **Calibration is not monotonic in the way §7.X's was**: decile-style binning collapsed to 4
+  distinct score groups because 441/625 (70.6%) patients land at essentially the same near-floor
+  score (~0.0165) — consistent with this cohort's mean admission `map` (94.7 mmHg, per the
+  reconnaissance pass) sitting just above the 92.5 mmHg healthy anchor `baseline_deficit_score` is
+  built around, unlike MIMIC-IV's more acutely unstable ICU population. **Likely explanation for
+  the muted signal**: this mechanism was designed around a chronically-congested low resting MAP
+  (`fluid_overload`'s presentation); Zigong's admission-time MAP is mostly normal-to-elevated, so
+  the score has little room to differentiate most of this cohort — a population mismatch, not a
+  bug in the formula.
+
+**Side by side with §7.X, cohorts and outcomes clearly different — not averaged, not treated as
+the same number:**
+
+| | §7.X MIMIC-IV | §7.Y Zigong |
+|---|---|---|
+| Cohort | 17,129 ICU HF admissions | 625 complete-case HF admissions (2,001 cleaned) |
+| Outcome | In-hospital mortality (14.2%) | Death-or-readmission, 6mo (41.3%) |
+| AUC | **0.596** (95% CI 0.585–0.608) | **0.533** (95% CI 0.490–0.575), complete-case; 0.548 (0.525–0.573), full cleaned cohort |
+| PR-AUC | not computed in §7.X | 0.463 (95% CI 0.412–0.520) vs. 0.413 baseline |
+
+**Honest limitations of this specific test:** **this validates baseline-risk-predicts-future-
+outcome only — it does NOT validate day-by-day trend/early-warning detection (Model 1's actual
+production use case), which remains untested by any real data.** Additionally: hospitalized,
+already-acutely-ill population at baseline capture, not this project's target outpatient/home-
+monitoring population (same caveat as §7.X); the composite outcome mixes two different event types
+(death, readmission) with very different rates and is not decomposed here; LVEF/NYHA/BNP are
+unused despite being present, for the reasons stated above; `map` here is a single admission-time
+vital, not a stable ambulatory baseline (same `map_start`-meaning caveat as §7.X); the complete-case
+cohort is a non-random subset (patients who happened to get both an echo and a BNP draw) that may
+not represent the full 2,001-admission cleaned population.
+
+**Taken together with §7.X:** two independent real-world cohorts (MIMIC-IV, Zigong) now show
+`baseline_deficit_score` performing near chance, and the Zigong result's root cause (this cohort's
+admission-time MAP sitting mostly at or above the mechanism's own healthy anchor, rather than in
+the chronically-congested-low-MAP range it was tuned to detect) suggests the mechanism may be built
+for acute ICU-level instability rather than the more moderate, ward-level HF presentation this
+system's actual home-monitoring use case targets — worth weighing before deciding whether this is
+a fixable tuning gap (e.g. incorporating the LVEF/NYHA/BNP that `risk_score.py` currently doesn't
+use at all, confirmed by direct inspection: its six inputs are exclusively Pulse-simulated
+hemodynamic vitals, see the "Why LVEF/NYHA/BNP... are not fed into this test" note above) or a
+permanent scope limitation.
+
+### 7.Z Zigong cohort — Model 1 clinical-feature-component-only exploratory test (frozen wearable
+### inputs), 2026-09-11
+
+**Scope: this does NOT test Model 1 as designed.** Model 1 (severity regressor) was trained on 5
+clinical features (`age`, `sex_male`, `bmi`, `ejection_fraction_pct`, `nt_probnp_pg_ml`) PLUS 24
+wearable-trend features from a real 21-day ambulatory window. Zigong has no wearable time series —
+one admission-time snapshot per patient. This pass loads the existing, unmodified
+`models/severity_regressor.joblib` and neutralizes the 24 wearable-trend slots to this project's
+own "stable"-scenario reference values (zero drift, `reference_stats.yaml`'s `wearable_baseline`,
+via the real `_wearable_features()`/`build_inference_features()` code — not hand-derived), then
+substitutes approximated clinical inputs: `age` = `ageCat` bin midpoint (e.g. `(59,69]` → 64, not
+real continuous age), and `nt_probnp_pg_ml` = Zigong's raw `brain.natriuretic.peptide` (BNP) with
+**no unit conversion** — this project has no validated BNP-to-NT-proBNP conversion, and none was
+invented; different assay, different reference range, different clinical meaning, an invalid
+like-for-like substitution reported as exploratory only.
+
+**Result** (n=625, complete-case cohort, same 6-month composite outcome as §7.Y, 41.3% event
+rate): **AUC = 0.478 (95% CI 0.433–0.523)**, **PR-AUC = 0.396 (95% CI 0.351–0.452)** vs. 0.413
+baseline — below chance on both.
+
+**Critical caveat, not a footnote:** the predicted severity values are nearly constant across all
+625 patients (mean 0.061, std 0.0078, range 0.042–0.088). Neutralizing all 24 wearable-trend
+features collapses most of this trained model's decision paths into a narrow band — the near-
+chance/sub-baseline result is largely a mechanical consequence of removing the features that carry
+most of this model's discriminative signal, not solely a measurement of clinical-feature
+usefulness. See §7.AA for a properly-isolated test that removes this confound.
+
+### 7.AA Zigong cohort — clinical-only Model 1 variant, newly trained (not frozen), 2026-09-11
+
+**Scope: a genuine, unconfounded test of whether the clinical-feature component predicts real
+outcomes — unlike §7.Z, there is nothing frozen here.** `scripts/train_clinical_only_variant.py`
+trains a NEW model from scratch, using the exact same synthetic training data, `split_patients()`
+logic, and `seed=42` as production Model 1, restricted to `CLINICAL_FEATURE_COLUMNS` only (no
+wearable-trend features at all). Same RandomForest hyperparameters as the production model
+(`n_estimators=300`, no depth cap). Written to clearly-separate files —
+`models/scenario_classifier_clinical_only.joblib`, `models/severity_regressor_clinical_only.joblib`
+— the production `.joblib` files are untouched.
+
+**Synthetic held-out validation, same 300 test patients as production Model 1:**
+
+| | Full Model 1 (wearable+clinical) | Clinical-only variant |
+|---|---|---|
+| Scenario accuracy | 90.7% | 50.3% |
+| Severity MAE | 0.047 | 0.171 |
+| Severity RMSE | 0.061 | 0.219 |
+
+Dropping the 24 wearable-trend features costs ~40 points of accuracy and ~3.6× worse severity MAE
+on synthetic data — the measured cost of wearable-feature removal. `stable` classification held up
+best (73% precision); `cardiac_stress`/`deconditioning` (37–39% precision) were hit hardest, since
+their distinguishing signal lives almost entirely in the wearable trend, not the clinical snapshot.
+
+**Output distribution — confirmed NOT collapsed** (unlike §7.Z): std=0.230, range [0.041, 0.819]
+on the synthetic test set; std=0.262, range [0.040, 0.837] on Zigong. This is a real,
+non-degenerate model — the Zigong AUC below is not explainable by a frozen-feature artifact.
+
+**Zigong result** (same n=625, cohort, outcome, and BNP/age caveats as §7.Z — restated, not
+silently reused): **AUC = 0.517 (95% CI 0.473–0.562)**, **PR-AUC = 0.419 (95% CI 0.372–0.478)** vs.
+0.413 baseline — still centered on chance, CI comfortably includes 0.5, but this time the number is
+**trustworthy as a real measurement**, not explained away by a collapsed output. Slightly better
+than §7.Z's 0.478 but not meaningfully different from chance either way.
+
+### 7.BB Zigong-native risk model — EXPLORATORY external benchmarking, standalone, 2026-09-11
+
+**This is a separate, standalone exploratory analysis — it does NOT feed into, replace, or get
+called by `risk_score.py`, Model 1, or the Pulse simulation layer.** Its purpose is to check
+whether Zigong's richer, well-populated fields (not just the 5 sparse clinical-snapshot fields
+tested in §7.Z/§7.AA, or the single `map` field tested in §7.Y) can reach discrimination closer to
+literature-reported readmission/mortality risk-model baselines, on the same 6-month
+death-or-readmission composite outcome. **This confirms real predictive signal exists in Zigong's
+population for this outcome — it does NOT mean HeartGuard AI's design is fixable by adding these
+fields.** Renal chemistry, coagulation, and CBC panels are lab-draw data, not obtainable from
+consumer wearables or from the structural/EF-based parameters this system's architecture is built
+around. This is external benchmarking context, not a roadmap.
+
+**Base population:** the full cleaned cohort (n=2001, same 5 cleaning rules as §7.Y), not the
+complete-case n=625 — deliberately avoids restricting to patients who happened to get an echo.
+
+**Feature selection**, checked field-by-field, not assumed: 65 of 67 candidate fields (8 vitals,
+NYHA, Killip, `type.of.heart.failure`, 17 Charlson fields, 22 CBC, 7 coagulation, 5 renal
+chemistry, `admission.way`, `visit.times`, plus BNP) have <15% missingness and are kept. Two are
+dropped: **`LVEF`** (68.38% missing, above threshold) and **`leukemia`** (0% missing but
+zero-variance — a single constant value across the whole cohort, uninformative despite being
+"well-populated"). **`brain.natriuretic.peptide` (BNP) is included** — checked at 1.74% missing,
+comfortably under the bar, correcting an initial assumption it would likely be dropped like LVEF.
+315/2001 rows (15.7%) needed median imputation on at least one already-low-missingness field
+(light imputation only — never applied to the excluded high-missingness `LVEF`).
+
+**Split and model selection:** stratified 80/20 train/test split on the composite outcome,
+`random_state=42`, performed **before** any model selection. 5-fold cross-validation on the
+training portion only (`RandomForestClassifier`, small grid over `n_estimators`/`max_depth`/
+`min_samples_leaf`) selected `max_depth=None, min_samples_leaf=5, n_estimators=300` (CV AUC=0.621).
+The held-out test set was touched exactly once, after model selection.
+
+**Result:**
+
+- Train (in-sample): AUC=1.000, PR-AUC=1.000 — expected RandomForest behavior on its own training
+  data with `min_samples_leaf=5` and no depth cap, not a bug; reported precisely so the held-out
+  number below is read as the trustworthy one, not the in-sample one.
+- **Held-out test (n=401): AUC = 0.667 (95% CI 0.611–0.721), PR-AUC = 0.605 (95% CI 0.529–0.676)**
+  vs. 0.414 baseline. Train/test AUC gap = 0.333.
+
+**Feature importances are flat and renal/coagulation-dominated — this matters for interpreting the
+AUC, not just as a detail.** No single dominant predictor (`urea`, `uric.acid`,
+`glomerular.filtration.rate`, `D.dimer`, `creatinine.enzymatic.method`, `brain.natriuretic.peptide`,
+RDW-SD, APTT, `lymphocyte.count`, `prothrombin.activity` all cluster near ~2.3–3.1% importance).
+**This pattern suggests the model is capturing general acute-illness severity (renal function,
+coagulation, inflammatory markers) rather than HF-specific deterioration — a different, broader
+construct than what Model 1 or `risk_score.py` are designed to measure. The AUC number alone should
+not be read as "solved": the *what* being predicted here is meaningfully different from HeartGuard
+AI's actual target.**
+
+**Comparison, all real-outcome tests plus literature baselines, side by side:**
+
+| | AUC | PR-AUC |
+|---|---|---|
+| §7.X `risk_score` (MIMIC-IV) | 0.596 (0.585–0.608) | not computed |
+| §7.Y `risk_score` (Zigong, complete-case) | 0.533 (0.490–0.575) | 0.463 |
+| §7.Y `risk_score` (Zigong, full cleaned) | 0.548 (0.525–0.573) | 0.457 |
+| §7.Z frozen Model 1 (collapsed-output confound) | 0.478 (0.433–0.523) | 0.396 |
+| §7.AA clinical-only variant (properly trained) | 0.517 (0.473–0.562) | 0.419 |
+| **§7.BB Zigong-native risk model** | **0.667 (0.611–0.721)** | **0.605** |
+| Literature: LACE index | ~0.56–0.65 | — |
+| Literature: richer ML models | ~0.72–0.76 | — |
+
+§7.BB lands at/slightly above the LACE-index range and below the richer-ML-model range — real
+signal, carried by fields this project's architecture has never used and structurally cannot
+obtain from a wearable-and-EF-based design.
+
+### 7.CC MAGGIC-11 (MAGGIC-adapted, missing smoker status + HF duration) on Zigong — EXPLORATORY
+### external benchmark, standalone, 2026-09-24
+
+**This is a separate, standalone exploratory analysis — it does NOT feed into, replace, or get
+called by `risk_score.py`, Model 1, or the Pulse simulation layer.** Same treatment as §7.BB.
+Purpose: implement the real, published **MAGGIC** risk score (Pocock SJ, et al. "Predicting
+survival in heart failure: a risk score based on 39 372 patients from 30 studies worldwide." Eur
+Heart J. 2013;34(19):1404-1413) as an external benchmark and test it against the same 6-month
+composite outcome used in §7.Y/§7.AA/§7.BB.
+
+**Naming discipline, load-bearing throughout this section: the score actually tested here is never
+called plain "MAGGIC."** It is always **"MAGGIC-11"** or **"MAGGIC-adapted (missing smoker status,
+HF duration)."** Reasons follow directly from Steps 0–1 below.
+
+**Step 0 — formula correctness, verified before touching any real patient data.** An existing
+implementation, `src/analytics/benchmark_scores.py::compute_maggic_score()`, already existed from
+earlier `scripts/benchmark_comparison.py` work — audited rather than rewritten. Its own docstring
+had already flagged that only the age×EF interaction bands were independently confirmed against
+the original paper; every other band (EF, BMI, creatinine, SBP-by-EF, NYHA, and the binary risk
+factors) came from one unverified secondary source. Re-verified here (2026-09-24) against
+independent external sources: SBP<110 (reduced-EF band) = 5 pts / SBP≥150 = 0 pts; creatinine band
+edges 90/110/130/150/170/210/250 μmol/L, >250 = 8 pts; age max = 15 (EF≥40% category, oldest band);
+NYHA I/II/III/IV = 0/2/6/8; EF<20% = 7 pts; BMI<15 = 6 pts, BMI≥30 = 0 pts; male=1, smoker=1,
+diabetes=3, COPD=2, HF≥18mo=2, not-on-beta-blocker=3, not-on-ACEI/ARB=1 — **all confirmed matching
+the existing code exactly.** Three hand-picked test patients (low/moderate/high risk) were
+hand-calculated against these bands and added as real pytest unit tests
+(`tests/test_maggic_score.py`, same pattern as `tests/test_risk_score.py`'s boundary-case tests) —
+all three matched the code's output exactly across all 13 components (low-risk: 3 points;
+moderate: 24; high-risk: 56 — the high-risk total exceeds the ~50–52 range secondary sources cite
+for MAGGIC's points-to-mortality lookup table, expected since that table only tabulates scores
+actually observed in the derivation cohort, not a mathematical ceiling on the point-sum formula).
+**Conclusion: the existing MAGGIC formula implementation is arithmetically correct.** Test suite:
+240/240 passing (236 prior + 4 new).
+
+**Step 1 — field availability on Zigong, checked individually, not assumed.** Of MAGGIC's 13
+variables: **11 are present or reliably derivable** (age via `ageCat` bin-midpoint, an
+approximation flagged as in §7.Z/§7.AA; sex, BMI, systolic BP, LVEF (68.32% missing), creatinine
+(1.15% missing, already in μmol/L — MAGGIC's native unit, no conversion needed), diabetes, COPD,
+and NYHA class, all 0% missing; **beta-blocker and ACEI/ARB use are not columns in `dat.csv` at
+all, but were found derivable from `dat_md.csv`'s medication list** — matched by drug name
+(`Metoprolol Succinate Sustained-release tablet`/`metoprolol tartrate injection` for beta-blocker;
+`Benazepril hydrochloride tablet`/`Valsartan Dispersible tablet` for ACEI/ARB); 2007/2008 patients
+have ≥1 drug record, so a non-match is a confident true-negative, not missing data (38.0%/38.4% of
+the cohort flagged on each, respectively). **2 of 13 are entirely absent from this dataset with no
+derivation path: current smoker status, and whether HF was first diagnosed ≥18 months ago** —
+checked directly against all 166 columns in `dataDictionary.csv` and against `dat_md.csv`; neither
+exists in any form.
+
+**Step 2 — handling, decided from Step 1's findings, no defaults used.** Because the 2 missing
+fields are entirely absent (not merely partially missing), they are **excluded, not defaulted or
+assumed** — `compute_maggic_score()` is reused unmodified with `current_smoker=False` and
+`hf_duration_18mo_plus=False`, the one parameter value for each that makes its own point
+contribution exactly zero (not a guess that patients are non-smokers or recently diagnosed; both
+keys are stripped from the reported component breakdown so a 0 is never misread as measured). The
+resulting **MAGGIC-11** score is a genuine 11-of-13-variable score, not the validated 13-variable
+one. All 11 remaining components use **real per-patient Zigong values** — a stronger real-world
+test than the original `scripts/benchmark_comparison.py` (which used 6 fixed constants on
+synthetic data). Complete-case cohort (all 11 fields + a drug record present, no imputation,
+cleaned `n=2001` base per the same 5 rules as §7.Y): **n=622** — closely matching §7.Y/§7.AA's
+~625.
+
+**Step 3 — result** (`scripts/zigong_maggic11_validation.py`, n=622, same 6-month
+death-or-readmission composite outcome as §7.Y/§7.AA/§7.BB, event rate 41.8%):
+
+- **AUC = 0.604 (95% CI 0.559–0.649)**, **PR-AUC = 0.496 (95% CI 0.443–0.558)** vs. 0.418 baseline.
+- Calibration is reasonably monotonic across score deciles: observed event rate rises from ~28.8%
+  in the lowest-score decile to ~50–55% in the highest, with one small inversion mid-range — not a
+  perfectly clean staircase, but directionally consistent, not just a summary-statistic artifact.
+
+**Interpreting this number, explicitly, as instructed:** because 2 of 13 predictors are missing
+(current smoker status — an established independent MAGGIC risk factor — and HF-diagnosis
+duration), **MAGGIC-11 is expected to underperform published full-MAGGIC studies even before
+considering any population difference — so a gap versus the literature's 0.70–0.80 range should be
+partly attributed to the missing fields themselves, not solely to population mismatch.** Seen in
+that light, **AUC=0.604 is a stronger and more interesting result than a bare comparison to
+0.70–0.80 would suggest**: a real, externally-published, non-hand-tuned score reaches this
+discrimination on a real cohort despite missing two of its own inputs, landing within/near the
+LACE-index range (0.56–0.65) on the very first same-cohort, same-outcome test this project has run
+against it.
+
+**Full comparison, all real-outcome tests plus literature, side by side — cohorts/outcomes/scores
+clearly different, never averaged into one number:**
+
+| | AUC | PR-AUC |
+|---|---|---|
+| §7.X `risk_score` (MIMIC-IV) | 0.596 (0.585–0.608) | not computed |
+| §7.Y `risk_score` (Zigong, complete-case) | 0.533 (0.490–0.575) | 0.463 |
+| §7.Y `risk_score` (Zigong, full cleaned) | 0.548 (0.525–0.573) | 0.457 |
+| §7.Z frozen Model 1 (collapsed-output confound) | 0.478 (0.433–0.523) | 0.396 |
+| §7.AA clinical-only variant (properly trained) | 0.517 (0.473–0.562) | 0.419 |
+| §7.BB Zigong-native risk model | 0.667 (0.611–0.721) | 0.605 |
+| **§7.CC MAGGIC-11 (Zigong, complete-case n=622)** | **0.604 (0.559–0.649)** | **0.496** |
+| Literature: LACE index (different populations/outcomes) | ~0.56–0.65 | — |
+| Literature: full 13-variable MAGGIC (different populations/outcomes) | ~0.70–0.80 | — |
+| Literature: SHFM / BCN-Bio-HF (different populations/outcomes) | published, not re-derived here | — |
+| Literature: richer ML models (different populations/outcomes) | ~0.72–0.76 | — |
+
+The literature rows are **different populations and different outcomes** (MAGGIC/SHFM/BCN-Bio-HF
+were derived and validated on their own cohorts against their own endpoints, not Zigong's 6-month
+composite) — **this MAGGIC-11-on-Zigong result is the first same-cohort, same-outcome comparison**
+this project has run against a published external score, which is what makes the gap
+interpretable at all rather than just another number floating next to unrelated ones. Per the
+Egyptian-validation-study precedent (MAGGIC/GWTG-HF/SHFM externally re-validated outside their
+derivation population, `clinicaltrials.gov/study/NCT07194889`) — published scores routinely show
+meaningfully different discrimination when moved to a new population — so a below-range result
+here would not, by itself, indicate anything is coded wrong; Step 0 already ruled that out
+directly.
+
+**Flagged explicitly, prominently, not as a footnote:** MAGGIC (and MAGGIC-11) need creatinine and
+NYHA class — lab-draw and clinical-encounter data, not wearable measurements. **Whatever this
+result turns out to mean, it says nothing about this project's untested wearable-only
+early-warning hypothesis** — the same scope boundary already stated for §7.Y.
+
+No production code touched: `risk_score.py`, Model 1, and the Pulse simulation layer are all
+unmodified by this section, exactly as `src/analytics/benchmark_scores.py` was audited, not
+rewritten, at Step 0.
 
 ## 8. Limitations
 
@@ -1088,6 +1457,67 @@ same principle applied elsewhere). The `risk_caveats` messaging fix (§8.5.1 of
 naming the mechanism accurately, not hiding it behind a spuriously-precise proxy. **This
 specific question — a BNP-based EF proxy — is now closed; a real EF measurement (echocardiogram)
 remains the only path to actually resolving the underlying limitation, not attempted here.**
+
+**Note: this is a distinct, separate limitation from the "Fluid_overload scenario lacks a
+volume-loading mechanism" entry immediately below** — that one is about the scenario's own
+hemodynamic response to severity being structurally weak; this one is specifically about EF
+falling back to a healthy default when unmeasured. Do not conflate the two.
+
+### Fluid_overload scenario lacks a volume-loading mechanism, diagnosed 2026-09-01
+
+Found during the continuous-state-sync investigation (`docs/continuous_state_sync_status.md`,
+2026-08-30 session, root-caused 2026-09-01) while checking why a real patient's forward
+projection showed a flat `risk_score` across projected severities 0.946-1.0. This entry provides
+the confirmed mechanistic root cause behind §6.1's existing observation that Pulse's
+`fluid_overload` scenario generation barely varies `map_start`/hemodynamics with severity — that
+note flagged the symptom; this is the traced cause.
+
+#### Mechanism
+
+`fluid_overload`'s scenario definition (`src/patient_builder/scenario_file.py`,
+`_scenario_actions()`) applies a single `CardiovascularMechanicsModification` action with
+`VenousComplianceMultiplier = max(0.5, 1 - 0.4*severity)`, and nothing else — no `Exercise`
+action, no volume-loading action of any kind. Confirmed via direct comparison against
+`acute_deterioration` at the same EF (using the same `ef_to_cardiovascular_modifiers()` core
+values): that scenario additionally applies a `HeartRateMultiplier` and an `Exercise` action —
+the actual driver of its meaningful `hr_rise`/`map_drop`/`co_drop_pct` response to severity.
+`fluid_overload` has neither.
+
+#### Root cause
+
+Reducing venous compliance alone, with no accompanying increase in total circulating volume,
+mobilizes pooled blood into active circulation (a recruitment effect via Frank-Starling) rather
+than representing genuine fluid/volume overload. Every multiplier moves in the clinically correct
+direction as severity rises (compliance and resistance both fall) — **this is not a sign error,
+it is a structural gap in what the scenario models.** Confirmed on a real patient (EF=32,
+`fluid_overload`) across three projected severities (0.946, 0.984, 1.0): simulated HR fell, MAP
+rose, and CO rose — the *improving* direction, despite increasing severity. `acute_score`
+(risk_score.py) was 0.0 at every horizon as a direct consequence.
+
+#### Why this matters
+
+This is the underlying reason `baseline_deficit_score`/`max()` (§6.1) had to be added as a
+compensating mechanism in the first place — it patches around this scenario-generation weakness
+via a baseline-MAP floor, rather than the weakness being resolved at the source.
+
+#### Why not fixed now
+
+Correctly representing `fluid_overload` would require adding a real volume-loading mechanism
+(e.g. a Pulse action that increases total circulating blood volume, not just reduces venous
+compliance) to the scenario definition. This is scenario-design rework, not a quick parameter
+fix, with real downstream costs: patient stability at high severity would need re-verification
+(interacts with the already-characterized Exercise-instability findings above), the 30-patient
+Phase 2 validation would need re-running, and the severity regressor would likely need retraining
+against the updated scenario behavior. Out of scope for the continuous-state-sync branch and for
+the session that found it.
+
+#### Current mitigation
+
+`baseline_deficit_score`/`max()` (§6.1, `risk_score.py`) is already in place and validated: it
+correctly catches high-risk `fluid_overload` patients via the baseline-MAP floor mechanism even
+though the scenario's own severity response is weak. **This is a working safeguard, not a gap in
+patient safety** — just an architectural inefficiency worth fixing properly at the source someday.
+
 - **The live-pipeline severity regressor underperforms its offline benchmark by a diagnosed, real
   margin: MAE 0.271 live vs. 0.048 offline (§7, Phase 8 batch validation).** Root cause:
   `build_inference_features()` (`src/scenario_classifier/features.py`) always defaults
@@ -1146,12 +1576,371 @@ remains the only path to actually resolving the underlying limitation, not attem
   fills), so the button performs a manual refresh of the current status/report instead. A real
   on-demand trigger would be a Phase 6 API addition, not a frontend-only change.
 
+### `severity` and `risk_score` are not on comparable scales — found 2026-09-10, RESOLVED same day
+
+Found while resolving `docs/synthetic_deterioration_stress_test.md`'s threshold question (that
+document has the full investigation). `severity` is ML Model 1's raw regression output (§5);
+`risk_score` is the downstream, Pulse-simulation-derived weighted score (§6.1). Both are bounded
+to [0, 1], and it is tempting to treat that as "the same scale" — **they are not**, at least for
+`acute_deterioration`, computed on the real 117-row Phase 4 dataset
+(`data/simulation_runs/features_dataset.csv`, n=12 for this scenario type):
+
+| | severity | risk_score |
+|---|---|---|
+| mean | 0.385 | 0.655 |
+| **min** | **0.046** | **0.491** |
+| max | 0.846 | 0.760 |
+| correlation | — | 0.685 |
+
+`risk_score`'s floor for this scenario type (0.491) sits above `severity`'s own mean (0.385) —
+`risk_score` saturates high almost as soon as any `Exercise`-driven stress occurs (the same
+structural property §6.1 already documents), while `severity` spans a much wider, lower-centered
+range by construction (uniform-ish per `generate_patients.py`'s `_assign_scenario()`).
+
+**Live production site found affected, now fixed, not just flagged.**
+`src/analytics/projection.py`'s `project_severity()` previously asserted "severity and risk_score
+share the same 0-1 range by construction" and applied a rate pre-converted via
+`deterioration_rate.py`'s `SD_RATE_TO_RISK_SCORE_PER_DAY` directly onto `current_severity` — called
+live from `src/api/services.py`'s production pipeline. **Fix:** `project_severity()` now takes the
+raw, scale-agnostic `composite_rate` (population-SD-equivalents/day) and converts it internally via
+a new, separately-defined `SD_RATE_TO_SEVERITY_PER_DAY` constant — the same "raw rate in, scale-
+specific conversion inside the consuming function" pattern `deterioration_rate.days_to_next_stage()`
+already used correctly for `risk_score`. `services.py` now passes `composite_rate` unconverted
+(`project_physiology(..., composite_rate=rate_info["composite_rate"])`), removing its
+`SD_RATE_TO_RISK_SCORE_PER_DAY` import entirely — that constant is no longer reachable from the
+severity-projection path at all.
+
+**This is a structural fix, not a numerical one — stated plainly, not implied.**
+`SD_RATE_TO_SEVERITY_PER_DAY` starts at the same placeholder value (0.05) as its risk_score
+counterpart, because no real severity-trajectory calibration data exists to pick a different
+number (same status as the original constant: an explicitly hand-tuned engineering placeholder,
+not a clinical citation). What changed is that the two calibrations are now independently named
+and can never be silently conflated again by construction — a future recalibration of one cannot
+accidentally move the other. Regression-tested (`tests/test_projection.py`'s
+`TestSeverityRiskScoreScaleIndependence`): monkeypatching `SD_RATE_TO_SEVERITY_PER_DAY` changes
+`project_severity()`'s output; monkeypatching `SD_RATE_TO_RISK_SCORE_PER_DAY` does not.
+
+**Fusion remains explicitly out of scope, not silently deferred.** `severity` and `risk_score`
+are never combined into one number anywhere in this fix — real outcome-calibration data would be
+needed to validate a fused score, and none exists. Instead, `src/analytics/score_reporting.py`
+(new) makes this explicit at the output layer: `score_provenance(classifier_severity,
+pulse_risk_score)` returns `{"classifier_severity", "pulse_risk_score", "source"}`, where
+`source` is `"not_fused"` whenever both are present (the only state reachable today — a
+`RiskAssessment` row only ever exists once both the classifier and Pulse have run
+successfully; `"classifier_only"`/`"pulse_only"` are modeled for future partial-failure states
+not yet surfaced through the API). Wired onto `RiskAssessment` as a computed property and exposed
+via `RiskAssessmentPayload.score_provenance` in the API response.
+
+**The borrowed 0.65 threshold removed from severity reporting entirely.** No code in this
+pipeline ever actually thresholded `severity` at 0.65 in production (confirmed by grepping every
+`MODERATE_HIGH_BOUNDARY`/`0.65` reference in the codebase — see the audit below); the borrowed-
+threshold mistake was confined to `docs/synthetic_deterioration_stress_test.md`'s own analysis
+script, already caught and fixed there before this sprint. To give `severity` a descriptive label
+without inventing or borrowing a cutoff, `score_reporting.py` also adds `severity_band()`, using
+only `STABLE_SEVERITY_CAP` (0.15, now a named constant in `generate_patients.py`, promoted from a
+bare `severity * 0.15` literal in `_assign_scenario()`) — the one real, non-arbitrary reference
+point this project's own training data provides (validated in
+`docs/synthetic_deterioration_stress_test.md` as "the day a trajectory first clearly exceeds what
+`stable` looks like"). Returns exactly two labels, `"within_stable_range"` /
+`"exceeds_stable_range"` — deliberately no third tier, since a finer banding would need another
+cutoff and no further non-arbitrary reference point currently exists. Exposed via
+`RiskAssessmentPayload.severity_band`, with its Pydantic field description stating explicitly it
+is not a clinical alert threshold and should not be treated as equivalent to `risk_bucket`.
+
+**Full audit of every `0.65`/`MODERATE_HIGH_BOUNDARY` reference in the codebase, each checked
+individually — only one needed a code fix (`project_severity()`, above):**
+- `src/analytics/risk_score.py`'s own `MODERATE_HIGH_BOUNDARY = 0.65` definition, and every
+  consumer of it (`src/analytics/deterioration_rate.py`'s `days_to_next_stage()`,
+  `src/analytics/staging.py`'s NYHA gate, `tests/test_risk_score.py`) — all apply it exclusively
+  to `risk_score` on `risk_score`'s own native scale. This is `risk_score.py`'s own pre-existing,
+  already-tested, already-caveated-in-its-own-module design ("an engineering choice... not a
+  clinical citation," §6.1) — not the bug, and not touched by this fix. Dismantling
+  `risk_bucket`'s own tertile system was never in scope here.
+- `scripts/model1_extended_eval.py`'s `risk_score`-vs-`true_severity` scatter/correlation already
+  computes correlation **per scenario type**, not pooled, and is labeled "PROXY — not real
+  outcomes" — the methodologically correct way to compare the two, consistent with (not
+  contradicted by) the 0.685 acute_deterioration correlation found above. No change needed.
+- `scripts/benchmark_comparison.py`'s MAGGIC-tertile comment references `risk_score.py`'s framing
+  stylistically; no numeric use of 0.65. No change needed.
+- `src/api/services.py`'s/`schemas.py`'s `fluid_overload` caveat strings and
+  `scripts/perheart_real_data_replay.py`'s side-by-side `describe()` printout mention `severity`
+  and `risk_score` together but never combine or threshold them numerically — informational text
+  only. No change needed.
+- `frontend/src/components/lab/SimulationLabPage.jsx` displays `severity` and `risk_score` next to
+  each other in one UI line — a display juxtaposition, not a computation. Not changed (frontend
+  work was out of scope for this sprint); flagged here since a viewer could visually read the two
+  numbers as more comparable than they are, now that `severity_band`/`score_provenance` exist as
+  the more honest alternative to show instead.
+
+**A separate question, stated explicitly so it is never conflated with the audit above: is
+`MODERATE_HIGH_BOUNDARY=0.65` itself validated against real outcomes, or just correctly scoped to
+`risk_score`'s own scale?** The audit confirms every consumer applies it correctly (right scale,
+no cross-quantity bug) — that is a plumbing fact, not a clinical validity fact, and the two must
+not be read as the same claim. **It is not validated against real outcomes. It is `risk_score.py`'s
+own explicitly self-labeled placeholder**, unchanged by this sprint: the constant's own code
+comment says "Engineering choice (roughly a tertile split of the 0-1 score), not a clinical
+citation" (`risk_score.py`, the line immediately above its definition), and §6.1 above states the
+same thing in prose. Unlike `SD_RATE_TO_RISK_SCORE_PER_DAY`/`SD_RATE_TO_SEVERITY_PER_DAY`, it is
+not even tracked in `docs/data_provenance.md`'s constant ledger alongside this project's other
+named `assumed_default` values. The closest thing this project has to a real-outcome check on any
+part of `risk_score` is §7.X's MIMIC-IV test of the `baseline_deficit_score` sub-score specifically
+against in-hospital mortality — AUC 0.596 (95% CI 0.585–0.608), barely above chance discrimination,
+and that test evaluates whether the sub-score's *magnitude* tracks mortality risk at all, not
+whether 0.35/0.65 are the right places to draw LOW/MODERATE/HIGH lines. So: **honestly labeled as
+unvalidated where it was defined, correctly scoped everywhere it is used, and not clinically
+confirmed by anything else in this project either** — the same "not derived from real data"
+category `project_severity()`'s old behavior was in, differing only in that `risk_score.py` never
+asserted otherwise (`project_severity()`'s old docstring incorrectly *asserted* the two scales
+matched; `risk_score.py`'s comment has always correctly disclaimed itself). Do not treat
+`risk_bucket`'s correctness-of-plumbing as evidence of the boundary's clinical meaning.
+
+**Verification:** 176/176 tests pass (`tests/test_projection.py`'s scale-independence tests,
+`tests/test_score_reporting.py` (new), and a live-API integration assertion in `tests/test_api.py`
+confirming `severity_band`/`score_provenance` actually appear correctly in a real pipeline
+response, not just in unit isolation).
+
+### Sprint 2 (2026-09-10): score production and alert decision are now architecturally separate
+
+Everything below is a structural/robustness layer built on Sprint 1's fix, not a threshold
+validation — every new threshold-like constant introduced here remains exactly as unvalidated as
+`SD_RATE_TO_SEVERITY_PER_DAY` was, flagged the same way, for the same reason (blocked on real
+outcome data, Sprint 3+5, still open). Full API-facing detail also lives in
+`src/api/schemas.py`'s `score_provenance` field description.
+
+**1. Score production vs. alert decision, now structurally separate, not just conceptually
+separate.** `project_severity()`, ML Model 1, and `risk_score.py` only ever produce a number —
+none of them decide alert/no-alert, and now neither does anything else that produces a score.
+`src/analytics/score_reporting.py`'s new `alert_decision(severity, confidence, simulation_status)`
+is the one place that decision is made. Its internal logic (severity exceeds
+`STABLE_SEVERITY_CAP` AND confidence clears `MIN_CONFIDENCE_FOR_ALERT`) is an unvalidated
+placeholder — this sprint changed *where* the decision is made, not *how well-founded* it is.
+
+**2. Every severity-bearing output now carries `confidence` + `simulation_status`.**
+- `simulation_status` (`"valid"|"unstable"|"not_run"`): `"unstable"` covers both an outright
+  Pulse failure and a **successful** run that landed in/near the documented acute_deterioration
+  crash zone (severity 0.6–0.85, `src/pulse_runner/runner.py`'s `is_known_unstable_configuration()`
+  — reused from the BCG-validation work's own crash-range constant, not reimplemented). A "lucky"
+  pass inside that zone is deliberately still labeled `"unstable"`, not `"valid"` — succeeding
+  once doesn't make a documented ~50%-failure-rate configuration a reliable data point.
+- `confidence` (0–1): derived purely from `simulation_status` via `CONFIDENCE_BY_STATUS` —
+  `unstable` (0.3) < `not_run`/classifier-only (0.5) < `valid` (0.8). **Two different things are
+  true here and must not be blurred into one:** the *ordering* (`Pulse-confirmed-valid` highest,
+  classifier-only in the middle, `Pulse-unstable-or-failed` lowest) was specified as this sprint's
+  own scope; **the three specific numeric values (0.3, 0.5, 0.8) were not** — they were chosen
+  by whoever implemented this (an engineering placeholder satisfying the requested ordering with
+  round numbers), not specified in the sprint scope and not empirically derived or learned by any
+  model. Neither the ordering nor the specific numbers have been validated against real outcome
+  data; recalibrating either remains blocked on data this project does not have (Sprint 3+5).
+- Exposed via `src/analytics/score_reporting.py`'s `build_score_report()`, which **extends**
+  Sprint 1's `score_provenance()` output (every key it returned is still present, unchanged) with
+  `severity_score`, `severity_band`, `alert`, `confidence`, `simulation_status` — one field
+  growing, not a competing parallel structure. Wired onto `RiskAssessment.score_provenance`
+  (same field name, same API response key) and `src/api/schemas.py`'s
+  `RiskAssessmentPayload.score_provenance`.
+
+**3. Pulse crash-zone pre-flight guardrail — flags, never silently skips.**
+`src/pulse_runner/runner.py`'s new `run_pulse_with_preflight()` wraps (does not modify) the
+existing `run_pulse()` — that function's own signature and behavior are untouched, since it has
+many already-tested production callers. Before running, if `(scenario_type, severity)` is in the
+documented crash zone, it emits a `RuntimeWarning` ("entering known-unstable Pulse
+configuration...") and **still runs by default** — only `skip_if_unstable=True`, explicitly
+opted into by the caller, actually skips the run. `simulation_status` is then set to `"unstable"`
+based on the pre-flight flag alone, independent of whether the run happens to succeed (point 2
+above). Wired into both real Pulse call sites — `src/api/services.py`'s main assessment pipeline
+and `src/analytics/projection.py`'s `_run_at_severity()` (the 7/14/30-day re-simulations, which
+can land in the same zone just as easily as the initial assessment) — both now go through the
+same wrapper, sharing one crash-zone check rather than each needing its own.
+
+**4. Temporal persistence (hysteresis) — structure built, values explicitly unvalidated.**
+`src/analytics/score_reporting.py`'s `hysteresis_alert_states()` requires `ENTER_N` (2)
+consecutive days ≥ `ENTER_THRESHOLD` (`STABLE_SEVERITY_CAP`, the same non-arbitrary reference
+point `severity_band()`/`alert_decision()` already use) before flipping `no_alert → alert`, and
+`EXIT_N` (2) consecutive days < `EXIT_THRESHOLD` (`STABLE_SEVERITY_CAP × 0.8`, an unvalidated
+20%-deadband engineering choice) before flipping back. All four constants are named, documented,
+and explicitly flagged unvalidated in the module docstring — same discipline as
+`SD_RATE_TO_SEVERITY_PER_DAY`.
+
+**Retroactively applied to `docs/synthetic_deterioration_stress_test.md`'s real trajectories
+(subject 14, subject 102) — reported honestly, not massaged to look like a win: at the actual
+`STABLE_SEVERITY_CAP` reference threshold, hysteresis has NO suppression effect on either
+subject's documented non-monotonic dips.** Both trajectories clear `ENTER_THRESHOLD` (0.15) by a
+wide margin on the very first day tested (severity 0.37/0.25 vs. threshold 0.15) and never
+approach it again afterward — the lowest subsequent value in either trajectory (subject 14's
+day-9 dip, 0.3422) is still more than double the threshold. Alert state enters almost immediately
+(day 7 for both, the second consecutive qualifying day) and never exits for the rest of the
+21-day window — the dips are real but occur far above the threshold, not near it, so there is
+nothing for the entry/exit deadband to suppress at this specific reference point.
+This is a genuine negative finding about *this threshold on this data*, not evidence the
+mechanism itself is broken: a second test using an illustrative threshold placed near subject 14's
+actual day-9 dip confirms the same hysteresis logic correctly holds the alert state through a
+transient single-day dip when the threshold is close enough to the data for a deadband to matter
+(`tests/test_score_reporting.py`'s `TestHysteresisOnStressTestData`). **Separately, and
+explicitly out of scope for this mechanism:** subject 14's day 6–10 `scenario_type`
+misclassification (`"fluid_overload"` instead of `"acute_deterioration"`) is a categorical-field
+error, not a severity-threshold event — `hysteresis_alert_states()` operates on severity → alert
+state only and has no mechanism to detect or suppress a wrong `scenario_type`; that would require
+an analogous persistence layer applied to the classifier's categorical output specifically, not
+attempted here.
+
+**Verification:** 218/218 tests pass (176 Sprint-1 baseline + 40 new from this sprint + 2 more
+added closing this sprint out, see below: crash-zone detection and pre-flight-wrapper behavior in
+`tests/test_pulse_preflight.py`; simulation_status/confidence/alert_decision/build_score_report
+and both the structural and retroactive-stress-test-data hysteresis tests in
+`tests/test_score_reporting.py`). The pre-flight warning fired for real during `tests/test_api.py`'s
+existing `test_pulse_failure_marks_simulation_failed` test (severity=0.8, `acute_deterioration` —
+genuinely inside the crash zone), confirming the wiring end-to-end in a live pipeline test, not
+just in isolation.
+
+**Two closing checks, requested before Sprint 2 was considered done:**
+1. **Confidence-value attribution corrected, not just clarified.** The `CONFIDENCE_BY_STATUS`
+   *ordering* (`valid` > `not_run` > `unstable`) was specified as this sprint's scope; **the
+   specific numbers 0.3/0.5/0.8 were not** — they were chosen during implementation as round
+   placeholders satisfying that ordering. An earlier pass at this doc (and the code comment above
+   `CONFIDENCE_BY_STATUS`) risked reading as if the exact numbers were specified rather than
+   engineering-chosen; both now state this as two separate facts, not one.
+2. **A constructed "lucky success inside the crash zone" test added**
+   (`tests/test_pulse_preflight.py`'s `TestLuckySuccessInsideCrashZone`), since no such case
+   exists in the real data collected this session — all 4 representative points that landed in
+   the documented zone (day16/day20, both subjects) failed; none succeeded. Confirms the real,
+   unmocked `run_pulse_with_preflight() → determine_simulation_status()` composition still
+   reports `"unstable"` even when `pulse_succeeded=True`, contrasted against the same mocked
+   "success" at a severity outside the zone correctly reporting `"valid"`.
+
+### Sprint 2.5 (2026-09-10): root-caused the scenario_type flip, added categorical persistence,
+### and closed the remaining loose ends from Sprints 1-2
+
+**1. Root cause of the day 6-10 `scenario_type` misclassification — investigated on the real
+subject 14 data before building anything, not assumed.** Checked, using
+`data/synthetic_deterioration_stress_test/subject14_trend.csv` and the actual trained
+`models/scenario_classifier.joblib`:
+- **`predict_proba()` margins** (`fluid_overload` vs. `acute_deterioration`): day 6 = 0.226, day 7
+  = 0.240, day 8 = 0.150, day 9 = 0.047, day 10 = 0.147. Days 6-8 and 10 were a fairly confident
+  (if wrong) call, not razor-thin uncertainty throughout — only day 9 was a genuine near-tie.
+- **Feature extraction**: values matched the underlying trend data exactly at every day checked —
+  no bug in `_wearable_features()`/`build_inference_features()`.
+- **Scenario-mapping logic**: `.predict()` correctly returns the argmax of a genuinely close
+  probability distribution every time — no bug in the classifier→label mapping either.
+- **The actual cause**: `generate_wearable_trends.py`'s `_trend_curve()` accelerates
+  `acute_deterioration`'s progression as `frac**2` — deliberately small early on ("accelerates
+  near the end rather than drifting linearly," that function's own comment). At low signal
+  magnitude, the resulting HR/weight/SpO2 deltas are proportionally closer to a mild
+  `fluid_overload` profile (weight-dominant per `SCENARIO_SIGNAL_DELTAS`) than to
+  `acute_deterioration`'s own (HR/steps/HRV-dominant, but not yet ramped up). **Confirmed by
+  contrast, not just theorized**: subject 102's own day-9 margin (`acute_deterioration` 0.377 vs.
+  `fluid_overload` 0.357, margin 0.020 — narrower than subject 14's, but favoring the correct
+  class) shows this is genuine, patient-specific feature-space overlap at low signal magnitude,
+  not a fixed artifact that should have gone the same way for both subjects.
+
+**2. Categorical persistence added — `src/analytics/score_reporting.py`'s new
+`scenario_type_persistence()`, separate from severity's `hysteresis_alert_states()` because a
+category isn't a threshold-crossing number.** Requires `SCENARIO_TYPE_PERSISTENCE_N` (6)
+consecutive agreeing days before accepting a `scenario_type` (initial confirmation or a change).
+**Empirically derived, not guessed** — swept N=4..10 against subject 14's real 5-day
+`fluid_overload` streak AND a constructed 15-day genuine, permanent `stable`→`acute_deterioration`
+change (not from either real subject's data, and long enough to exceed every N tested, so a large
+N can't trivially "pass" by never running long enough to matter):
+
+| N | Suppresses the real 5-day misclassification? | Confirms the constructed genuine change? |
+|---|---|---|
+| 4, 5 | No — confirms the wrong value | Yes (lag = N−1 days) |
+| **6 (chosen)** | **Yes — never confirmed** | **Yes (5-day lag)** |
+| 7, 8, 10 | Yes | Yes (longer lag) |
+
+N=5 exactly matching the streak length still confirms it — the general principle (**N must
+exceed the longest observed spurious streak, not just match it**) is sound and empirically
+demonstrated; N=6 itself rests on a single observed spurious-streak length (n=1 real case), not a
+statistically robust bound. **This is a real, structural tradeoff, not a free fix**: every
+increase in N that suppresses a longer spurious streak also delays every genuine change's
+confirmation by exactly that many more days.
+
+**3. `STABLE_SEVERITY_CAP` explicitly labeled, not left as an ambiguous "reference"/"marker."**
+Stated plainly, in both `generate_patients.py`'s and `score_reporting.py`'s own comments: **it is
+an ENGINEERING CONSTANT, not a clinical threshold.** It originated as a synthetic-data-generation
+parameter and is reused elsewhere only because it's the one non-arbitrary number already in this
+codebase — not because 0.15 carries clinical meaning about real heart failure severity.
+
+**4. Genuine-recovery hysteresis test added** (`tests/test_score_reporting.py`'s
+`test_genuine_sustained_recovery_clears_alert_state` and
+`test_recovery_then_relapse_re_enters_alert`) — a sustained improvement (2+ consecutive days below
+`EXIT_THRESHOLD`, not a transient one-day dip) correctly clears `"alert"` back to `"no_alert"`,
+and a later sustained relapse correctly re-enters `"alert"` — confirming
+`hysteresis_alert_states()` is a real two-way mechanism, not a one-way latch, as the positive-case
+complement to the existing dip-suppression test.
+
+**5. `threshold_clinically_validated: false` added as an explicit field** on every
+`build_score_report()` output (and `RiskAssessmentPayload.score_provenance` in the API schema) —
+a fixed, always-present statement that none of this project's thresholds (`STABLE_SEVERITY_CAP`,
+`MIN_CONFIDENCE_FOR_ALERT`, `CONFIDENCE_BY_STATUS`, `ENTER_THRESHOLD`/`EXIT_THRESHOLD`,
+`SCENARIO_TYPE_PERSISTENCE_N`, or `risk_score.py`'s own `LOW_HIGH_BOUNDARY`/
+`MODERATE_HIGH_BOUNDARY`) has been checked against real outcome data — so a caller never has to
+infer this from scattered docstrings.
+
+**6. Future-calibration interface defined, deliberately not populated** —
+`src/analytics/outcome_calibration.py` (new): `LongitudinalObservation` (patient_id, timestamp,
+free-form `measurements` dict), `KnownOutcome` (event_type, event_date,
+days_from_observation_to_event, source), and `CalibrationRecord` pairing the two. No real patient
+data, no ingestion/storage/ordering logic — purely the contract a future Sprint 3/5 calibration
+pass would need to fit/validate every placeholder constant named in point 5 above against whether
+it actually predicts real outcomes. That design work (ingestion, ordering, deduplication) is
+explicitly left to whoever does it once a real dataset is identified, not stubbed out
+speculatively here.
+
+**Verification:** 236/236 tests pass (218 Sprint-2 baseline + 18 new: root-cause-informed
+`TestScenarioTypePersistence` including the full N-sweep, the two new genuine-recovery hysteresis
+tests, `threshold_clinically_validated` presence checks, and `tests/test_outcome_calibration.py`
+(new) confirming the calibration contract's dataclasses are well-formed and immutable).
+
+### Option A (2026-09-10): attempted rolling-window curvature features for the scenario
+### classifier — regressed on held-out validation, reverted
+
+**Proposal:** give `_wearable_features()` additive `{vital}_early7_slope`/`{vital}_late7_slope`
+sub-window fits (over the same first-7/last-7 spans as the existing `first7_mean`/`last7_mean`),
+on top of — not replacing — the existing whole-window `slope`, specifically to make the
+`frac**2` acceleration behind point 1 above (Sprint 2.5's day 6-10 root cause) directly visible
+to the model as a feature, rather than something a single whole-window linear fit averages away.
+
+**Held-out re-validation (same 300 test patients, same `seed=42` split, verified identical
+patient-ID membership before trusting the comparison) regressed:** accuracy flat (90.7% → 90.7%),
+but severity MAE 0.0473 → 0.0506 (+7%) and RMSE 0.0613 → 0.0646 (+5%); `acute_deterioration`
+recall/F1 dropped 0.88/0.89 → 0.83/0.87. Reverted per this project's own stated bar (held-out
+performance is the gate; a regression there isn't kept regardless of the motivating theory) —
+`_wearable_features()` is back to the original four-aggregate-per-vital form, no
+`.joblib`/`phase3_eval_report.txt` artifacts were touched.
+
+**Refined finding on the regression's cause, from a per-patient breakdown of the 3 net new
+`acute_deterioration` misclassifications:** the added curvature features did **not** worsen the
+specific day 6-10 confusion they targeted — patients misclassified as `fluid_overload` stayed
+flat at 6 before and after (some individual patients cycled in and out of that bucket, but the
+count didn't move). What they introduced instead was a **new, severity-gated failure mode**: all
+4 newly-wrong patients (net 3, after one unrelated improvement) are low-severity
+(0.091–0.163, mean 0.143) against a 0.579 mean for patients still classified correctly, and their
+`early7_slope`/`late7_slope` ratios are flat-to-reversed (≈1.0, one case 0.78) versus 1.7–2.3×
+acceleration for correctly-classified higher-severity peers. At low severity, `frac**2`'s
+acceleration genuinely hasn't bent the curve yet by day 21 — so `early7_slope`/`late7_slope`,
+each a linear fit over only 7 points (far noisier than the original 21-point whole-window
+`slope`), carry mostly noise rather than the intended curvature signal in exactly that region,
+and that noise is what pushed borderline-severity patients toward whichever neighboring class
+they already sat closest to (fluid_overload, cardiac_stress, or deconditioning — no single
+target). **This refines rather than confirms Sprint 2.5's physiological-ambiguity theory**: the
+ambiguity is real, but it's severity-gated (a signal-to-noise problem: no reliable acceleration
+signal exists yet to extract, at any window granularity) rather than day-gated (a windowing
+problem, where a differently-shaped feature could recover a signal that's genuinely present but
+hidden by aggregation) — so narrower sub-window slopes were not the right lever for it.
+
 ## 9. Future Work
 
 Everything below is a real candidate for continued work, not a padded wishlist — each item is
 either an explicit Phase 9 stretch goal from the original roadmap that Phases 0-8 deliberately
 didn't need to solve, or a next step toward the team's stated goal of turning this system into a
 research paper once the pipeline is validated end-to-end (§7/§8).
+
+**Directly motivated by the continuous-state-sync investigation (2026-08-30/09-01,
+`docs/continuous_state_sync_status.md`):**
+- **Fluid_overload scenario lacks a volume-loading mechanism** — full mechanism, root cause, and
+  why it isn't fixed yet in §8's new entry of the same name. Not started; needs a real
+  volume-loading Pulse action added to the scenario definition, plus re-running Phase 2 validation
+  and likely retraining the severity regressor. Currently safely mitigated by
+  `baseline_deficit_score`/`max()` (§6.1), not a patient-safety gap.
 
 **Directly motivated by the Phase 8 validation findings (§7, §8):**
 - **DONE — retrained the severity regressor (and classifier — one shared feature matrix, see §5)
@@ -1192,6 +1981,13 @@ research paper once the pipeline is validated end-to-end (§7/§8).
   onboarding and never adjusted; comparing the twin's predicted vitals against a patient's actual
   incoming wearable readings and iteratively correcting the baseline would make the simulation
   converge toward that specific patient over time, rather than staying fixed at intake values.
+  **Design constraint, discovered not hypothesized (§12/`docs/bcg_validation_note.md`):
+  correcting `HeartRateBaseline` alone is a known-bad approach** — tested on both real BCG-dataset
+  patients, forcing HR baseline toward the real value reduced simulated stroke-volume accuracy in
+  both cases (less diastolic filling time at the corrected, higher HR), while barely moving CO
+  accuracy. Any implementation of this item must jointly adjust HR baseline together with the
+  circuit-level compliance/resistance parameters identified as the dominant SV/CO driver in that
+  validation, not HR in isolation.
 - **Real task queue (Celery/Redis)** in place of FastAPI's `BackgroundTasks` thread pool — see the
   Limitations entry in §8; only matters at a patient volume beyond this prototype's scale.
 - **Full-stack containerization** (`Dockerfile`/`docker-compose.yml` covering the API, database,
@@ -1347,3 +2143,65 @@ real, unrelated infrastructure bug this work depended on fixing first (§4.2 of 
 background pipeline crashing with `FileNotFoundError` on a fresh `docker compose up --build`
 because the trained `.joblib` models are gitignored and not volume-mounted, only baked in at image
 build time — now also captured in `docs/running_the_stack.md`'s Troubleshooting section).
+
+## 12. Real-Patient BCG Validation (Single-Patient Extension)
+
+**Status: done, two patients.** Full methodology (subject selection/rejection reasoning, BCG
+feature extraction, citations, results, all limitations) is in `docs/bcg_validation_note.md` —
+this section summarizes the headline findings only; that document carries the evidence.
+
+Every result in §5-§7 above is validated against synthetic data, offline batch simulation, or
+MIMIC-IV vitals alone (§7.X) — never against a real patient with real echo-measured EF/SV *and* a
+personalization-grade physiological waveform. This extension closes a narrow slice of that gap:
+subjects 14 and 102 from the Zhan et al. (2025) Multi-Pathology Ballistocardiogram Dataset
+(figshare 10.6084/m9.figshare.28416896) were each run through the full `patient_builder` →
+`ef_to_cardiovascular_modifiers` → `run_pulse()` pipeline with real demographics/EF, plus a new
+`bcg_to_cardiovascular_modifiers()` (`src/patient_builder/patient_file.py`) mapping each subject's
+own extracted R-J interval and I-J/J-K amplitude to `VenousComplianceMultiplier`/
+`SystemicComplianceMultiplier` — the Tier 2 vascular-compliance personalization §3 scoped but never
+built, substituting ballistocardiography for the echo/PPG data that was never acquired (BCG is a
+different mechanical signal, used because it's what this dataset provides, not claimed as
+equivalent — see the validation note's Limitations).
+
+**Headline findings:**
+- **Both patients' simulated resting SV/CO undershoot real echo-measured values by roughly
+  45-55%** (subject 14: SV 0.58x, CO 0.54x; subject 102: SV 0.87x, CO 0.55x, using its
+  clinical-sheet HR since its own session HR was independently found unreliable — see below). Root
+  cause was traced stage by stage, not just attributed to "the engine doesn't take SV as input":
+  **71.3% of subject 14's shortfall comes from Pulse's generic anthropometric SV baseline itself**
+  (Age/Height/Weight/Sex alone, before any EF or BCG input), **28.7% from the
+  `ChronicVentricularSystolicDysfunction` condition's fixed elastance cut**, and **0% from the
+  continuous `StrokeVolumeMultiplier`** in this comparison (it fires later than the point compared).
+  A height-isolation counterfactual (same age/weight, 160cm vs. 175cm) confirmed the anthropometric
+  baseline does **not** scale with height — Pulse's own "outside typical range" warnings are
+  decoupled from the actual SV shortfall, not its cause.
+- **HR-baseline non-personalization, demonstrated across two patients with opposite outcomes.**
+  `build_patient_file()` deliberately never sets a patient-specific HR baseline (same
+  "modify-inputs-not-outputs" design as blood pressure, §4). Subject 14's simulated HR (72.27)
+  happened to land close to its real 77 bpm (0.94x) — a coincidence, not personalization accuracy.
+  Subject 102 makes this explicit: using its reliable ground truth (xlsx HR 115, not its own
+  unreliable 52.8 bpm session value — see below) gives a much worse 0.63x ratio for the *same*
+  underlying non-personalization, confirming the first patient's closeness was luck, not signal.
+- **n=2 BCG reference points produced a structural, not clinical, null result on one term each
+  run — demonstrated symmetrically.** `bcg_to_cardiovascular_modifiers()` has no population
+  reference (only 2 subjects' BCG data exist in this project), so each run uses the *other*
+  subject's measurements as its single reference point. Result: subject 14's run left
+  `SystemicComplianceMultiplier` inert (1.0) while `VenousComplianceMultiplier` was active (0.901);
+  subject 102's run (referenced against subject 14) showed the exact mirror image
+  (`VenousComplianceMultiplier` inert at 1.0, `SystemicComplianceMultiplier` active at 0.95). This
+  is a known consequence of n=2, not evidence either BCG feature is clinically uninformative.
+- **One data-quality finding with no resolution:** subject 102's own XJ-session HR (52.8 bpm,
+  R-R-derived) showed an unexplained 2.15x mismatch against its own clinical-sheet HR (115 bpm),
+  confirmed real (via the dataset's own rendered signal plot) rather than a sample-rate bug in this
+  project's extraction, and not reproduced in three other subjects' cross-checks. The source paper
+  offers no explanation. Subject 102's clinical-sheet HR was used as ground truth for its HR
+  comparison instead of its own session value — a deliberate, documented asymmetry from subject
+  14's validation (see the note for the full reasoning).
+
+**Scope, stated as plainly as §7.X does for the MIMIC-IV work above:** this is a two-patient
+pipeline-mechanics check, not a cohort validation, and does not validate ML Model 1 (no
+wearable-trend window exists for a single-session dataset — `scenario_type`/severity were assigned
+manually from real EF/diagnosis) or the R-J-to-compliance/amplitude-to-compliance literature
+mappings against outcomes (single-study citations, not independently validated here). See
+`docs/bcg_validation_note.md`'s Limitations section for the full list, including the M-mode-vs-
+Simpson's-biplane EF measurement-method inconsistency across this project's data sources.
