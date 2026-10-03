@@ -1,0 +1,33 @@
+{
+  "false_alerts_day21_system_def": {
+    "quiet_group_patient_days": 189,
+    "false_alert_days_system_def": 34,
+    "false_alerts_per_100_patient_days_system_def": 17.99
+  },
+  "rule_comparison": {
+    "baseline": {
+      "should_catch_detected": 3,
+      "should_catch_total": 5,
+      "mean_lead_time_days": -3.33,
+      "false_alerts_per_100_patient_days": 17.99
+    },
+    "R1": {
+      "should_catch_detected": 3,
+      "should_catch_total": 5,
+      "mean_lead_time_days": -2.33,
+      "false_alerts_per_100_patient_days": 15.87
+    },
+    "R2": {
+      "should_catch_detected": 3,
+      "should_catch_total": 5,
+      "mean_lead_time_days": -1.0,
+      "false_alerts_per_100_patient_days": 13.76
+    },
+    "R3": {
+      "should_catch_detected": 3,
+      "should_catch_total": 5,
+      "mean_lead_time_days": -1.33,
+      "false_alerts_per_100_patient_days": 14.81
+    }
+  }
+}
