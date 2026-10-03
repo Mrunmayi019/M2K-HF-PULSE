@@ -7,10 +7,14 @@ made anywhere in this document.
 ## 1. Setup
 
 - **Branch:** `feature/scenario-testing`, created from tag `results-rc1` (commit `63ba6b4`) --
-  **provisional, unreviewed**: PR #4 was still open at the time these results were produced. Per
-  explicit instruction, `results-v1` will be created once PR #4 merges, either by re-tagging the
-  merged `main` commit (if `git diff --stat results-rc1 main` shows no code/config/requirements
-  differences, no rerun needed) or by rerunning against whatever differences are found.
+  **provisional, unreviewed at the time**: PR #4 was still open when these results were produced.
+  **Update (2026-10-03): PR #4 has since merged into `main` (squash commit `e4257ff`).**
+  `git diff --stat results-rc1 e4257ff` showed zero differences -- not just excluding docs/*.md,
+  literally none at all (the squash merge reproduced `results-rc1`'s tree exactly). Per the
+  pre-registered plan, no rerun was needed: `e4257ff` was retagged `results-v1` directly. **Both
+  SHAs, for the record: `results-rc1` = `63ba6b4` (provisional tag), `results-v1` = `e4257ff`
+  (same tree, now on `main`).** Every result in this document was produced on code identical to
+  both tags.
 - **Model provenance:** `models/scenario_classifier.joblib` (sha256
   `2157cb21991390e6b2417ff8793c2b62a32eeef7467963b94d5058cc37d05a49`) and
   `models/severity_regressor.joblib` (sha256

@@ -1,0 +1,198 @@
+{
+  "baseline": {
+    "candidate": "baseline",
+    "should_catch_detected": 3,
+    "should_catch_total": 5,
+    "should_catch_detail": {
+      "P04": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          null,
+          null,
+          null
+        ]
+      },
+      "P05": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          6,
+          null,
+          null
+        ]
+      },
+      "P06": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          5,
+          4
+        ]
+      },
+      "P07": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          4,
+          3
+        ]
+      },
+      "P10": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          5,
+          4,
+          5
+        ]
+      }
+    },
+    "mean_lead_time_days": -2.33,
+    "false_alerts_per_100_patient_days": 30.16
+  },
+  "C1": {
+    "candidate": "C1",
+    "should_catch_detected": 3,
+    "should_catch_total": 5,
+    "should_catch_detail": {
+      "P04": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          null,
+          null,
+          null
+        ]
+      },
+      "P05": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          8,
+          null,
+          null
+        ]
+      },
+      "P06": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          9,
+          7,
+          9
+        ]
+      },
+      "P07": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          6,
+          6,
+          5
+        ]
+      },
+      "P10": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          7,
+          6,
+          7
+        ]
+      }
+    },
+    "mean_lead_time_days": 0.0,
+    "false_alerts_per_100_patient_days": 25.4
+  },
+  "C2": {
+    "candidate": "C2",
+    "should_catch_detected": 3,
+    "should_catch_total": 5,
+    "should_catch_detail": {
+      "P04": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          null,
+          null,
+          null
+        ]
+      },
+      "P05": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          6,
+          null,
+          null
+        ]
+      },
+      "P06": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          5,
+          4
+        ]
+      },
+      "P07": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          4,
+          3
+        ]
+      },
+      "P10": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          5,
+          4,
+          5
+        ]
+      }
+    },
+    "mean_lead_time_days": -2.33,
+    "false_alerts_per_100_patient_days": 30.16
+  },
+  "C3": {
+    "candidate": "C3",
+    "should_catch_detected": 3,
+    "should_catch_total": 5,
+    "should_catch_detail": {
+      "P04": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          null,
+          null,
+          null
+        ]
+      },
+      "P05": {
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          6,
+          null,
+          null
+        ]
+      },
+      "P06": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          5,
+          4
+        ]
+      },
+      "P07": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          4,
+          4,
+          3
+        ]
+      },
+      "P10": {
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          5,
+          4,
+          5
+        ]
+      }
+    },
+    "mean_lead_time_days": -2.33,
+    "false_alerts_per_100_patient_days": 11.64
+  }
+}
