@@ -58,9 +58,18 @@ signal or a new scorer component, both out of scope for this work. Recorded here
 lost going into the `decide_alert()` implementation: **the unified alert function will not catch
 P05 either, and that is expected, not a regression.**
 
+## Held-out confirmation (seeds 45-47), completed
+
+The held-out batch (30 jobs, N=6) finished cleanly. C3 holds: same should_catch detections as dev
+({P06, P07, P10}; P04/P05 missed in both seed sets), false-alert rate cut 61.4% relative to its
+own baseline (30.16 -> 11.64 per 100 patient-days, vs. dev's 67.6% reduction -- comparable
+magnitude on data it was never selected on). The per-day P04 blind-spot check was re-run on
+seeds 45-47 too: P04 never reaches `HIGH` in any of the 3 held-out seeds, so there was nothing to
+suppress there either -- zero suppression across all three checks (dev per-day, held-out per-day,
+original validation dataset). Full numbers and reasoning:
+`results/scenario_tests/alert_fix_results_heldout.md` on `feature/scenario-testing`.
+
 ## Conclusion
 
-Both checks are clean. C3 does not suppress any genuine fluid_overload detection in either the
-scenario-test cohort (checked per-day, all 3 dev seeds) or the original validation dataset the
-blind-spot fix was built from. Proceeding to the held-out evaluation (seeds 45-47, once that run
-completes) and then, on your go-ahead, implementing `decide_alert()`.
+Both blind-spot checks are clean, and the held-out confirmation holds. All pre-implementation
+steps are complete. Waiting for the go-ahead to implement `decide_alert()`.
