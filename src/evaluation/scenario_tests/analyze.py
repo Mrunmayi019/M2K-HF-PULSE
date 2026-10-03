@@ -39,9 +39,23 @@ PRIMARY_DAYS = 21
 SNAPSHOT_DAY = 14
 
 
+import re
+
+_CANONICAL_RESULT_FILE = re.compile(r"^daily_results_P\d+_seed\d+\.csv$")
+
+
 def load_all_results() -> pd.DataFrame:
+    # BUGFIX (2026-10-03): the glob "daily_results_*_seed*.csv" also matches the preserved,
+    # labelled pilot snapshots kept alongside the live results for the record (e.g.
+    # daily_results_P10_seed42_pilot_v1_preamendment.csv) -- * is greedy and "_seed42_" still
+    # appears in that longer name. Left unfixed, this would quadruple-count P10 seed=42's data
+    # (once from the real batch file, three more times from the preserved pilot variants) in
+    # every downstream table. Restricted to the canonical daily_results_<patient>_seed<N>.csv
+    # filename exactly.
     frames = []
     for path in sorted(RESULTS_DIR.glob("daily_results_*_seed*.csv")):
+        if not _CANONICAL_RESULT_FILE.match(path.name):
+            continue
         frames.append(pd.read_csv(path))
     if not frames:
         raise SystemExit(f"No daily_results_*.csv files found in {RESULTS_DIR}")
@@ -257,7 +271,13 @@ def p10_ablation(df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     }
     col_map = {"weight_kg": "wearable_weight_kg", "steps_per_day": "wearable_steps_per_day", "hrv_rmssd_ms": "wearable_hrv_rmssd_ms"}
 
-    for window_end in range(1, len(sub) + 1):
+    # BUGFIX (2026-10-03): a 1-day window makes _wearable_features()'s per-vital np.polyfit(day,
+    # values, 1) slope fit singular (one point can't determine a line) -- numpy raises
+    # LinAlgError("SVD did not converge"). The real pipeline never calls build_inference_features
+    # with fewer than 2 days of trend data (BASELINE_DAYS=21 always precedes it), so this
+    # degenerate case only exists because this offline ablation loop artificially starts at
+    # window_end=1. Starting at 2 avoids it without touching real pipeline/feature code.
+    for window_end in range(2, len(sub) + 1):
         window = sub.iloc[:window_end]
         trends_rows = []
         for i, (_, r) in enumerate(window.iterrows()):
@@ -285,7 +305,7 @@ def p10_ablation(df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     rows = []
     for name, series in ablations.items():
         peak = max(series) if series else None
-        first_above_02 = next((i + 1 for i, v in enumerate(series) if v > 0.20), None)
+        first_above_02 = next((i + 2 for i, v in enumerate(series) if v > 0.20), None)
         rows.append({"ablation": name, "peak_predicted_severity": round(peak, 4) if peak else None,
                       "first_day_severity_above_0.20": first_above_02})
     result = pd.DataFrame(rows)

@@ -1,0 +1,11 @@
+patient_id,expected_label,dominant_predicted_label,label_counts,match
+P01,stable,deconditioning,{'deconditioning': 42},False
+P02,stable,deconditioning,"{'deconditioning': 36, 'fluid_overload': 5, 'cardiac_stress': 1}",False
+P03,stable,deconditioning,"{'deconditioning': 41, 'fluid_overload': 1}",False
+P04,fluid_overload,deconditioning,"{'deconditioning': 33, 'cardiac_stress': 6, 'fluid_overload': 3}",False
+P05,deconditioning,deconditioning,"{'deconditioning': 31, 'stable': 11}",True
+P06,cardiac_stress,deconditioning,"{'deconditioning': 20, 'cardiac_stress': 17, 'stable': 5}",False
+P07,acute_deterioration,cardiac_stress,"{'cardiac_stress': 25, 'deconditioning': 16, 'stable': 1}",False
+P08,stable,cardiac_stress,"{'cardiac_stress': 17, 'stable': 15, 'deconditioning': 10}",False
+P09,stable,deconditioning,{'deconditioning': 42},False
+P10,acute_deterioration,cardiac_stress,"{'cardiac_stress': 18, 'deconditioning': 14, 'acute_deterioration': 6, 'stable': 4}",False

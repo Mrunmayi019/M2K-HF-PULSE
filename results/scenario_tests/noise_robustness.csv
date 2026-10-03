@@ -1,0 +1,9 @@
+patient_id,noise_multiplier_x_population_sd,predicted_scenario,predicted_severity,severity_band,delta_severity_vs_no_extra_noise
+P01,0.0,deconditioning,0.1145,within_stable_range,0.0
+P01,1.0,deconditioning,0.4277,exceeds_stable_range,0.3131
+P01,1.5,deconditioning,0.544,exceeds_stable_range,0.4295
+P01,2.0,deconditioning,0.5596,exceeds_stable_range,0.4451
+P10,0.0,deconditioning,0.7768,exceeds_stable_range,0.0
+P10,1.0,deconditioning,0.57,exceeds_stable_range,-0.2068
+P10,1.5,fluid_overload,0.6217,exceeds_stable_range,-0.1551
+P10,2.0,deconditioning,0.8501,exceeds_stable_range,0.0733
