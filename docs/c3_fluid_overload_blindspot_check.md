@@ -46,6 +46,18 @@ A second, independent reason this dataset can't even test C3's persistence condi
 C3 requires a streak of **more than 3 consecutive days**; a single isolated encounter can never
 accumulate a streak longer than 1, so C3 could not suppress it even if it had reached `HIGH`.
 
+## Recorded finding: P05's miss is a structural limit, not an alert-rule problem
+
+`compute_risk_score()` (`src/analytics/risk_score.py`) takes no `scenario_type` argument -- it
+cannot see or weight "deconditioning" at all. On the scenario-test cohort's P05 (deconditioning),
+every one of the five acute components AND `baseline_deficit_score` is ~0.000 on all 63
+patient-days across all 3 dev seeds (`results/scenario_tests/scorer_diagnosis.md`, feature/
+scenario-testing branch). There is no nonzero signal for `decide_alert()`, C3, or any other
+alert-side rule to act on for this patient -- fixing it would require a new Pulse-simulated
+signal or a new scorer component, both out of scope for this work. Recorded here so it isn't
+lost going into the `decide_alert()` implementation: **the unified alert function will not catch
+P05 either, and that is expected, not a regression.**
+
 ## Conclusion
 
 Both checks are clean. C3 does not suppress any genuine fluid_overload detection in either the
