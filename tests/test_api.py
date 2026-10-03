@@ -273,6 +273,102 @@ class TestWearableSync:
         assert status["current_alert"]["alert_basis"] == "classifier_and_simulation"
 
 
+# ---- fix/unified-alert-decision: ONE alert, decided in the backend ----
+
+class TestUnifiedAlert:
+    """decide_alert() end-to-end through the real API/DB/pipeline (mocked Pulse only, same
+    convention as every other test in this file). Covers exactly what was asked for: one source
+    of truth across the API and its consumers, the failed-run fallback still firing, and C3
+    downgrading a sustained baseline-only HIGH streak to WATCH, never to NONE."""
+
+    def test_status_alert_matches_assessment_alert_one_source_of_truth(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.1))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        assert status["alert"] is not None
+        # The exact same decision, reached the same way, whether read off StatusResponse.alert
+        # directly or off latest_assessment.alert -- not two competing computations.
+        assert status["alert"] == status["latest_assessment"]["alert"]
+        assert status["alert"]["level"] == "NONE"  # LOW risk_bucket from the near-baseline fake df
+        assert status["alert"]["source"] == "risk_scorer"
+
+    def test_high_risk_bucket_normal_run_is_alert_risk_scorer(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 55, "nt_probnp_pg_ml": 300})
+        # A single acute MAP/CO drop + HR rise -> risk_bucket HIGH, dominant_mechanism "acute" --
+        # not the sustained baseline-only shape C3 looks for, so this must come through as a
+        # plain ALERT every single time, not get downgraded.
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("cardiac_stress"), _FakeModel(0.5))), \
+             patch("src.pulse_runner.runner.run_pulse",
+                   return_value=_fake_pulse_df(hr_start=70, hr_end=130, map_start=95, map_end=60,
+                                                co_start=5000, co_end=3000, sv_start=70, sv_end=40)):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        assert status["latest_assessment"]["risk_bucket"] == "HIGH"
+        assert status["alert"] == {"level": "ALERT", "source": "risk_scorer"}
+
+    def test_failed_run_fallback_still_fires_as_alert(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 2000})
+
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("acute_deterioration"), _FakeModel(0.8))), \
+             patch("src.pulse_runner.runner.run_pulse", side_effect=PulseExecutionError("simulated crash")):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        assert status["simulation_status"] == "failed"
+        assert status["latest_assessment"] is None  # no RiskAssessment exists for a failed run
+        # The unified decision must still fire from the classifier's own severity -- the fallback
+        # that was alert_decision()'s whole point before, now reached through decide_alert().
+        assert status["alert"] == {"level": "ALERT", "source": "failed_fallback"}
+        # Legacy field, unchanged computation -- still correct, kept for its diagnostic fields.
+        assert status["current_alert"]["alert"] == "alert"
+        assert status["current_alert"]["alert_basis"] == "classifier_only"
+
+    def test_c3_downgrades_sustained_baseline_only_high_to_watch_never_none(self, client):
+        """Synthetic fluid-overload-like trajectory (scorer_diagnosis.md's diagnosed mechanism):
+        map_start/map_end both already congested (70mmHg, below the 92.5mmHg healthy anchor but
+        NOT below the 65mmHg instability threshold) and flat -- no acute swing during the
+        encounter, no instability_flag, every day identical. risk_bucket=="HIGH" (baseline-
+        deficit-driven) and dominant_mechanism=="baseline" every day by construction. Must read
+        as ALERT for the first C3_STREAK_THRESHOLD_DAYS days, then WATCH from there on -- never
+        NONE at any point."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 1500})
+
+        congested_stable_df = _fake_pulse_df(
+            hr_start=70, hr_end=70, map_start=70, map_end=70,
+            co_start=5000, co_end=5000, sv_start=70, sv_end=70,
+        )
+        levels = []
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.3))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=congested_stable_df):
+            _fill_wearable_window(client, patient_id)
+            status = client.get(f"/patients/{patient_id}/status").json()
+            assert status["latest_assessment"]["risk_bucket"] == "HIGH"
+            assert status["latest_assessment"]["dominant_mechanism"] == "baseline"
+            levels.append(status["alert"]["level"])
+
+            for day in range(2, 7):
+                client.post(
+                    f"/patients/{patient_id}/wearable-sync",
+                    json={"recorded_date": f"2026-02-{day:02d}", **VALID_READING},
+                )
+                status = client.get(f"/patients/{patient_id}/status").json()
+                levels.append(status["alert"]["level"])
+
+        assert "NONE" not in levels
+        assert levels[0] == "ALERT"  # streak=1, well under the threshold
+        assert levels[-1] == "WATCH"  # streak has grown past C3_STREAK_THRESHOLD_DAYS by now
+        assert levels[-1] == status["alert"]["level"] == "WATCH"
+        assert status["alert"]["source"] == "c3_downgraded"
+
+
 class TestFluidOverloadCaveat:
     def test_risk_caveats_populated_for_fluid_overload(self, client):
         patient_id = _create_patient(client)

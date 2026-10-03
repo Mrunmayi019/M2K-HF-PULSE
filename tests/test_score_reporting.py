@@ -6,6 +6,7 @@ import pytest
 
 from src.analytics.score_reporting import (
     CONFIDENCE_BY_STATUS,
+    C3_STREAK_THRESHOLD_DAYS,
     ENTER_N,
     ENTER_THRESHOLD,
     EXIT_N,
@@ -13,9 +14,12 @@ from src.analytics.score_reporting import (
     MIN_CONFIDENCE_FOR_ALERT,
     SCENARIO_TYPE_PERSISTENCE_N,
     THRESHOLD_CLINICALLY_VALIDATED,
+    AlertAssessmentView,
     alert_decision,
     build_score_report,
+    compute_baseline_high_streak,
     confidence_score,
+    decide_alert,
     determine_simulation_status,
     hysteresis_alert_states,
     scenario_type_persistence,
@@ -400,3 +404,176 @@ class TestScenarioTypePersistence:
         assert confirmed[4] is None
         assert confirmed[5] == "stable"
         assert all(c == "stable" for c in confirmed[5:])
+
+
+# ---------------------------------------------------------------------------------------------
+# decide_alert() -- fix/unified-alert-decision, 2026-10-03. ONE function, single source of truth
+# for ALERT/WATCH/NONE; see its own docstring for the "ML-severity alert" vs. "risk-scorer alert"
+# background and exactly how callers derive `simulation_status` for it.
+# ---------------------------------------------------------------------------------------------
+class TestDecideAlertRiskScorerPath:
+    def test_high_bucket_no_streak_is_alert(self):
+        view = AlertAssessmentView(severity=0.2, risk_score=0.9, risk_bucket="HIGH",
+                                    dominant_mechanism="acute", baseline_high_streak_days=1,
+                                    instability_seen_in_streak=False)
+        report = decide_alert(view, "valid")
+        assert report.level == "ALERT"
+        assert report.source == "risk_scorer"
+
+    def test_moderate_bucket_is_watch(self):
+        view = AlertAssessmentView(severity=0.2, risk_score=0.5, risk_bucket="MODERATE",
+                                    dominant_mechanism="acute")
+        report = decide_alert(view, "valid")
+        assert report.level == "WATCH"
+        assert report.source == "moderate"
+
+    def test_low_bucket_is_none(self):
+        view = AlertAssessmentView(severity=0.05, risk_score=0.1, risk_bucket="LOW",
+                                    dominant_mechanism="acute")
+        report = decide_alert(view, "valid")
+        assert report.level == "NONE"
+
+    def test_moderate_never_none_even_at_zero(self):
+        # MODERATE is WATCH regardless of streak state -- C3 only ever touches HIGH.
+        view = AlertAssessmentView(severity=0.2, risk_score=0.35, risk_bucket="MODERATE",
+                                    dominant_mechanism="baseline", baseline_high_streak_days=99,
+                                    instability_seen_in_streak=False)
+        assert decide_alert(view, "valid").level == "WATCH"
+
+
+class TestDecideAlertC3Downgrade:
+    """The exact rule already selected and evaluated (dev seeds 42-44, held-out seeds 45-47,
+    and the original fluid_overload validation dataset) in
+    results/scenario_tests/alert_fix_plan.md / alert_fix_results.md / alert_fix_results_heldout.md
+    on feature/scenario-testing -- reproduced here as the live decision, not re-derived."""
+
+    def test_short_baseline_high_streak_is_still_alert(self):
+        for streak in (1, 2, C3_STREAK_THRESHOLD_DAYS):  # not yet "more than" the threshold
+            view = AlertAssessmentView(severity=0.2, risk_score=0.9, risk_bucket="HIGH",
+                                        dominant_mechanism="baseline",
+                                        baseline_high_streak_days=streak,
+                                        instability_seen_in_streak=False)
+            report = decide_alert(view, "valid")
+            assert report.level == "ALERT", f"streak={streak} should still be ALERT"
+            assert report.source == "risk_scorer"
+
+    def test_long_baseline_only_high_streak_downgrades_to_watch_never_none(self):
+        view = AlertAssessmentView(severity=0.2, risk_score=0.9, risk_bucket="HIGH",
+                                    dominant_mechanism="baseline",
+                                    baseline_high_streak_days=C3_STREAK_THRESHOLD_DAYS + 1,
+                                    instability_seen_in_streak=False)
+        report = decide_alert(view, "valid")
+        assert report.level == "WATCH"  # NEVER "NONE" -- C3 only ever downgrades, never silences
+        assert report.source == "c3_downgraded"
+
+    def test_instability_seen_in_streak_blocks_the_downgrade(self):
+        # The exact mechanism that keeps C3 safe for genuine fluid_overload detections
+        # (docs/c3_fluid_overload_blindspot_check.md): once instability_flag==1 is seen anywhere
+        # in the streak, the guard never fires, no matter how long the streak runs after that.
+        view = AlertAssessmentView(severity=0.2, risk_score=1.0, risk_bucket="HIGH",
+                                    dominant_mechanism="baseline",
+                                    baseline_high_streak_days=50,
+                                    instability_seen_in_streak=True)
+        report = decide_alert(view, "valid")
+        assert report.level == "ALERT"
+        assert report.source == "risk_scorer"
+
+    def test_synthetic_fluid_overload_like_case_never_reaches_none(self):
+        """A synthetic multi-day trajectory shaped like P04/P08's diagnosed mechanism
+        (scorer_diagnosis.md): risk_bucket=="HIGH", dominant_mechanism=="baseline", no
+        instability_flag ever, sustained for many days. Must never read as NONE at any point --
+        only ALERT (days 1..3) then WATCH (day 4 onward), per the pre-registered rule."""
+        prev_streak, prev_instability = None, None
+        levels = []
+        for day in range(1, 11):
+            streak, instability = compute_baseline_high_streak(
+                previous_streak_days=prev_streak, previous_instability_seen=prev_instability,
+                risk_bucket="HIGH", dominant_mechanism="baseline", instability_flag=0,
+            )
+            view = AlertAssessmentView(severity=0.2, risk_score=0.8, risk_bucket="HIGH",
+                                        dominant_mechanism="baseline",
+                                        baseline_high_streak_days=streak,
+                                        instability_seen_in_streak=instability)
+            report = decide_alert(view, "valid")
+            levels.append(report.level)
+            prev_streak, prev_instability = streak, instability
+
+        assert "NONE" not in levels
+        assert levels[:C3_STREAK_THRESHOLD_DAYS] == ["ALERT"] * C3_STREAK_THRESHOLD_DAYS
+        assert all(level == "WATCH" for level in levels[C3_STREAK_THRESHOLD_DAYS:])
+
+
+class TestDecideAlertFallbackPaths:
+    def test_failed_run_high_severity_is_alert_failed_fallback(self):
+        view = AlertAssessmentView(severity=0.8)
+        report = decide_alert(view, "unstable_failed")
+        assert report.level == "ALERT"
+        assert report.source == "failed_fallback"
+
+    def test_failed_run_low_severity_is_none_not_indeterminate(self):
+        # The old alert_decision() returned "indeterminate" here, which nothing downstream ever
+        # surfaced as an alert anyway -- decide_alert() maps it to NONE, not a new silent state.
+        view = AlertAssessmentView(severity=0.05)
+        report = decide_alert(view, "unstable_failed")
+        assert report.level == "NONE"
+        assert report.source == "failed_fallback"
+
+    def test_unstable_completed_high_severity_is_alert(self):
+        # Pulse succeeded but landed in the documented crash zone -- same classifier-only
+        # fallback as a failure, UNCHANGED threshold, different source label.
+        view = AlertAssessmentView(severity=0.8)
+        report = decide_alert(view, "unstable_completed")
+        assert report.level == "ALERT"
+        assert report.source == "unstable_completed"
+
+    def test_not_run_is_none(self):
+        view = AlertAssessmentView(severity=None)
+        assert decide_alert(view, "not_run").level == "NONE"
+
+
+class TestComputeBaselineHighStreak:
+    def test_first_ever_day_high_baseline_starts_streak_at_one(self):
+        streak, instability = compute_baseline_high_streak(
+            previous_streak_days=None, previous_instability_seen=None,
+            risk_bucket="HIGH", dominant_mechanism="baseline", instability_flag=0,
+        )
+        assert streak == 1
+        assert instability is False
+
+    def test_streak_increments_across_days(self):
+        streak, instability = compute_baseline_high_streak(
+            previous_streak_days=3, previous_instability_seen=False,
+            risk_bucket="HIGH", dominant_mechanism="baseline", instability_flag=0,
+        )
+        assert streak == 4
+
+    def test_acute_dominant_day_resets_streak(self):
+        streak, instability = compute_baseline_high_streak(
+            previous_streak_days=10, previous_instability_seen=False,
+            risk_bucket="HIGH", dominant_mechanism="acute", instability_flag=0,
+        )
+        assert streak == 0
+        assert instability is False
+
+    def test_dropping_below_high_resets_streak(self):
+        streak, _ = compute_baseline_high_streak(
+            previous_streak_days=10, previous_instability_seen=False,
+            risk_bucket="MODERATE", dominant_mechanism="baseline", instability_flag=0,
+        )
+        assert streak == 0
+
+    def test_instability_seen_persists_across_days_within_streak(self):
+        # Day N: instability_flag fires once. Day N+1 onward (still baseline-HIGH): the guard
+        # must remember it saw instability earlier in this same streak, per
+        # alert_fix_results.md's confirmed P04 mechanism (not reassumed here, reproduced).
+        streak1, instability1 = compute_baseline_high_streak(
+            previous_streak_days=2, previous_instability_seen=False,
+            risk_bucket="HIGH", dominant_mechanism="baseline", instability_flag=1,
+        )
+        assert instability1 is True
+        streak2, instability2 = compute_baseline_high_streak(
+            previous_streak_days=streak1, previous_instability_seen=instability1,
+            risk_bucket="HIGH", dominant_mechanism="baseline", instability_flag=0,
+        )
+        assert streak2 == streak1 + 1
+        assert instability2 is True  # still remembered, even though today's own flag is 0

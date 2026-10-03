@@ -25,6 +25,7 @@ Real calibration for any of these remains blocked on data this project does not 
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Literal, Optional
 
 from src.data_synthesis.generate_patients import STABLE_SEVERITY_CAP
@@ -33,6 +34,12 @@ from src.pulse_runner.runner import is_known_unstable_configuration
 ScoreSource = Literal["classifier_only", "pulse_only", "not_fused"]
 SimulationStatus = Literal["valid", "unstable", "not_run"]
 AlertState = Literal["alert", "no_alert", "indeterminate"]
+
+# fix/unified-alert-decision (2026-10-03): the 4-way status decide_alert() itself consumes.
+# Built from determine_simulation_status()'s own 3-way output (reused, not reimplemented) plus
+# the one extra bit ("did Pulse actually succeed") every caller already has in scope whenever
+# that output is "unstable" -- see decide_alert()'s docstring for exactly how to derive this.
+DecideAlertStatus = Literal["not_run", "valid", "unstable_failed", "unstable_completed"]
 
 
 def score_provenance(
@@ -375,3 +382,154 @@ def scenario_type_persistence(
         out.append(confirmed)
 
     return out
+
+
+# ---------------------------------------------------------------------------------------------
+# Unified alert decision (fix/unified-alert-decision, 2026-10-03).
+#
+# Background: this codebase had TWO independent "alert" signals before this change.
+# (1) alert_decision() above, gated on the ML classifier's own `severity` (STABLE_SEVERITY_CAP,
+#     0.15) -- real, reachable backend code (StatusResponse.current_alert), called this project's
+#     "ML-severity alert" from here on.
+# (2) risk_bucket == "HIGH" (src/analytics/risk_score.py, MODERATE_HIGH_BOUNDARY=0.65), gated on
+#     Pulse's own simulated hemodynamics -- called this project's "risk-scorer alert" from here
+#     on. Every frontend component that displays risk/alert state reads THIS one; nothing in the
+#     frontend ever read (1). Confirmed by a full-repo grep before this change
+#     (docs/c3_fluid_overload_blindspot_check.md's companion analysis doc has the detail).
+#
+# decide_alert() replaces both with ONE decision, built on the risk-scorer alert (since that's
+# the one the product actually surfaces), with two additions found necessary by the scenario-test
+# post-hoc analysis (results/scenario_tests/alert_fix_plan.md on feature/scenario-testing):
+#   - a WATCH tier for risk_bucket=="MODERATE" (previously invisible to any alert signal at all);
+#   - the C3 persistence guard, which downgrades (never removes) a HIGH alert that has been
+#     driven by baseline_deficit_score alone, with no corroborating instability_flag, for more
+#     than 3 consecutive days -- the mechanism diagnosed for a specific false-alarm case
+#     (results/scenario_tests/scorer_diagnosis.md) and confirmed, on both dev and held-out seeds
+#     and against the original fluid_overload validation dataset, NEVER to suppress a genuine
+#     fluid_overload detection (docs/c3_fluid_overload_blindspot_check.md) -- those checks all
+#     passed VACUOUSLY (no fluid_overload case in any of the three ever reached HIGH at all); the
+#     WATCH tier, not the vacuous C3 check, is what actually protects a future case where one
+#     does: C3 can only ever push a HIGH down to WATCH, never down to NONE.
+#
+# compute_risk_score() itself, its weights, and its LOW/MODERATE/HIGH thresholds are UNCHANGED by
+# this -- this is reporting-layer composition, exactly this module's existing charter.
+
+AlertLevel = Literal["ALERT", "WATCH", "NONE"]
+AlertSource = Literal["risk_scorer", "c3_downgraded", "failed_fallback", "unstable_completed", "moderate"]
+
+# Not re-derived/re-tuned here -- the exact value already selected and evaluated in
+# results/scenario_tests/alert_fix_plan.md / alert_fix_results.md / alert_fix_results_heldout.md
+# (both on feature/scenario-testing): "more than 3 consecutive days" of a baseline-only HIGH
+# streak before downgrading to WATCH.
+C3_STREAK_THRESHOLD_DAYS = 3
+
+
+@dataclass(frozen=True)
+class AlertReport:
+    level: AlertLevel
+    source: AlertSource
+
+
+@dataclass(frozen=True)
+class AlertAssessmentView:
+    """Duck-typed input to decide_alert() -- either a real RiskAssessment ORM row (which already
+    has every one of these as a column or property, see src/api/models.py's RiskAssessment) or
+    this lightweight stand-in, built by callers for a run that never produced a RiskAssessment at
+    all (a failed Pulse run -- src/api/routes.py's _build_status())."""
+    severity: Optional[float]
+    risk_score: Optional[float] = None
+    risk_bucket: Optional[str] = None
+    dominant_mechanism: Optional[str] = None
+    baseline_high_streak_days: int = 0
+    instability_seen_in_streak: bool = False
+
+
+def decide_alert(assessment, simulation_status: DecideAlertStatus) -> AlertReport:
+    """ONE function, single source of truth for ALERT/WATCH/NONE across the API and every
+    consumer (routes.py's _build_status(), RiskAssessment.alert, and -- via the API --
+    every frontend component; nothing else should decide alert/watch state).
+
+    `assessment` -- a real RiskAssessment row or an AlertAssessmentView, see that class's
+    docstring. Only `.severity` is read when `simulation_status` starts with "unstable"; the
+    risk-scorer fields are only read for "valid" (a RiskAssessment row always has them; an
+    AlertAssessmentView for a failed run correctly leaves them at their None/0/False defaults,
+    never consulted on that path).
+
+    `simulation_status` -- NOT determine_simulation_status()'s raw 3-way output. That function's
+    "unstable" collapses two different cases (Pulse failed outright vs. Pulse succeeded but
+    landed in the documented crash zone) that this function's `source` output must tell apart,
+    and only the CALLER knows which one it is (it already has `pulse_succeeded` in scope wherever
+    determine_simulation_status() gets called). Callers resolve it like this, reusing that
+    function's output rather than reimplementing its logic:
+
+        status = determine_simulation_status(scenario_type, severity, pulse_attempted, pulse_succeeded)
+        if status == "unstable":
+            status = "unstable_failed" if not pulse_succeeded else "unstable_completed"
+        report = decide_alert(assessment, status)
+
+    Decision table:
+      - "unstable_failed" / "unstable_completed": existing classifier-only fallback, UNCHANGED
+        threshold/logic (alert_decision()'s own unstable branch, STABLE_SEVERITY_CAP) --
+        severity > STABLE_SEVERITY_CAP -> ALERT (source matches which case this was); otherwise
+        NONE (nothing concerning to flag; this is the old "indeterminate" case, which nothing
+        downstream ever surfaced as an alert anyway).
+      - "valid" (risk-scorer alert, Pulse ran and wasn't in the crash zone): risk_bucket=="HIGH"
+        -> ALERT (source "risk_scorer"), UNLESS the C3 guard fires (baseline_high_streak_days >
+        C3_STREAK_THRESHOLD_DAYS and not instability_seen_in_streak) -> WATCH (source
+        "c3_downgraded"), never NONE. risk_bucket=="MODERATE" -> WATCH (source "moderate").
+        Otherwise ("LOW") -> NONE.
+      - "not_run": NONE (nothing to decide from yet) -- not expected to actually reach this
+        function in practice (see RiskAssessment.alert's and _build_status()'s own
+        preconditions), handled defensively rather than raising.
+    """
+    if simulation_status in ("unstable_failed", "unstable_completed"):
+        source: AlertSource = "failed_fallback" if simulation_status == "unstable_failed" else "unstable_completed"
+        if assessment.severity is not None and severity_band(assessment.severity) == "exceeds_stable_range":
+            return AlertReport("ALERT", source)
+        return AlertReport("NONE", source)
+
+    if simulation_status == "valid":
+        if assessment.risk_bucket == "HIGH":
+            if (
+                assessment.baseline_high_streak_days is not None
+                and assessment.baseline_high_streak_days > C3_STREAK_THRESHOLD_DAYS
+                and not assessment.instability_seen_in_streak
+            ):
+                return AlertReport("WATCH", "c3_downgraded")
+            return AlertReport("ALERT", "risk_scorer")
+        if assessment.risk_bucket == "MODERATE":
+            return AlertReport("WATCH", "moderate")
+        return AlertReport("NONE", "risk_scorer")
+
+    return AlertReport("NONE", "risk_scorer")  # "not_run" -- nothing to decide from yet
+
+
+def compute_baseline_high_streak(
+    previous_streak_days: Optional[int],
+    previous_instability_seen: Optional[bool],
+    risk_bucket: Optional[str],
+    dominant_mechanism: Optional[str],
+    instability_flag: int,
+) -> tuple[int, bool]:
+    """C3's persistence bookkeeping, computed incrementally (O(1): reads only the patient's most
+    recent prior RiskAssessment, never the full history) at RiskAssessment write-time by
+    src/api/services.py and src/api/continuous_state_pipeline.py. Exactly reproduces the offline
+    per-day state machine already evaluated in results/scenario_tests/posthoc_analysis.py /
+    alert_fix_eval.py (feature/scenario-testing) -- not a new rule, the same one, now computed
+    live instead of re-derived from saved CSVs after the fact.
+
+    `previous_streak_days`/`previous_instability_seen` are the prior RiskAssessment's own stored
+    values for this patient (None if there is no prior assessment, or it predates this field).
+    """
+    prev_streak = previous_streak_days or 0
+    prev_instability_seen = bool(previous_instability_seen)
+
+    if risk_bucket == "HIGH" and dominant_mechanism == "baseline":
+        streak = prev_streak + 1
+        instability_seen = prev_instability_seen
+    else:
+        streak = 0
+        instability_seen = False
+    if instability_flag:
+        instability_seen = True
+    return streak, instability_seen

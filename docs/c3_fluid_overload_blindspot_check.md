@@ -1,0 +1,75 @@
+# C3 vs. the fluid_overload blind spot -- checked before implementing decide_alert()
+
+Per instruction: before implementing C3 in `decide_alert()`, verify it doesn't suppress genuine
+fluid_overload detections (the exact case `baseline_deficit_score` exists to catch,
+`docs/methodology.md` Sec 6.1). Read-only, offline, no scorer/pipeline changes. Script:
+`src/evaluation/scenario_tests/c3_blindspot_check.py`.
+
+**Result: C3 does not suppress a single genuine fluid_overload alert day in either check below.
+Clear to proceed.**
+
+## Check 1: P04 (scenario-test cohort), seeds 42-44, per-day
+
+Every `HIGH` day across all three seeds was individually classified as `instability-driven`
+(`instability_flag==1` that day) or `baseline-only` (`instability_flag==0`, `dominant_mechanism==
+"baseline"`), and checked against C3's actual per-day suppression decision (not just "was the
+first alert day lost" -- every day).
+
+- **Seed 42: never reaches `HIGH` at all** (the diagnosed miss, `scorer_diagnosis.md` --
+  unaffected by C3 either way, since C3 only acts on `HIGH`).
+- **Seed 43: `HIGH` days 8-21.** Day 8 is `baseline-only` (streak length 1 -- C3's `>3 consecutive
+  days` condition can't fire yet). Day 9 is `instability-driven` -- `instability_flag==1` is seen
+  within the streak from here on, which permanently satisfies C3's guard for the rest of this
+  streak. Days 16 and 19 are individually `baseline-only` again later in the same streak, but
+  because instability was already seen earlier in the SAME uninterrupted streak, C3 never
+  downgrades them either. **Zero days suppressed.**
+- **Seed 44: `HIGH` days 10-21.** Days 10-11 are `baseline-only` (streak lengths 1-2, still under
+  the >3 threshold). Day 12 is `instability-driven`, which again permanently satisfies the guard
+  for the rest of the streak -- days 15 and 17 (`baseline-only` again later) are protected the
+  same way. **Zero days suppressed.**
+
+No `C3 WOULD SUPPRESS THIS DAY` flag fired on any of the 63 patient-days checked (full log:
+re-run `c3_blindspot_check.py` to reproduce). The mechanism holds exactly as `alert_fix_results.md`
+found empirically at the first-alert-day level -- confirmed here at the full per-day level too.
+
+## Check 2: the original fluid_overload blind-spot dataset (`docs/methodology.md` Sec 6.1)
+
+`data/simulation_runs/features_dataset.csv` -- the actual 30-run dataset that motivated
+`baseline_deficit_score` -- was fed through the real `compute_risk_score()` directly (not
+reimplemented): **29/30 `MODERATE`, 1/30 `LOW`, 0/30 `HIGH`.** C3 only ever acts on `risk_bucket==
+"HIGH"`; since none of these 30 original cases reach `HIGH` at all (matching `methodology.md`'s
+own documented post-fix finding, "30/30 LOW to 29/30 MODERATE"), **C3 is structurally inapplicable
+to this dataset regardless of the streak-length question.**
+
+A second, independent reason this dataset can't even test C3's persistence condition: it's
+**cross-sectional -- one row per patient, a single Pulse encounter, no day dimension at all.**
+C3 requires a streak of **more than 3 consecutive days**; a single isolated encounter can never
+accumulate a streak longer than 1, so C3 could not suppress it even if it had reached `HIGH`.
+
+## Recorded finding: P05's miss is a structural limit, not an alert-rule problem
+
+`compute_risk_score()` (`src/analytics/risk_score.py`) takes no `scenario_type` argument -- it
+cannot see or weight "deconditioning" at all. On the scenario-test cohort's P05 (deconditioning),
+every one of the five acute components AND `baseline_deficit_score` is ~0.000 on all 63
+patient-days across all 3 dev seeds (`results/scenario_tests/scorer_diagnosis.md`, feature/
+scenario-testing branch). There is no nonzero signal for `decide_alert()`, C3, or any other
+alert-side rule to act on for this patient -- fixing it would require a new Pulse-simulated
+signal or a new scorer component, both out of scope for this work. Recorded here so it isn't
+lost going into the `decide_alert()` implementation: **the unified alert function will not catch
+P05 either, and that is expected, not a regression.**
+
+## Held-out confirmation (seeds 45-47), completed
+
+The held-out batch (30 jobs, N=6) finished cleanly. C3 holds: same should_catch detections as dev
+({P06, P07, P10}; P04/P05 missed in both seed sets), false-alert rate cut 61.4% relative to its
+own baseline (30.16 -> 11.64 per 100 patient-days, vs. dev's 67.6% reduction -- comparable
+magnitude on data it was never selected on). The per-day P04 blind-spot check was re-run on
+seeds 45-47 too: P04 never reaches `HIGH` in any of the 3 held-out seeds, so there was nothing to
+suppress there either -- zero suppression across all three checks (dev per-day, held-out per-day,
+original validation dataset). Full numbers and reasoning:
+`results/scenario_tests/alert_fix_results_heldout.md` on `feature/scenario-testing`.
+
+## Conclusion
+
+Both blind-spot checks are clean, and the held-out confirmation holds. All pre-implementation
+steps are complete. Waiting for the go-ahead to implement `decide_alert()`.

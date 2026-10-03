@@ -106,6 +106,18 @@ RISK_CAVEATS_DESCRIPTION = (
 )
 
 
+class AlertReportPayload(BaseModel):
+    """src.analytics.score_reporting.decide_alert()'s output (fix/unified-alert-decision) -- the
+    ONE alert decision. `level`: ALERT (urgent) / WATCH (elevated, not urgent) / NONE. `source`:
+    'risk_scorer' (normal risk-scorer-driven ALERT or NONE), 'moderate' (risk_bucket=='MODERATE'
+    WATCH), 'c3_downgraded' (a sustained baseline-only HIGH streak downgraded to WATCH -- never
+    to NONE), 'failed_fallback' (Pulse run failed; classifier-severity-only fallback),
+    'unstable_completed' (Pulse succeeded but landed in the documented crash zone; same
+    classifier-only fallback, Pulse's own output untrusted either way)."""
+    level: Literal["ALERT", "WATCH", "NONE"]
+    source: Literal["risk_scorer", "c3_downgraded", "failed_fallback", "unstable_completed", "moderate"]
+
+
 class ProjectionHorizon(BaseModel):
     projected_severity: float
     risk_score: Optional[float] = None
@@ -132,6 +144,14 @@ class RiskAssessmentPayload(BaseModel):
     )
     dominant_mechanism: Optional[Literal["acute", "baseline"]] = Field(
         default=None, description="Which of the two mechanisms above produced risk_score."
+    )
+    alert: Optional[AlertReportPayload] = Field(
+        default=None,
+        description=(
+            "THE alert decision for this assessment (fix/unified-alert-decision) -- "
+            "src.analytics.score_reporting.decide_alert()'s {level, source}. Every consumer, "
+            "frontend included, should read this field and nothing else for alert/watch state."
+        ),
     )
     nyha_class: str
     risk_caveats: Optional[str] = Field(default=None, description=RISK_CAVEATS_DESCRIPTION)
@@ -203,11 +223,21 @@ class StatusResponse(BaseModel):
     current_alert: Optional[dict] = Field(
         default=None,
         description=(
-            "The most up-to-date alert decision, in src.analytics.score_reporting."
-            "build_score_report()'s shape. From `latest_assessment`'s score_provenance normally; "
-            "from the failed run's stored classifier severity/scenario_type when a newer run "
-            "failed (source 'classifier_only', simulation_status 'unstable', alert_basis "
-            "'classifier_only'). None when there is nothing to decide from yet."
+            "LEGACY diagnostic payload (src.analytics.score_reporting.build_score_report()'s "
+            "shape) -- kept for its severity_score/severity_band/confidence/simulation_status "
+            "fields. Its own 'alert'/'alert_basis' keys are SUPERSEDED by the `alert` field below "
+            "and must not be used for alert/watch state -- see `alert`'s description."
+        ),
+    )
+    alert: Optional[AlertReportPayload] = Field(
+        default=None,
+        description=(
+            "THE alert decision (fix/unified-alert-decision) -- src.analytics.score_reporting."
+            "decide_alert()'s output. The single source of truth across this API and every "
+            "consumer, frontend included; nothing else (not `current_alert`, not a frontend's own "
+            "risk_bucket=='HIGH' check) should be read for alert/watch state. None only when "
+            "there is nothing to decide from yet (no run, no failure -- `simulation_status` is "
+            "'collecting' or 'pending')."
         ),
     )
     latest_wearable: Optional[WearableReadingResponse] = None
