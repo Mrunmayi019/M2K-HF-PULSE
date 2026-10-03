@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from src.analytics.deterioration_rate import compute_deterioration_rate, days_to_next_stage
 from src.analytics.projection import DEFAULT_HORIZONS_DAYS, project_physiology
 from src.analytics.risk_score import compute_risk_score
+from src.analytics.score_reporting import compute_baseline_high_streak
 from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
 from src.analytics.staging import classify_nyha
 from src.api import models
@@ -336,6 +337,22 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
 
     risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
 
+    # decide_alert()'s C3 persistence state -- O(1), reads only this patient's most recent prior
+    # RiskAssessment (see compute_baseline_high_streak()'s docstring).
+    previous_assessment = (
+        db.query(models.RiskAssessment)
+        .filter(models.RiskAssessment.patient_id == patient_id)
+        .order_by(models.RiskAssessment.id.desc())
+        .first()
+    )
+    streak_days, instability_seen = compute_baseline_high_streak(
+        previous_streak_days=previous_assessment.baseline_high_streak_days if previous_assessment else None,
+        previous_instability_seen=previous_assessment.instability_seen_in_streak if previous_assessment else None,
+        risk_bucket=risk["risk_bucket"],
+        dominant_mechanism=risk["dominant_mechanism"],
+        instability_flag=sim_features["instability_flag"],
+    )
+
     db.add(
         models.RiskAssessment(
             patient_id=patient_id,
@@ -345,6 +362,8 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
             component_scores=risk["component_scores"],
             baseline_deficit_score=risk["baseline_deficit_score"],
             dominant_mechanism=risk["dominant_mechanism"],
+            baseline_high_streak_days=streak_days,
+            instability_seen_in_streak=instability_seen,
             nyha_class=nyha_class,
             risk_caveats=risk_caveats,
             deterioration_direction=rate_info["direction"],

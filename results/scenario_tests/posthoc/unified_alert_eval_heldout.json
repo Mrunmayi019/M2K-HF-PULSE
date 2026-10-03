@@ -1,0 +1,312 @@
+{
+  "P01": {
+    "group": "should_stay_quiet",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 0,
+        "watch_days": 4,
+        "none_days": 17,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 12,
+        "watch_days": 5,
+        "none_days": 4,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P02": {
+    "group": "edge_case",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      }
+    }
+  },
+  "P03": {
+    "group": "edge_case",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      }
+    }
+  },
+  "P04": {
+    "group": "should_catch",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 0,
+        "watch_days": 20,
+        "none_days": 1,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P05": {
+    "group": "should_catch",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 3,
+        "watch_days": 14,
+        "none_days": 4,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      }
+    }
+  },
+  "P06": {
+    "group": "should_catch",
+    "alerted_all_seeds": true,
+    "watch_or_alert_all_seeds": true,
+    "per_seed": {
+      "45": {
+        "alert_days": 5,
+        "watch_days": 14,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 17,
+        "watch_days": 2,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "47": {
+        "alert_days": 5,
+        "watch_days": 14,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P07": {
+    "group": "should_catch",
+    "alerted_all_seeds": true,
+    "watch_or_alert_all_seeds": true,
+    "per_seed": {
+      "45": {
+        "alert_days": 18,
+        "watch_days": 0,
+        "none_days": 3,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 18,
+        "watch_days": 0,
+        "none_days": 3,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "47": {
+        "alert_days": 19,
+        "watch_days": 0,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P08": {
+    "group": "should_stay_quiet",
+    "alerted_all_seeds": true,
+    "watch_or_alert_all_seeds": true,
+    "per_seed": {
+      "45": {
+        "alert_days": 3,
+        "watch_days": 10,
+        "none_days": 8,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 3,
+        "watch_days": 14,
+        "none_days": 4,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "47": {
+        "alert_days": 3,
+        "watch_days": 14,
+        "none_days": 4,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P09": {
+    "group": "should_stay_quiet",
+    "alerted_all_seeds": false,
+    "watch_or_alert_all_seeds": false,
+    "per_seed": {
+      "45": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "46": {
+        "alert_days": 0,
+        "watch_days": 0,
+        "none_days": 21,
+        "failed_days": 0,
+        "ever_alert": false,
+        "ever_watch_or_alert": false
+      },
+      "47": {
+        "alert_days": 1,
+        "watch_days": 0,
+        "none_days": 20,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  },
+  "P10": {
+    "group": "should_catch",
+    "alerted_all_seeds": true,
+    "watch_or_alert_all_seeds": true,
+    "per_seed": {
+      "45": {
+        "alert_days": 3,
+        "watch_days": 17,
+        "none_days": 1,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "46": {
+        "alert_days": 18,
+        "watch_days": 1,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      },
+      "47": {
+        "alert_days": 17,
+        "watch_days": 2,
+        "none_days": 2,
+        "failed_days": 0,
+        "ever_alert": true,
+        "ever_watch_or_alert": true
+      }
+    }
+  }
+}
