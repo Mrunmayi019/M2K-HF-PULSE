@@ -185,6 +185,13 @@ with only the indirect route (an Exercise-triggered acute event that happens to 
 carry forward, §3) -- noise-dependent, not a deterministic property of being a "fluid_overload
 patient" the way EF<=40 was for the original validation set.
 
+**Scope note**: the scenario-test cohort's EF range is narrow by construction -- Amendment A
+assigned EF 48-57% to all 10 patients (`cohort.yaml`: P01=48 ... P10=57, one percentage point
+apart, by patient-ID order), entirely above the 40% threshold. Nothing in this cohort tests a
+patient with EF<=40 at all, so this comparison establishes the mechanism (confirmed exactly
+against the 30-case validation set, which does span EF 15-43.5%) but does not itself probe how
+this scorer behaves for an HFrEF-range scenario-test patient -- there isn't one in this cohort.
+
 ## 5. decide_alert() implementation checks
 
 **Does the offline evaluation call the real `decide_alert()`, or a copy?** The real one.
