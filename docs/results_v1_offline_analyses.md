@@ -46,7 +46,14 @@ weights perturbed individually by -20%/-10%/+10%/+20% (remaining weights renorma
 Full output: `results/results_v1_offline/weight_sensitivity.json`.
 
 **Baseline**: 21/30 should_catch patient-seed series detected (HIGH on/after perturbation start),
-8/18 should_stay_quiet series false-alert (HIGH on any day).
+8/18 should_stay_quiet series false-alert (HIGH on any day). **Clarification (2026-10-07): this
+21/30 is the "any ALERT on/after perturbation start" measure, not "story-driven" in the stricter
+sense (the series' own first-ever ALERT occurring on/after perturbation start) -- this script
+never computed that stricter condition. The stricter count, computed separately
+(`docs/followup_analysis_2026-10-07.md`, `fix/unified-alert-decision`), is 14/30. Both numbers
+describe the UNPERTURBED baseline; this section's actual subject (weight sensitivity) is
+unaffected either way, since the finding is that none of the 20 perturbations change the 21/30
+or 8/18 counts at all, regardless of which detection definition is used.**
 
 **Result: the 5 acute weights are INACTIVE in this cohort -- not evidence the scorer is robust
 to weight changes.** "Robust" would mean the outcome holds despite the weights mattering; here
