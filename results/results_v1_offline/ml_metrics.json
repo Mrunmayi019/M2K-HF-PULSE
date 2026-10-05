@@ -1,0 +1,57 @@
+{
+  "train_val_test_sizes": [
+    1400,
+    300,
+    300
+  ],
+  "test_accuracy": 0.9133333333333333,
+  "test_severity_mae": 0.047026977777777784,
+  "test_severity_rmse": 0.06113866025622353,
+  "test_severity_mae_by_scenario": {
+    "acute_deterioration": 0.0535170621468927,
+    "cardiac_stress": 0.0451274444444444,
+    "deconditioning": 0.06228032258064518,
+    "fluid_overload": 0.0373236723163842,
+    "stable": 0.03632438888888889
+  },
+  "test_confusion_matrix": [
+    [
+      57,
+      0,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      53,
+      0,
+      1,
+      5
+    ],
+    [
+      2,
+      0,
+      54,
+      4,
+      0
+    ],
+    [
+      3,
+      0,
+      2,
+      56,
+      1
+    ],
+    [
+      0,
+      4,
+      1,
+      0,
+      54
+    ]
+  ],
+  "val_accuracy": 0.9066666666666666,
+  "val_severity_mae": 0.04582987777777785,
+  "val_severity_rmse": 0.05783512933650597
+}

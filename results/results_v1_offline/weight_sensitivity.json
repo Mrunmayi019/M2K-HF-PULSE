@@ -1,0 +1,168 @@
+{
+  "baseline": {
+    "should_catch_detected": 21,
+    "should_catch_total": 30,
+    "quiet_false_alert_series": 8,
+    "quiet_total_series": 18
+  },
+  "instability_flag": {
+    "-20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "-10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "0%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    }
+  },
+  "map_drop": {
+    "-20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "-10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "0%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    }
+  },
+  "co_drop_pct": {
+    "-20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "-10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "0%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    }
+  },
+  "hr_rise": {
+    "-20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "-10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "0%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    }
+  },
+  "compensation_flag": {
+    "-20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "-10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "0%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+10%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    },
+    "+20%": {
+      "should_catch_detected": 21,
+      "should_catch_total": 30,
+      "quiet_false_alert_series": 8,
+      "quiet_total_series": 18
+    }
+  }
+}

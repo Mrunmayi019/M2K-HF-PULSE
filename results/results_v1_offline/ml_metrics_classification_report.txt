@@ -1,0 +1,11 @@
+                     precision    recall  f1-score   support
+
+             stable       0.92      0.95      0.93        60
+     fluid_overload       0.93      0.90      0.91        59
+     cardiac_stress       0.95      0.90      0.92        60
+     deconditioning       0.88      0.90      0.89        62
+acute_deterioration       0.90      0.92      0.91        59
+
+           accuracy                           0.91       300
+          macro avg       0.91      0.91      0.91       300
+       weighted avg       0.91      0.91      0.91       300
