@@ -120,18 +120,30 @@ for `acute_deterioration`).** Report only; not changed.
 
 ## 4. Restated: per-series counts (not "all seeds must agree")
 
+**Correction (2026-10-07): this section originally reported 21/30 and called it "story-driven
+detections." That number is actually "any ALERT on/after perturbation start" (a looser measure --
+it doesn't check whether the series ALSO false-alerted earlier). The correct story-driven
+count, under the strict rule (the series' own FIRST-EVER ALERT must be on/after perturbation
+start), is 14/30 -- see `docs/followup_analysis_2026-10-07.md` item 1, which is now the
+authoritative number. Both are kept below, correctly labelled.**
+
 Using the real `decide_alert()` output (not the raw `risk_bucket` shortcut
 `weight_sensitivity.py` used for its own, different purpose):
 
-- **should_catch, story-driven detections (first ALERT on/after each patient's own perturbation
-  start): 21/30 patient-seed series** (5 patients x 6 seeds). P06, P07, P10: 6/6 each. P04: 3/6.
-  P05: 0/6. (P07's 6/6 here is its genuine post-day-10 detection, separate from and in addition
-  to its own pre-day-10 false ALERT in §1.)
+- **should_catch, story-driven detections (series' first-ever ALERT is on/after its own
+  perturbation start): 14/30 patient-seed series** (5 patients x 6 seeds) -- P06 6/6, P10 5/6,
+  P04 2/6, P05 1/6, P07 **0/6** (P07's early false ALERT, §1, disqualifies every one of its 6
+  seeds from this strict count, even though all 6 also show a genuine post-day-10 ALERT).
+- **should_catch, any ALERT on/after perturbation start (weaker -- ignores earlier false
+  alerts): 21/30 patient-seed series.** P06, P07, P10: 6/6 each. P04: 3/6. P05: 0/6.
 - **should_stay_quiet, series with any ALERT (any day): 8/18 patient-seed series** (3 patients x
   6 seeds). P08: 6/6 (every seed). P01: 1/6 (seed 47 only). P09: 1/6 (seed 47 only).
 
-Cross-checked against `results/results_v1_offline/weight_sensitivity.json`'s baseline (21/30,
-8/18, computed independently via raw `risk_bucket=="HIGH"` rather than `decide_alert()`) -- same
-numbers both ways in this dataset, confirming C3's downgrades never change whether a series ever
-reaches `ALERT` at all (C3 only trims how many *consecutive* days a streak stays `ALERT` once it
-starts, §`alert_fix_plan.md`), only the per-day WATCH/ALERT split within a series that does.
+The 21/30 "any ALERT on/after perturbation start" figure cross-checks against `results/
+results_v1_offline/weight_sensitivity.json`'s baseline (21/30, 8/18, computed independently via
+raw `risk_bucket=="HIGH"` rather than `decide_alert()`) -- same numbers both ways in this
+dataset, confirming C3's downgrades never change whether a series ever reaches `ALERT` at all
+(C3 only trims how many *consecutive* days a streak stays `ALERT` once it starts,
+§`alert_fix_plan.md`), only the per-day WATCH/ALERT split within a series that does. The strict
+14/30 figure was not itself cross-checked against that file, since `weight_sensitivity.py` never
+computed the strict "first ever ALERT" condition at all.
