@@ -34,24 +34,25 @@ ax.legend(frameon=False, loc="lower left", ncol=2, bbox_to_anchor=(0, 1.0))
 fig.savefig(os.path.join(OUT, "fig_batch_success.png"))
 plt.close(fig)
 
-# 2. Alert candidates: false alerts per 100 patient-days in the should-stay-quiet group
-#    (results/scenario_tests/alert_fix_results.md and alert_fix_results_heldout.md)
-cands = ["Baseline", "C1:\npersistence", "C2:\ntwo-level", "C3:\nguard"]
-dev = [17.99, 13.76, 17.99, 5.82]
-held = [30.16, 25.40, 30.16, 11.64]
-x = np.arange(len(cands))
-fig, ax = plt.subplots(figsize=(COL, 2.0))
-ax.bar(x - 0.18, dev, 0.34, color=BLUE, label="Development seeds (42-44)")
-ax.bar(x + 0.18, held, 0.34, color=ORANGE, label="Held-out seeds (45-47)")
-for xi, d, h in zip(x, dev, held):
-    ax.text(xi - 0.18, d + 0.6, f"{d:.1f}", ha="center", fontsize=6)
-    ax.text(xi + 0.18, h + 0.6, f"{h:.1f}", ha="center", fontsize=6)
-ax.set_xticks(x, cands)
-ax.set_ylabel("False alerts / 100 patient-days")
-ax.set_ylim(0, 35)
-ax.grid(axis="x", visible=False)
-ax.legend(frameon=False, loc="lower left", ncol=2, bbox_to_anchor=(0, 1.0))
-fig.savefig(os.path.join(OUT, "fig_alert_candidates.png"))
+# 2. Alert-system ablation, all six seeds (results/scenario_tests/posthoc/ablation_eval.json,
+#    src/evaluation/scenario_tests/ablation_eval.py)
+import json
+ab = json.load(open(os.path.join(OUT, "..", "..", "results", "scenario_tests", "posthoc", "ablation_eval.json")))["failed_as_alert"]["all"]
+names = {"weight_rule": "Weight rule", "rf_severity": "Classifier only", "pulse_high": "+ Pulse risk (HIGH)",
+         "decide_alert": "+ C3 guard (deployed)", "decide_watch": "Deployed, WATCH+"}
+cols = {"weight_rule": GREY, "rf_severity": RED, "pulse_high": ORANGE, "decide_alert": BLUE, "decide_watch": "#7fb0e8"}
+offs = {"weight_rule": (6, -2), "rf_severity": (-40, -14), "pulse_high": (2, -16), "decide_alert": (-24, 12), "decide_watch": (4, 12)}
+fig, ax = plt.subplots(figsize=(COL, 2.4))
+for k, e in ab.items():
+    sens = e["sensitivity_series"]; fa = e["false_alerts_per_100pd"]
+    x, y = fa[0], 100 * sens[0] / sens[1]
+    ax.errorbar(x, y, xerr=[[x - fa[1]], [fa[2] - x]], yerr=[[y - 100 * sens[2]], [100 * sens[3] - y]],
+                fmt="o", color=cols[k], ms=4, lw=0.9, capsize=2, label=names[k])
+ax.legend(frameon=False, loc="lower right", fontsize=6.5)
+ax.set_xlabel("False alerts / 100 patient-days (stable stories)")
+ax.set_ylabel("Deteriorating series detected (%)")
+ax.set_xlim(-3, 85); ax.set_ylim(-5, 108)
+fig.savefig(os.path.join(OUT, "fig_ablation.png"))
 plt.close(fig)
 
 # 3. Real-outcome discrimination, AUC with 95% CI (docs/methodology.md 7.X-7.CC, docs/claims_methodology.md)
@@ -76,17 +77,4 @@ ax.grid(axis="y", visible=False)
 fig.savefig(os.path.join(OUT, "fig_auc_forest.png"))
 plt.close(fig)
 
-# 4. PerHeart real-patient replay, risk-bucket distribution pre vs post severity-model fix
-#    (docs/real_world_data_integration.md 8.1 and 8.4)
-labels = ["Post-fix\n(13 completed)", "Pre-fix\n(16 completed)"]
-low, mod, high = np.array([4, 4]), np.array([4, 12]), np.array([5, 0])
-fig, ax = plt.subplots(figsize=(COL, 1.7))
-ax.barh(labels, low, color="#9cc3ec", label="LOW")
-ax.barh(labels, mod, left=low, color=BLUE, label="MODERATE")
-ax.barh(labels, high, left=low + mod, color=RED, label="HIGH")
-ax.set_xlabel("Patients")
-ax.grid(axis="y", visible=False)
-ax.legend(frameon=False, ncol=3, loc="lower left", bbox_to_anchor=(0, 1.0))
-fig.savefig(os.path.join(OUT, "fig_perheart_buckets.png"))
-plt.close(fig)
 print("figures written to", OUT)

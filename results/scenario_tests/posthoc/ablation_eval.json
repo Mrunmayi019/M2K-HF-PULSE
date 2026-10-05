@@ -1,0 +1,807 @@
+{
+  "failed_as_alert": {
+    "dev": {
+      "weight_rule": {
+        "sensitivity_series": [
+          1,
+          15,
+          0.011866588606194856,
+          0.2981707755242399
+        ],
+        "specificity_series": [
+          9,
+          9,
+          0.7008472464490407,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 15.0,
+        "pre_onset_alert_days_should_catch": 0,
+        "prereg_caught": [],
+        "prereg_quiet": [
+          "P01",
+          "P08",
+          "P09"
+        ]
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          9,
+          0.0,
+          0.2991527535509594
+        ],
+        "false_alerts_per_100pd": [
+          58.73015873015873,
+          37.56613756613756,
+          78.3068783068783
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 29,
+        "prereg_caught": [
+          "P04",
+          "P05",
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          17.98941798941799,
+          0.0,
+          35.97883597883598
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 21,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          5.8201058201058204,
+          1.5873015873015872,
+          11.640211640211641
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 21,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          21.693121693121693,
+          0.0,
+          44.44444444444444
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 25,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      }
+    },
+    "heldout": {
+      "weight_rule": {
+        "sensitivity_series": [
+          1,
+          15,
+          0.011866588606194856,
+          0.2981707755242399
+        ],
+        "specificity_series": [
+          9,
+          9,
+          0.7008472464490407,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 1.0,
+        "pre_onset_alert_days_should_catch": 0,
+        "prereg_caught": [],
+        "prereg_quiet": [
+          "P01",
+          "P08",
+          "P09"
+        ]
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          9,
+          0.0,
+          0.2991527535509594
+        ],
+        "false_alerts_per_100pd": [
+          61.37566137566137,
+          38.62433862433863,
+          80.95238095238095
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 26,
+        "prereg_caught": [
+          "P04",
+          "P05",
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          10,
+          15,
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "specificity_series": [
+          4,
+          9,
+          0.188775429471914,
+          0.7333526542559703
+        ],
+        "false_alerts_per_100pd": [
+          30.158730158730158,
+          8.465608465608465,
+          52.91005291005291
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 19,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          10,
+          15,
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "specificity_series": [
+          4,
+          9,
+          0.188775429471914,
+          0.7333526542559703
+        ],
+        "false_alerts_per_100pd": [
+          11.640211640211641,
+          2.6455026455026456,
+          24.33862433862434
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 19,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          3,
+          9,
+          0.12058159868274293,
+          0.6458026525009102
+        ],
+        "false_alerts_per_100pd": [
+          36.507936507936506,
+          13.227513227513228,
+          60.84656084656085
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 28,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      }
+    },
+    "all": {
+      "weight_rule": {
+        "sensitivity_series": [
+          2,
+          30,
+          0.01847663532769335,
+          0.21323817721072091
+        ],
+        "specificity_series": [
+          18,
+          18,
+          0.8241154494176252,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 8.0,
+        "pre_onset_alert_days_should_catch": 0
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          30,
+          30,
+          0.8864829086095221,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          18,
+          0.0,
+          0.1758845505823749
+        ],
+        "false_alerts_per_100pd": [
+          60.05291005291005,
+          44.43783068783069,
+          73.80952380952381
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 55
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          21,
+          30,
+          0.5212387898833981,
+          0.8333543735604105
+        ],
+        "specificity_series": [
+          10,
+          18,
+          0.3371606942825164,
+          0.7544076889861088
+        ],
+        "false_alerts_per_100pd": [
+          24.074074074074073,
+          10.582010582010582,
+          38.62433862433863
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 40
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          21,
+          30,
+          0.5212387898833981,
+          0.8333543735604105
+        ],
+        "specificity_series": [
+          10,
+          18,
+          0.3371606942825164,
+          0.7544076889861088
+        ],
+        "false_alerts_per_100pd": [
+          8.73015873015873,
+          3.439153439153439,
+          16.137566137566136
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 40
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          22,
+          30,
+          0.5555169795568831,
+          0.8581750444608938
+        ],
+        "specificity_series": [
+          9,
+          18,
+          0.2903070395897999,
+          0.7096929604102
+        ],
+        "false_alerts_per_100pd": [
+          29.1005291005291,
+          14.55026455026455,
+          46.2962962962963
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 53
+      }
+    }
+  },
+  "failed_as_no_alert": {
+    "dev": {
+      "weight_rule": {
+        "sensitivity_series": [
+          1,
+          15,
+          0.011866588606194856,
+          0.2981707755242399
+        ],
+        "specificity_series": [
+          9,
+          9,
+          0.7008472464490407,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 15.0,
+        "pre_onset_alert_days_should_catch": 0,
+        "prereg_caught": [],
+        "prereg_quiet": [
+          "P01",
+          "P08",
+          "P09"
+        ]
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          9,
+          0.0,
+          0.2991527535509594
+        ],
+        "false_alerts_per_100pd": [
+          58.73015873015873,
+          37.56613756613756,
+          78.3068783068783
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 29,
+        "prereg_caught": [
+          "P04",
+          "P05",
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          17.98941798941799,
+          0.0,
+          35.97883597883598
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 21,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          5.8201058201058204,
+          1.5873015873015872,
+          11.640211640211641
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 21,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          6,
+          9,
+          0.35419734749908977,
+          0.879418401317257
+        ],
+        "false_alerts_per_100pd": [
+          21.693121693121693,
+          0.0,
+          44.44444444444444
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 25,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": [
+          "P01",
+          "P09"
+        ]
+      }
+    },
+    "heldout": {
+      "weight_rule": {
+        "sensitivity_series": [
+          1,
+          15,
+          0.011866588606194856,
+          0.2981707755242399
+        ],
+        "specificity_series": [
+          9,
+          9,
+          0.7008472464490407,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 1.0,
+        "pre_onset_alert_days_should_catch": 0,
+        "prereg_caught": [],
+        "prereg_quiet": [
+          "P01",
+          "P08",
+          "P09"
+        ]
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          9,
+          0.0,
+          0.2991527535509594
+        ],
+        "false_alerts_per_100pd": [
+          61.37566137566137,
+          38.62433862433863,
+          80.95238095238095
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 26,
+        "prereg_caught": [
+          "P04",
+          "P05",
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          10,
+          15,
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "specificity_series": [
+          4,
+          9,
+          0.188775429471914,
+          0.7333526542559703
+        ],
+        "false_alerts_per_100pd": [
+          30.158730158730158,
+          8.465608465608465,
+          52.91005291005291
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 19,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          10,
+          15,
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "specificity_series": [
+          4,
+          9,
+          0.188775429471914,
+          0.7333526542559703
+        ],
+        "false_alerts_per_100pd": [
+          11.640211640211641,
+          2.6455026455026456,
+          24.33862433862434
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 19,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "specificity_series": [
+          3,
+          9,
+          0.12058159868274293,
+          0.6458026525009102
+        ],
+        "false_alerts_per_100pd": [
+          36.507936507936506,
+          13.227513227513228,
+          60.84656084656085
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 28,
+        "prereg_caught": [
+          "P06",
+          "P07",
+          "P10"
+        ],
+        "prereg_quiet": []
+      }
+    },
+    "all": {
+      "weight_rule": {
+        "sensitivity_series": [
+          2,
+          30,
+          0.01847663532769335,
+          0.21323817721072091
+        ],
+        "specificity_series": [
+          18,
+          18,
+          0.8241154494176252,
+          1.0
+        ],
+        "false_alerts_per_100pd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median_days_onset_to_first_alert": 8.0,
+        "pre_onset_alert_days_should_catch": 0
+      },
+      "rf_severity": {
+        "sensitivity_series": [
+          30,
+          30,
+          0.8864829086095221,
+          1.0
+        ],
+        "specificity_series": [
+          0,
+          18,
+          0.0,
+          0.1758845505823749
+        ],
+        "false_alerts_per_100pd": [
+          60.05291005291005,
+          44.43783068783069,
+          73.80952380952381
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 55
+      },
+      "pulse_high": {
+        "sensitivity_series": [
+          21,
+          30,
+          0.5212387898833981,
+          0.8333543735604105
+        ],
+        "specificity_series": [
+          10,
+          18,
+          0.3371606942825164,
+          0.7544076889861088
+        ],
+        "false_alerts_per_100pd": [
+          24.074074074074073,
+          10.582010582010582,
+          38.62433862433863
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 40
+      },
+      "decide_alert": {
+        "sensitivity_series": [
+          21,
+          30,
+          0.5212387898833981,
+          0.8333543735604105
+        ],
+        "specificity_series": [
+          10,
+          18,
+          0.3371606942825164,
+          0.7544076889861088
+        ],
+        "false_alerts_per_100pd": [
+          8.73015873015873,
+          3.439153439153439,
+          16.137566137566136
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 40
+      },
+      "decide_watch": {
+        "sensitivity_series": [
+          22,
+          30,
+          0.5555169795568831,
+          0.8581750444608938
+        ],
+        "specificity_series": [
+          9,
+          18,
+          0.2903070395897999,
+          0.7096929604102
+        ],
+        "false_alerts_per_100pd": [
+          29.1005291005291,
+          14.55026455026455,
+          46.2962962962963
+        ],
+        "median_days_onset_to_first_alert": 0.0,
+        "pre_onset_alert_days_should_catch": 53
+      }
+    }
+  },
+  "failed_pulse_days_total": 3,
+  "onset_days": {
+    "P01": null,
+    "P02": 5,
+    "P03": 4,
+    "P04": 4,
+    "P05": 4,
+    "P06": 4,
+    "P07": 10,
+    "P08": 5,
+    "P09": 4,
+    "P10": 4
+  }
+}

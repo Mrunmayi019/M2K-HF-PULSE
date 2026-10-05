@@ -26,7 +26,7 @@
 
 \begin{document}
 
-\title{A Wearable-Driven Digital Twin for Monitoring Heart Failure Deterioration: Pulse-Based Physiological Simulation, Pre-Registered Scenario Testing and Real-Patient Replay}
+\title{A Wearable-Driven Physiological Digital Twin for Heart Failure Monitoring: Feasibility and Limits}
 
 \author{\IEEEauthorblockN{Kaveri Sharma}
 \IEEEauthorblockA{\textit{Dept. of Computer Science Engg.}\\
@@ -56,7 +56,7 @@ adithyakoundinya@gmail.com}
 \maketitle
 
 \begin{abstract}
-Heart failure (HF) deteriorates gradually at home, yet monitoring remains episodic and consumer wearables report numbers without a model of what they mean physiologically. We present an end-to-end digital twin that couples home-measurable signals to a mechanistic physiology engine. A 21-day window of six wearable trends (resting heart rate, SpO$_2$, weight, steps, sleep, heart-rate variability) and routine clinical values (age, sex, BMI, ejection fraction, NT-proBNP) feed a Random Forest classifier and regressor that estimate one of five deterioration scenarios and its severity; these parameterize the Kitware Pulse engine through disease-specific cardiovascular modifiers; and a clinically anchored, interpretable risk score converts the simulated hemodynamic response into an alert, NYHA stage and 7/14/30-day projection, served through a FastAPI back end and React dashboard with day-to-day continuity of simulator state. On 300 held-out synthetic patients the classifier reached 90.7\% accuracy (macro-F1 0.91) and severity MAE 0.047; live re-validation through the deployed API gave severity MAE 0.026 (n=45). In a pre-registered test of ten scripted patient stories over 21 days and six seeds, the deployed alert detected three of five deteriorating patients and missed fluid overload and deconditioning, whose signatures do not reach the simulated hemodynamics; a component-guard rule reduced false alerts in stable patients by 61--68\% on development and held-out seeds without losing a detection. Replaying real home-monitoring data from 16 HF patients completed the full pipeline for 13. We document the engine instabilities, train/inference skews and integration faults encountered and how each was resolved, and we report real-outcome tests in which the twin's own scores were near chance, delimiting what the current design can and cannot claim.
+Consumer wearables measure heart-failure (HF) patients at home but offer no physiological interpretation. We study whether a mechanistic physiology engine can add that layer. Our twin feeds a 21-day window of six wearable trends and routine clinical values to a Random Forest that estimates a deterioration scenario and its severity, simulates the corresponding physiology in the Kitware Pulse engine, and scores the simulated hemodynamics with an interpretable risk score; engine state is carried from day to day. The classifier recovers the labels of its own synthetic generator well (90.7\% held-out accuracy), but on a pre-registered cohort of ten scripted 21-day patient stories, day-by-day scenario accuracy was only 17.6\%. In an ablation on the same runs, the classifier alone flagged every deteriorating series but alerted in all stable ones (60 false alerts per 100 patient-days); adding the Pulse risk score with a component guard reduced this to 8.7 (95\% CI 3.4--16.1) while detecting 70\% of deteriorating series, missing fluid overload and deconditioning. A 2\,kg-in-3-days weight rule detected 7\%. The pipeline ran end to end on real home data from 13 of 16 HF patients, but only through an age-proxy body with default ejection fraction, and the twin's own scores did not predict real hospital outcomes beyond chance. We conclude that the physiology layer works as a false-alarm filter, not yet as a validated detector, and identify the modeling changes needed next.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -70,12 +70,11 @@ Heart failure affects tens of millions of people worldwide \cite{james2018gbd,sa
 
 Remote monitoring has shown benefit when it captures physiology rather than symptoms alone, from structured telemonitoring \cite{inglis2008telemonitoring} to implanted pulmonary-artery pressure sensors \cite{abraham2011champion}, and multi-sensor wearables combined with machine learning have predicted HF hospitalization days in advance \cite{stehlik2020linkhf,gautam2022wearables}. These data-driven predictors, however, offer little mechanistic explanation of \emph{why} an alert fired. Cardiac digital twins promise exactly that mechanistic layer \cite{corral2020twin,coorey2022twin,niederer2021scaling}, but most are built from imaging or invasive measurements fitted to one patient at a time \cite{gu2025hftwin,geddes2025rhftwin}, and few are evaluated over weeks of everyday data.
 
-This paper describes a digital twin that sits between these two traditions: it is driven by home-measurable wearable trends, interprets them through a mechanistic whole-body physiology engine (Kitware Pulse \cite{bray2019pulse}), and produces interpretable risk, staging and forward projections. Our contributions are:
+This paper reports a feasibility study of a twin that sits between these two traditions: it is driven by home-measurable wearable trends, interprets them through a mechanistic whole-body physiology engine (Kitware Pulse \cite{bray2019pulse}), and produces interpretable risk, staging and forward projections. We use ``twin'' in a limited sense: the engine body is parameterized by population statistics and scaled by a patient's ejection fraction and estimated severity, not fitted to the individual. Our contributions are:
 \begin{enumerate}
-\item A complete, open pipeline (wearable trends $\rightarrow$ ML scenario and severity estimation $\rightarrow$ Pulse simulation $\rightarrow$ interpretable risk scoring, NYHA staging and projection) deployed as a stateful web service with a clinician dashboard (Sections~\ref{sec:system}--\ref{sec:methods}).
-\item Engine-level findings about using Pulse as a patient twin: how ejection fraction maps onto the engine, a root-caused instability boundary when disease modifiers and exertion are combined, and an exact state save/resume method that carries a patient's simulated physiology from day to day (Section~\ref{sec:engineering}).
-\item A layered evaluation: offline and live model accuracy, a pre-registered 21-day scenario test with held-out seeds, replay of real home-monitoring data from HF patients, a two-patient ballistocardiography (BCG) check against measured hemodynamics, and real-outcome tests on two hospital cohorts (Section~\ref{sec:eval}).
-\item A transparent account of the problems encountered and the solutions adopted, including negative results, so that the claims made are bounded by the evidence (Sections~\ref{sec:engineering}, \ref{sec:discussion}).
+\item A complete, open pipeline (wearable trends $\rightarrow$ ML scenario and severity estimation $\rightarrow$ Pulse simulation $\rightarrow$ interpretable risk scoring, staging and projection), deployed as a stateful service with day-to-day continuity of engine state (Sections~\ref{sec:system}--\ref{sec:methods}).
+\item Engine-level findings for using Pulse as an HF twin: mapping ejection fraction onto the engine, a root-caused instability boundary when disease modifiers and exertion combine, and an exact state save/resume method (Section~\ref{sec:engineering}).
+\item A layered evaluation that includes an ablation isolating what the physiology layer contributes relative to the classifier alone and to a clinical weight rule, on a pre-registered cohort with held-out seeds, plus real-patient replay and real-outcome tests (Section~\ref{sec:eval}).
 \end{enumerate}
 
 %=====================================================================
@@ -164,7 +163,11 @@ Testing & pytest (281 automated tests), Playwright browser checks, GitHub Action
 \section{Data}\label{sec:data}
 %=====================================================================
 \subsection{Reference data and synthetic training population}
-No real patient data were used for training. Instead, every distribution parameter used by the synthetic generator is traced to an aggregate statistic from a real source (Table~\ref{tab:datasets}): MIMIC-IV HF admissions \cite{johnson2023mimiciv} for age, sex and laboratory values; the Chicco--Jurman HF clinical records \cite{chicco2020hf} as the only source with ejection fraction; and NHANES for height, weight and BMI by sex. A correlated generator produced $n=2{,}000$ synthetic patients across five scenarios, each with a 21-day wearable trajectory in one of three modes (stable, deteriorating, recovering). Only aggregate statistics from the real sources are stored in the repository; raw files remain outside version control.
+No real patient data were used for training. Instead, every distribution parameter used by the synthetic generator is traced to an aggregate statistic from a real source (Table~\ref{tab:datasets}): MIMIC-IV HF admissions \cite{johnson2023mimiciv} for age, sex and laboratory values; the Chicco--Jurman HF clinical records \cite{chicco2020hf} as the only source with ejection fraction; and NHANES for height, weight and BMI by sex. A generator produced $n=2{,}000$ synthetic patients across five scenarios. Each patient receives a scenario and a severity $\sigma\sim U(0,1)$ (capped at 0.15 for stable patients). Ejection fraction is drawn from the scenario's EF profile and lowered by $12\sigma$ points; NT-proBNP is driven by a mix of EF deficit and severity scaled to age-specific diagnostic cut-offs, which makes BNP fall with EF and rise with severity. Each wearable signal $v$ on day $t$ then follows
+\begin{equation}
+v(t)=b_v+\Delta_{v,c}\,\sigma\,g_m(t/20)+\epsilon_{v,t},
+\end{equation}
+where $b_v$ is a patient baseline (drawn from population statistics, or the patient's own weight), $\Delta_{v,c}$ is the maximum change for scenario $c$ (e.g., fluid overload: $+4.5$\,kg weight, $+12$\,bpm resting HR, $-2.5$ points SpO$_2$), $g_m$ is a progression curve for mode $m$ (deteriorating: linear, quadratic for acute deterioration; recovering: $\max(0,1-1.15u)$; stable: 0), and $\epsilon_{v,t}$ is independent Gaussian noise with SD equal to 15\% of the population SD (0.4\,kg for weight). Signals are therefore correlated only through the shared $\sigma$ and $g_m$, not through any physiological coupling. The deteriorating mode is chosen with probability $0.4+0.5\sigma$. This construction matters for interpreting results: a classifier trained on it learns to invert these deltas, so held-out accuracy measures recovery of the generator's own labels, not clinical validity. Only aggregate statistics from the real sources are stored in the repository; raw files remain outside version control.
 
 Two candidate sources were rejected after inspection: a 5,000-row ``HF clinical records'' variant turned out to be a resampled copy of the same $\sim$300 patients (only 203 unique platelet values, 3,680 exact duplicate rows), and a public wearable dataset described as HF data contained general fitness data from 16 participants.
 
@@ -243,6 +246,29 @@ Baseline deficit & max() & Starting MAP below 92.5\,mmHg anchor \\
 \end{tabularx}
 \end{table}
 
+\subsection{Pre-specified and post-hoc design decisions}
+Several scoring elements were changed after seeing results. Table~\ref{tab:posthoc} records when each was fixed relative to the data it was evaluated on, so that results on data used for tuning are not mistaken for out-of-sample evidence.
+
+\begin{table}[!t]
+\centering
+\caption{When Each Scoring Element Was Fixed}
+\label{tab:posthoc}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}P{2.3cm}P{1.9cm}Y@{}}
+\toprule
+\textbf{Element} & \textbf{Status} & \textbf{Independent evaluation} \\
+\midrule
+Risk weights and anchors & Pre-specified (literature) & All later data \\
+Bucket cut-points 0.35/0.65 & Pre-specified (engineering) & All later data; not clinically validated \\
+Baseline-deficit term & Post-hoc on 117-run batch & Scenario test, PerHeart run 3, MIMIC-IV, Zigong \\
+NYHA feature removed & Post-hoc on live batch & 45 new live patients; PerHeart \\
+C3 component guard & Post-hoc on dev seeds & Held-out seeds 45--47 \\
+WATCH tier (\code{decide\_alert}) & Post-hoc & Replay on both seed sets only \\
+Scenario expectations & Pre-registered & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \subsection{Staging, deterioration rate and projection}
 NYHA staging is rule-based: AHA/ACC structural criteria (LVEF $\leq40\%$ or age-adjusted NT-proBNP above cut-off) \cite{heidenreich2022} gate whether symptoms have a structural basis, and the simulated exertion response places the patient in classes I--IV. A deterioration rate is computed from per-vital slopes normalized to population standard deviations per day; projection re-runs the full Pulse pipeline at linearly extrapolated severities for 7, 14 and 30 days.
 
@@ -252,11 +278,11 @@ The FastAPI service exposes eight endpoints over five tables (patients, clinical
 %=====================================================================
 \section{Engineering Challenges and Solutions}\label{sec:engineering}
 %=====================================================================
-Building the twin surfaced a series of problems that were not visible from documentation or offline evaluation. Table~\ref{tab:problems} summarizes them; the most consequential are detailed below.
+Using Pulse as an HF twin surfaced problems that were not visible from documentation or offline evaluation. Table~\ref{tab:problems} lists those specific to the engine and the modeling; general software and infrastructure issues are in Appendix Table~\ref{tab:infra}.
 
 \begin{table*}[!t]
 \centering
-\caption{Problems Encountered, Root Causes and Solutions}
+\caption{Engine and Modeling Problems, Root Causes and Solutions}
 \label{tab:problems}
 \footnotesize\sloppy
 \begin{tabularx}{\textwidth}{@{}P{3.1cm}YYP{2.6cm}@{}}
@@ -271,16 +297,10 @@ Deconditioning looked like cardiac stress & Both used \code{Exercise}; HR 150--1
 Fluid overload always scored LOW & Risk only measured change within a run; fluid overload is a shifted baseline & Added baseline-deficit term with \code{max()} & 30/30 LOW $\rightarrow$ 29/30 MODERATE \\
 Live severity error 0.271 vs.\ 0.048 offline & NYHA ordinal used in training but unknown at inference, defaulted to class I & Removed NYHA from features; retrained & Live MAE 0.271 $\rightarrow$ 0.026 \\
 Engine crashes at high severity & Disease modifiers + sustained exertion exceed engine's sustainable load (Table~\ref{tab:crashinv}) & Characterized; failures recorded, never dropped & Deterministic at 154.1--154.3\,s \\
-Timeouts at 180\,s & Some runs need $\approx$180\,s under arm64 emulation & Documented margin; 2-worker cap & Re-attempts at 180.3--180.4\,s \\
-Failures under concurrency & SQLAlchemy pool (5+10) exhausted; CPU contention & Concurrency 9 $\rightarrow$ 4 $\rightarrow$ 2 & 0 failures at 2 workers \\
 Resumed state drifted & Disease modifiers are not carried by serialized state & Re-issue modifiers on every resume & Drift 6.5\% $\rightarrow$ 0.000\% \\
 Engine segfault in continuous mode & Pulse Python SDK \code{initialize\_engine()} crash (gdb trace); earlier ``thread conflict'' diagnosis disproved & Switched to the CLI scenario driver & Day 1$\rightarrow$3 runs clean \\
 Resumed runs flagged as crashes & Driver's end-time check ignores elapsed state time; schema field renamed (\code{Mode}, not \code{Type}) & Resume-aware crash filter; corrected schema & Exact match vs.\ continuous \\
-Corrupted Pulse image & Local containerd-snapshotter extraction bug & Disabled snapshotter, re-pulled & Engine verified \\
-Python 3.9 container errors & PEP 604 unions evaluated at class definition by SQLAlchemy/Pydantic & \code{Optional[...]} in model/schema files & Imports succeed \\
-Dashboard could not call API & Browser enforces CORS (invisible to curl/TestClient) & CORS middleware (local only) & Found in browser test \\
-Model drift across machines & Unpinned scikit-learn/numpy versions & Exact dependency pins; model SHA-256 checked before each run & Zero version warnings \\
-SpO$_2$ output always 0.0 & Unresolved; likely emulation artifact & Never used as a feature & Excluded \\
+SpO$_2$ output always 0.0 & Persists with Pulse's bundled patient and a request byte-identical to a known-good one; likely arm64 emulation & Never used as a feature & Excluded \\
 ECG looked computed & Pulse ECG is a stored template scaled by HR & Labeled display-only in UI/API & Caveat in every response \\
 \bottomrule
 \end{tabularx}
@@ -361,7 +381,8 @@ We evaluate in layers of increasing realism. Table~\ref{tab:evalsummary} summari
 Offline model test & 300 held-out synthetic patients & 90.7\% accuracy, severity MAE 0.047 & Real patients \\
 Engine scenario check & 5 synthetic patients in Pulse & Physiologically distinct scenario responses & Clinical accuracy \\
 Live API validation & 25 then 45 synthetic patients via live API & 25/25 completed; live MAE 0.026 after fix & Real patients \\
-Pre-registered scenario test & 10 scripted stories $\times$ 6 seeds $\times$ 21 days & 3/5 deteriorations detected; false alerts cut 61--68\% & Real deterioration events \\
+Pre-registered scenario test & 10 scripted stories $\times$ 6 seeds $\times$ 21 days & 3/5 stories detected in all seeds; label accuracy 17.6\% & Real deterioration events \\
+Ablation (same runs) & 30 deteriorating, 18 stable series & Physiology layer cuts false alerts 60 $\rightarrow$ 8.7 per 100 patient-days; sensitivity 100\% $\rightarrow$ 70\% & Clinician interpretability \\
 Real-patient replay & PerHeart, 16 HF patients & 13/16 completed end to end & Outcomes; patients' own physiology (age proxy) \\
 BCG hemodynamics & 2 patients, measured SV/CO & Simulated CO 45--46\% below measured & Cohort-level accuracy; trends \\
 Real-outcome tests & MIMIC-IV, Zigong & Twin's own scores near chance & Day-by-day early warning \\
@@ -370,7 +391,7 @@ Real-outcome tests & MIMIC-IV, Zigong & Twin's own scores near chance & Day-by-d
 \end{table*}
 
 \subsection{Offline model accuracy}
-On the 300-patient held-out test set, the classifier reached 90.7\% accuracy (macro-F1 0.91) and the regressor severity MAE 0.047 (RMSE 0.061). Cardiac stress (preserved EF) and acute deterioration (reduced EF), the pair hardest to separate from simulated HR/MAP alone, were cleanly separated because EF is an input. Removing all 24 wearable features cost 40 points of accuracy (Table~\ref{tab:ablation}), confirming that the wearable trend, not the clinical snapshot, carries most of the signal. The earlier 92.3\% figure belonged to a version that included NYHA class, removed for the reason in Table~\ref{tab:problems}.
+On the 300-patient held-out test set, the classifier reached 90.7\% accuracy (macro-F1 0.91) and the regressor severity MAE 0.047 (RMSE 0.061). Because test patients come from the same generator, these figures measure how well the model inverts the generator, not how it performs on independent trajectories; the pre-registered cohort below (17.6\% day-by-day label accuracy) is the more relevant estimate. Cardiac stress (preserved EF) and acute deterioration (reduced EF), the pair hardest to separate from simulated HR/MAP alone, were cleanly separated because EF is an input. Removing all 24 wearable features cost 40 points of accuracy (Table~\ref{tab:ablation}), confirming that the wearable trend, not the clinical snapshot, carries most of the signal. The earlier 92.3\% figure belonged to a version that included NYHA class, removed for the reason in Table~\ref{tab:problems}.
 
 \begin{table}[!t]
 \centering
@@ -441,16 +462,11 @@ P10 & Everything goes wrong (sev.\ 0.20$\rightarrow$0.45) & catch \\
 
 \textbf{Two alert definitions.} The first analysis alerted on the classifier's severity ($>0.15$) and caught all five deteriorating patients, but also alerted on all three stable ones (58.7 false alerts per 100 patient-days). A code audit then showed that the dashboard did not use this signal at all: it displayed the risk-score bucket (HIGH). Re-analysed under the dashboard's definition, the system detected three of five deteriorating patients (P06, P07, P10) with 18.0 false alerts per 100 patient-days. P05 (deconditioning) produced near-zero values on every risk component on all 63 patient-days, and P04 (fluid overload) did not congest in some seeds, so neither had any signal for an alert rule to act on.
 
-\textbf{Alert rule selection.} Three candidate rules were specified before computing any of them (Fig.~\ref{fig:alerts}, Table~\ref{tab:alerts}). C3 downgrades a sustained HIGH that is driven only by the baseline-deficit term with no corroborating instability, the diagnosed cause of P08's persistent false alarm. It kept all three detections and cut false alerts by 67.6\% on development seeds and 61.4\% on held-out seeds, where it was never tuned.
+\textbf{Alert rule selection.} Three candidate rules were specified before computing any of them (Table~\ref{tab:alerts}). C3 downgrades a sustained HIGH that is driven only by the baseline-deficit term with no corroborating instability, the diagnosed cause of P08's persistent false alarm. It kept all three detections and cut false alerts by 67.6\% on development seeds and 61.4\% on held-out seeds, where it was never tuned.
 
 \textbf{Unified alert decision.} The two alert signals were then merged into a single \code{decide\_alert()} function, which is now the only source of alert state in the API and dashboard. It has three levels: ALERT (risk bucket HIGH and not downgraded by C3, or a crashed/failed engine run via the classifier-severity fallback); WATCH (risk bucket MODERATE, or a HIGH streak that C3 downgrades); and NONE. C3 therefore downgrades but never silences: a HIGH risk bucket can never map to NONE. Replaying the saved scenario-test runs through the deployed functions reproduced the detection pattern on both seed sets (P06, P07 and P10 at ALERT in every seed; P01 and P09 quiet in every seed). P08's false alarm, previously ALERT for 8--14 consecutive days, was reduced to about 3 ALERT days per seed, with the remaining elevated days shown as WATCH. For P04 held-out seed 47, which never reached HIGH, 20 of 21 days now read WATCH, making a previously invisible fluid-overload trajectory visible for the first time.
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{fig_alert_candidates.png}
-\caption{False alerts in the stay-quiet group per alert rule. C3 was selected on development seeds and confirmed on held-out seeds.}
-\label{fig:alerts}
-\end{figure}
+
 
 \begin{table}[!t]
 \centering
@@ -471,6 +487,41 @@ C2: add sustained-MODERATE watch & 3/5 & 17.99 & 3/5 & 30.16 \\
 \end{tabularx}
 \end{table}
 
+\textbf{Ablation: what does the physiology layer add?} The premise of the twin is that simulating physiology adds something a wearable classifier alone does not. We tested this on the same saved runs by changing only the alert definition (Table~\ref{tab:ablation2}, Fig.~\ref{fig:ablation}). Series-level sensitivity counts deteriorating patient-seed series with at least one alert on or after the story's onset day; specificity counts stable series with no alert at all. The classifier alone (severity above the stable range) detected all 30 deteriorating series but alerted in every one of the 18 stable series. Passing the same estimate through Pulse and the risk score removed most of those alerts, and the C3 guard removed most of the rest: false alerts fell from 60.1 to 8.7 per 100 patient-days, while sensitivity fell from 100\% to 70\%. The physiology layer therefore acts as a filter that rejects alerts unsupported by simulated hemodynamic stress; it does not detect anything the classifier misses. A conventional weight rule ($\geq2$\,kg within 3 days) never false-alerted but detected only 2/30 series, because the scripted fluid build-up (about 0.4\,kg per day) never reaches 2\,kg within three days.
+
+\begin{table}[!t]
+\centering
+\caption{Alert-System Ablation on the Same Runs (All Six Seeds)}
+\label{tab:ablation2}
+\footnotesize
+\begin{threeparttable}
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}Yccc@{}}
+\toprule
+\textbf{Alert system} & \textbf{Sensitivity} & \textbf{Specificity} & \textbf{FA/100 pd} \\
+\midrule
+Weight rule & 2/30 (0.02--0.21) & 18/18 (0.82--1.00) & 0.0 \\
+Classifier only & 30/30 (0.89--1.00) & 0/18 (0.00--0.18) & 60.1 (44.4--73.8) \\
++ Pulse risk (HIGH) & 21/30 (0.52--0.83) & 10/18 (0.34--0.75) & 24.1 (10.6--38.6) \\
+\textbf{+ C3 guard (deployed)} & \textbf{21/30 (0.52--0.83)} & \textbf{10/18 (0.34--0.75)} & \textbf{8.7 (3.4--16.1)} \\
+Deployed, WATCH or ALERT & 22/30 (0.56--0.86) & 9/18 (0.29--0.71) & 29.1 (14.6--46.3) \\
+\bottomrule
+\end{tabularx}
+\begin{tablenotes}\footnotesize
+\item Wilson 95\% CIs for proportions; bootstrap 95\% CIs (2,000 resamples over series) for false alerts per 100 patient-days in the stable stories. Development seeds alone: deployed system 5.8 (1.6--11.6); held-out: 11.6 (2.6--24.3).
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig_ablation.png}
+\caption{Sensitivity versus false-alert burden for each alert definition, applied to the same saved runs (95\% CIs). The physiology layer moves the classifier from the top right toward the top left.}
+\label{fig:ablation}
+\end{figure}
+
+\textbf{Absolute burden and sample size.} The relative reductions hide a clinically heavy absolute rate: 8.7 false alerts per 100 patient-days means roughly one false alert every 11 or 12 days for each stable patient, and one every 9 days on the held-out seeds alone. With ten stories and six seeds, the confidence intervals are wide (Table~\ref{tab:ablation2}); these results should be read as a controlled case study, not as estimates of performance in a patient population. Engine failures did not distort them: only 3 of 1,260 patient-days failed, and every metric was identical whether failed days were scored as alerts (the deployed fallback) or as no alert.
+
 \textbf{Why false alerts occur.} Feature importances show the severity regressor relies on resting-HR delta and slope (63.2\% combined) and step-count trends (27.2\%), the signals that ordinary day-to-day variation moves most, while EF ranks tenth (0.6\%). Adding Gaussian noise at one population SD to a stable patient's window moved predicted severity from 0.11 to 0.43, crossing the stable-range threshold (Table~\ref{tab:noise}). A follow-up analysis also found that the cohort's neutral EF band (48--57\%) sits below the training ``stable'' class's EF range (51.3--70.7\%) and near the deconditioning mean, so day-by-day scenario-label accuracy on this cohort was only 17.6\% (222/1,260 patient-days), against 90.7\% on the in-distribution test set.
 
 \begin{table}[!t]
@@ -489,14 +540,9 @@ P10 (deteriorating) & 0.777 & 0.570 & 0.622 & 0.850 \\
 \end{table}
 
 \subsection{Real-patient replay (PerHeart)}
-The PerHeart pilot dataset \cite{kolakowski2026perheart} contains one month of real home measurements (pulse oximeter, scale, blood-pressure cuff) from 27 HF patients aged 67--94. Sixteen had at least 21 real overlapping days of heart rate, SpO$_2$ and weight; no day was fabricated, and unmeasured fields (sleep, HRV, steps, EF, NT-proBNP) took documented defaults with explicit flags. Every patient required the engine's age proxy. Before the severity fix, all 16 completed but severities were compressed (0.078--0.148) and no patient reached HIGH, independently reproducing the NYHA skew on real data. After the fix (Fig.~\ref{fig:perheart}), severities spread (0.093--0.516) and five patients reached HIGH, while three patients now crashed with the deterministic engine signature. All 16 were staged NYHA~I, an artifact of the identical healthy EF/BNP defaults rather than a clinical finding. The one fluid-overload patient scored LOW because the EF default makes Pulse simulate a structurally normal heart, so the baseline-deficit term cannot fire; the API now names this mechanism in its caveat. We searched the literature for a BNP-to-EF proxy and found none: the clinical relationship runs from EF to BNP, not the reverse.
+The PerHeart pilot dataset \cite{kolakowski2026perheart} contains one month of real home measurements (pulse oximeter, scale, blood-pressure cuff) from 27 HF patients aged 67--94. Sixteen had at least 21 real overlapping days of heart rate, SpO$_2$ and weight; no day was fabricated, and unmeasured fields (sleep, HRV, steps, EF, NT-proBNP) took documented defaults with explicit flags. Every patient required the engine's age proxy. Before the severity fix, all 16 completed but severities were compressed (0.078--0.148) and no patient reached HIGH, independently reproducing the NYHA skew on real data. After the fix, severities spread (0.093--0.516) and risk buckets were 4 LOW, 4 MODERATE and 5 HIGH (previously 4 LOW, 12 MODERATE, 0 HIGH), while three patients now crashed with the deterministic engine signature. All 16 were staged NYHA~I, an artifact of the identical healthy EF/BNP defaults rather than a clinical finding. The one fluid-overload patient scored LOW because the EF default makes Pulse simulate a structurally normal heart, so the baseline-deficit term cannot fire; the API now names this mechanism in its caveat. We searched the literature for a BNP-to-EF proxy and found none: the clinical relationship runs from EF to BNP, not the reverse.
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{fig_perheart_buckets.png}
-\caption{Risk buckets for real PerHeart patients before and after the severity-model fix.}
-\label{fig:perheart}
-\end{figure}
+
 
 \subsection{Measured hemodynamics (BCG, two patients)}
 For two patients from a ballistocardiography dataset with echocardiographic volumes \cite{zhan2025bcg}, BCG features adjusted the twin's vascular compliance and simulated stroke volume and cardiac output were compared with measured values (Table~\ref{tab:bcg}). Simulated cardiac output was 45--46\% below measured in both; 71.3\% of patient 14's stroke-volume shortfall was already present from anthropometrics alone, before EF or BCG data entered the model. A synthetic 21-day deterioration anchored to these patients' real HR and EF was eventually classified correctly for both, but patient 14 was labeled fluid overload for days 6--10 before converging.
@@ -517,7 +563,7 @@ For two patients from a ballistocardiography dataset with echocardiographic volu
 \end{table}
 
 \subsection{Real-outcome tests}
-Two real cohorts lack the 21-day wearable window and EF needed to run the whole twin, so only components with a non-fabricated input path were tested (Fig.~\ref{fig:auc}, Table~\ref{tab:auc}). The baseline-deficit term, a function of MAP alone, predicted in-hospital mortality in 17,129 MIMIC-IV HF ICU admissions with AUC 0.596 (95\% CI 0.585--0.608), with mortality rising monotonically from 8.9\% to 21.2\% across score deciles. On the Zigong cohort \cite{zhang2021zigong} (6-month death or readmission), the same term and a clinical-only Model~1 variant were indistinguishable from chance. As external context, an 11-of-13-variable MAGGIC score reached 0.604 and a model using laboratory panels reached 0.667, signal carried by renal and coagulation tests that a wearable-based system cannot obtain.
+Two real cohorts lack the 21-day wearable window and EF needed to run the whole twin, so only components with a non-fabricated input path were tested (Fig.~\ref{fig:auc}, Table~\ref{tab:auc}). The baseline-deficit term is a function of starting MAP alone; applied to measured first-24-hour MAP in 17,129 MIMIC-IV HF ICU admissions, it predicted in-hospital mortality with AUC 0.596 (95\% CI 0.585--0.608), with mortality rising from 8.9\% to 21.2\% across score deciles. This shows that low admission MAP carries modest prognostic information in an ICU population; it is not a test of the twin, which was not run on these patients. On the Zigong cohort \cite{zhang2021zigong} (6-month death or readmission), the same term and a clinical-only Model~1 variant were indistinguishable from chance. As external context, published LACE-index AUCs \cite{vanwalraven2010lace} lie around 0.56--0.65 in other populations and outcomes (not directly comparable), an 11-of-13-variable MAGGIC score reached 0.604 on this cohort, and a model using laboratory panels reached 0.667, signal carried by renal and coagulation tests that a wearable-based system cannot obtain.
 
 \begin{figure}[!t]
 \centering
@@ -542,7 +588,6 @@ Baseline deficit, Zigong, all cleaned & 2,001 & 0.548 (0.525--0.573) \\
 Clinical-only Model 1, Zigong & 625 & 0.517 (0.473--0.562) \\
 MAGGIC-11 (external) \cite{pocock2013maggic}, Zigong & 622 & 0.604 (0.559--0.649) \\
 Zigong lab model (external), test set & 401 & 0.667 (0.611--0.721) \\
-LACE (literature) \cite{vanwalraven2010lace} & --- & $\approx$0.56--0.65 \\
 \bottomrule
 \end{tabularx}
 \begin{tablenotes}\footnotesize
@@ -558,19 +603,46 @@ On the synthetic batch, the risk score agreed moderately with MAGGIC computed on
 %=====================================================================
 \textbf{What the twin does well.} The pipeline runs end to end, day after day, on synthetic and real home data; it separates physiologically different presentations through mechanism rather than labels (Table~\ref{tab:phase2}); it explains alerts in terms of simulated hemodynamics; and its alert rule generalized from development to held-out seeds. Continuous state makes the twin a persistent model of a patient rather than a fresh simulation each day.
 
-\textbf{What it does not yet do.} Three findings bound the claims. First, two of five deterioration types are invisible to the current alert because their signatures never reach the simulated hemodynamics: deconditioning by design (no acute event), and fluid overload because the scenario reduces venous compliance without adding circulating volume, which mobilizes pooled blood rather than overloading the circulation. Second, the models are sensitive to ordinary wearable noise and to clinical inputs outside their training distribution. Third, the twin's own scores do not yet predict real outcomes beyond chance, except for one component in an ICU cohort. Our results therefore support feasibility and mechanism, not clinical effectiveness.
+\textbf{Is the mechanistic layer circular?} Partly. The Pulse scenario is selected by the classifier's label and scaled by its severity, so the simulated physiology re-expresses the classifier's decision through a body model rather than observing new evidence. What the engine contributes is a nonlinear, physiologically constrained mapping from that decision to hemodynamic stress: modest severities in benign scenarios produce no stress, and the risk score ignores them. The ablation shows this is where its value lies: a 7-fold reduction in false alerts at a cost of 30 points of sensitivity. The engine cannot recover a deterioration the classifier mislabels, and whether its explanations are interpretable to clinicians has not been tested with clinicians.
+
+\textbf{How personal is the twin?} Less than the term usually implies. On real patients, every PerHeart body was an age proxy, ejection fraction and NT-proBNP were defaults, simulated cardiac output was 45--46\% below measured in the two BCG patients, and the severity regressor relies on resting-HR and step trends for about 90\% of its importance (EF: 0.6\%). The current system is best described as a population-parameterized physiological model driven by an individual's wearable trends; per-patient calibration of baseline hemodynamics is the main step toward a personal twin.
+
+\textbf{What it does not yet do.} Three findings bound the claims. First, two of five deterioration types are invisible to the current alert because their signatures never reach the simulated hemodynamics: deconditioning by design (no acute event), and fluid overload because the scenario reduces venous compliance without adding circulating volume, which mobilizes pooled blood rather than overloading the circulation. Second, the models are sensitive to ordinary wearable noise and to clinical inputs outside their training distribution. Third, the twin's own scores do not predict real outcomes beyond chance. Fourth, even the best configuration produces roughly one false alert every 11--12 days per stable patient, a burden that would be hard to sustain clinically. Our results therefore support feasibility and a specific mechanism (false-alarm filtering), not clinical effectiveness.
 
 \textbf{Lessons for building physiology-engine twins.} Every major fault in Table~\ref{tab:problems} was found by running the real system, not by offline evaluation: the NYHA skew only appeared in live inference, the CORS fault only in a browser, the resume drift only with the production modifier, and the alert mismatch only by auditing what the dashboard actually displayed. Pre-registering expectations and holding out seeds kept fixes honest, and reporting failure mechanisms rather than bare completion rates prevented a biased reading of the results.
 
 %=====================================================================
 \section{Limitations}
 %=====================================================================
-Training data are synthetic, although every parameter is traced to a real aggregate statistic. Pulse's native range (age 18--65, BMI 16--30) excludes most HF patients, so older patients are simulated with a proxy body. Real EF and NT-proBNP were unavailable in the replay cohort, and their defaults mask the fluid-overload mechanism. The engine's SpO$_2$ output was unusable and its ECG is a template. Pulse is unstable when disease modifiers combine with sustained exertion, which under-represents high-severity exertion scenarios in all datasets. Medication effects are not modeled: Pulse includes a validated diuretic (furosemide), making diuretic modeling feasible, but has no beta-blocker or ACE-inhibitor/ARB substances. Risk-bucket cut-points and the deterioration-rate calibration constants are engineering choices, not clinically validated thresholds. The API has no authentication and is suitable only for research use.
+Training data are synthetic, although every parameter is traced to a real aggregate statistic, and the pre-registered cohort is small (ten stories, six seeds). The fluid-overload scenario contains a modeling error rather than a mere limitation: it lowers venous compliance without adding circulating volume, which mobilizes pooled blood and moves the simulated hemodynamics in the improving direction as severity rises. Correcting it requires a volume-loading action, re-verification of engine stability, re-running the scenario validation, retraining the severity model and repeating the 21-day test; we have not yet done so. Several scoring elements were tuned post hoc (Table~\ref{tab:posthoc}). Pulse's native range (age 18--65, BMI 16--30) excludes most HF patients, so older patients are simulated with a proxy body. Real EF and NT-proBNP were unavailable in the replay cohort, and their defaults mask the fluid-overload mechanism. The engine's SpO$_2$ output was unusable and its ECG is a template. Pulse is unstable when disease modifiers combine with sustained exertion, which under-represents high-severity exertion scenarios in all datasets. Medication effects are not modeled: Pulse includes a validated diuretic (furosemide), making diuretic modeling feasible, but has no beta-blocker or ACE-inhibitor/ARB substances. Risk-bucket cut-points and the deterioration-rate calibration constants are engineering choices, not clinically validated thresholds. The API has no authentication and is suitable only for research use.
 
 %=====================================================================
 \section{Conclusion and Future Work}
 %=====================================================================
-We built and evaluated a wearable-driven heart-failure digital twin that interprets home-measurable trends through a mechanistic physiology engine and carries each patient's simulated state from day to day. It reaches high offline accuracy, runs end to end on real home-monitoring data, and, with a component-guard rule inside a three-level ALERT/WATCH/NONE decision, cuts false alarms by more than 60\% on held-out seeds while detecting three of five deterioration types. Its failures are specific and explained, which makes them actionable. Future work will (1) add a volume-loading mechanism to the fluid-overload scenario and a diuretic action using Pulse's furosemide model; (2) systematically map the engine's stability boundary across severity, scenario and body profile; (3) make the models robust to wearable noise and out-of-distribution clinical inputs; (4) personalize the twin's baseline heart rate and hemodynamics from measured data; and (5) evaluate day-by-day early warning on real longitudinal data with recorded HF events, the test that ultimately decides clinical value.
+We built and evaluated a wearable-driven physiological twin for HF that interprets home-measurable trends through a mechanistic engine and carries simulated state from day to day. On a pre-registered cohort, its physiology layer acted as a false-alarm filter, reducing false alerts about 7-fold relative to the classifier alone, while detecting 70\% of deteriorating series and missing fluid overload and deconditioning; it ran end to end on real home data, but its scores did not predict real outcomes. Its failures are specific and explained, which makes them actionable. Future work will (1) add a volume-loading mechanism to the fluid-overload scenario and a diuretic action using Pulse's furosemide model; (2) systematically map the engine's stability boundary across severity, scenario and body profile; (3) make the models robust to wearable noise and out-of-distribution clinical inputs; (4) personalize the twin's baseline heart rate and hemodynamics from measured data; and (5) evaluate day-by-day early warning on real longitudinal data with recorded HF events, the test that ultimately decides clinical value.
+
+\appendices
+\section{Software and Infrastructure Issues}
+Table~\ref{tab:infra} lists issues that were general to the software stack rather than to the engine or the model; they are reported for reproducibility.
+
+\begin{table*}[!t]
+\centering
+\caption{Software and Infrastructure Issues}
+\label{tab:infra}
+\footnotesize\sloppy
+\begin{tabularx}{\textwidth}{@{}P{3.1cm}YYP{2.6cm}@{}}
+\toprule
+\textbf{Problem} & \textbf{Root cause (how found)} & \textbf{Solution} & \textbf{Evidence} \\
+\midrule
+Timeouts at 180\,s & Some runs need $\approx$180\,s under arm64 emulation & Documented margin; 2-worker cap & Re-attempts at 180.3--180.4\,s \\
+Failures under concurrency & SQLAlchemy pool (5+10) exhausted; CPU contention & Concurrency 9 $\rightarrow$ 4 $\rightarrow$ 2 & 0 failures at 2 workers \\
+Corrupted Pulse image & Local containerd-snapshotter extraction bug & Disabled snapshotter, re-pulled & Engine verified \\
+Python 3.9 container errors & PEP 604 unions evaluated at class definition by SQLAlchemy/Pydantic & \code{Optional[...]} in model/schema files & Imports succeed \\
+Dashboard could not call API & Browser enforces CORS (invisible to curl/TestClient) & CORS middleware (local only) & Found in browser test \\
+Model drift across machines & Unpinned scikit-learn/numpy versions & Exact dependency pins; model SHA-256 checked before each run & Zero version warnings \\
+\bottomrule
+\end{tabularx}
+\end{table*}
 
 \section*{Data and Code Availability}
 Synthetic data, derived results and code are in the project repository. Raw MIMIC-IV, Zigong and PerHeart files are not redistributed, in line with their access agreements; PerHeart-derived outputs are shared under CC BY-NC-SA.
