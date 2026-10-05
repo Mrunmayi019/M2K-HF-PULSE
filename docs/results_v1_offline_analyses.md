@@ -48,7 +48,11 @@ Full output: `results/results_v1_offline/weight_sensitivity.json`.
 **Baseline**: 21/30 should_catch patient-seed series detected (HIGH on/after perturbation start),
 8/18 should_stay_quiet series false-alert (HIGH on any day).
 
-**Result: zero change, for every one of the 20 perturbations** (5 weights x 4 deltas) -- every
+**Result: the 5 acute weights are INACTIVE in this cohort -- not evidence the scorer is robust
+to weight changes.** "Robust" would mean the outcome holds despite the weights mattering; here
+they don't move the outcome because they mostly aren't the term deciding it in this specific
+data (see "why" below) -- a narrower, weaker claim, true only for the physiology this cohort
+happens to produce. Zero change across all 20 perturbations (5 weights x 4 deltas) -- every
 single one reproduces exactly 21/30 and 8/18. Sanity-checked this isn't a no-op bug: an
 intentionally extreme perturbation (all acute weights forced to 0.01) was tried directly against
 a real `compute_risk_score()` call with strong acute inputs -- `acute_score` dropped from 0.8288
@@ -67,28 +71,32 @@ one driving the bucket, and even there, the margins involved are evidently too l
 physiology (dominated by the baseline-deficit pathway), not a general claim that the scorer is
 insensitive to its weights everywhere.
 
-## 3. MIMIC AUC + age baseline -- BLOCKED, not run
+## 3. MIMIC AUC + age baseline
 
-The existing MIMIC AUC + CI (`data/mimic_outcome_validation/summary.md`, already computed,
-reported here for completeness): **AUC = 0.596 (95% CI 0.585-0.608, 2000-resample bootstrap,
-seed=42)** for `baseline_deficit_score` predicting `hospital_expire_flag`, n=17,129 admissions.
+**Correction (2026-10-06): the row-level cohort file does exist** -- at
+`M2K-HF-PULSE-main/data/raw/mimic/hf_admission_outcomes.csv` (dated 17 Aug, predating this
+session). It's gitignored by design (PhysioNet DUA forbids redistributing row-level MIMIC-IV
+data), which is exactly why the earlier check of this worktree's own (separate, gitignored)
+`data/raw/mimic/` came up empty -- each git worktree has its own independent untracked files on
+disk; I had only checked this one. No GCP project was needed or used; copied the existing file in
+(never committed, still gitignored here) and ran the age baseline directly against it.
+`src/evaluation/results_v1_offline/mimic_age_baseline.py` -- reuses `scripts/mimic_outcome_
+validation.py`'s own `bootstrap_auc_ci()` verbatim (same percentile-bootstrap methodology, same
+seed) for a directly comparable CI; does not modify that script. Full output:
+`results/results_v1_offline/mimic_age_baseline.json`.
 
-**The age-baseline comparison could not be computed.** The row-level cohort file
-(`data/raw/mimic/hf_admission_outcomes.csv`) is gitignored by design (PhysioNet DUA forbids
-redistributing row-level MIMIC-IV data) and does not exist in this worktree or anywhere on this
-machine that I can find. Reproducing it requires a live BigQuery query against
-`physionet-data.mimiciv_3_1_*` (the same source `scripts/mimic_outcome_extraction.sql` uses).
-`gcloud`/`bq` are installed and authenticated (account `kaverisharma05@gmail.com`), but **no GCP
-project is configured** (`gcloud config get-value project` returns unset), and none of the 6
-projects currently visible to this account (`spatial-engine-backend`, `spatial-apartheid-blr`,
-`gen-lang-client-0352655210`, `gen-lang-client-0004743819`, `crm-se`, `ai-inventory-project`) is
-named in a way that confirms it's the one with MIMIC-IV access and billing set up.
+| | AUC | 95% CI |
+|---|---|---|
+| `baseline_deficit_score` (existing, `data/mimic_outcome_validation/summary.md`) | 0.596 | 0.585-0.608 |
+| **age alone (new)** | **0.591** | **0.579-0.602** |
 
-**Not guessed, not run.** Running a BigQuery query against real patient-level restricted-access
-data under the wrong project, or one without the right billing/access configured, isn't something
-to trial-and-error through. Needs you to confirm which project to use; this analysis will produce
-only the aggregate AUC/CI (no row-level data written to git, same as the existing result) once
-that's settled.
+n=17,129 admissions, 13,047 unique patients, 14.19% mortality -- identical cohort both rows.
+**The two CIs overlap almost entirely.** Age alone discriminates in-hospital mortality about as
+well as `baseline_deficit_score` does in this cohort -- `baseline_deficit_score`'s modest
+discrimination (already described as modest in the existing writeup) is not clearly distinguishable
+from what age alone would give you on this same population. Reported as found; no claim about
+*why* (e.g. whether `map_start` and age are themselves correlated in this cohort) is made here --
+that would need a joint/adjusted model, not run.
 
 ## 4. API read-endpoint timing
 

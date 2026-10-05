@@ -1,0 +1,15 @@
+{
+  "n_admissions": 17129,
+  "n_patients": 13047,
+  "mortality_rate": 0.1419,
+  "age_baseline_auc": 0.591,
+  "age_baseline_auc_ci95": [
+    0.5792,
+    0.6022
+  ],
+  "existing_baseline_deficit_score_auc": 0.596,
+  "existing_baseline_deficit_score_auc_ci95": [
+    0.585,
+    0.608
+  ]
+}
