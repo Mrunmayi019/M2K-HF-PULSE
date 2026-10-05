@@ -1,0 +1,507 @@
+{
+  "severity_threshold_sweep": [
+    {
+      "threshold": 0.15,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        60.05291005291005,
+        44.702380952380956,
+        74.60317460317461
+      ],
+      "quiet_series_silent": 0
+    },
+    {
+      "threshold": 0.2,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        54.4973544973545,
+        39.1468253968254,
+        69.04761904761905
+      ],
+      "quiet_series_silent": 0
+    },
+    {
+      "threshold": 0.25,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        50.0,
+        32.53968253968254,
+        66.13756613756614
+      ],
+      "quiet_series_silent": 3
+    },
+    {
+      "threshold": 0.3,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        46.03174603174603,
+        29.093915343915345,
+        62.16931216931217
+      ],
+      "quiet_series_silent": 5
+    },
+    {
+      "threshold": 0.35,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        41.7989417989418,
+        25.132275132275133,
+        57.93650793650794
+      ],
+      "quiet_series_silent": 6
+    },
+    {
+      "threshold": 0.4,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        38.095238095238095,
+        22.75132275132275,
+        53.439153439153436
+      ],
+      "quiet_series_silent": 6
+    },
+    {
+      "threshold": 0.45,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        31.48148148148148,
+        19.047619047619047,
+        43.65740740740737
+      ],
+      "quiet_series_silent": 6
+    },
+    {
+      "threshold": 0.5,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        15.079365079365079,
+        8.723544973544973,
+        21.95767195767196
+      ],
+      "quiet_series_silent": 7
+    },
+    {
+      "threshold": 0.55,
+      "sens": [
+        30,
+        30,
+        0.8864829086095221,
+        1.0
+      ],
+      "fa_per_100pd": [
+        8.465608465608465,
+        3.9682539682539684,
+        13.756613756613756
+      ],
+      "quiet_series_silent": 9
+    },
+    {
+      "threshold": 0.6,
+      "sens": [
+        28,
+        30,
+        0.7867618227892791,
+        0.9815233646723066
+      ],
+      "fa_per_100pd": [
+        2.380952380952381,
+        0.0,
+        5.555555555555555
+      ],
+      "quiet_series_silent": 15
+    },
+    {
+      "threshold": 0.65,
+      "sens": [
+        25,
+        30,
+        0.6643529481431982,
+        0.9266356575964831
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.7,
+      "sens": [
+        25,
+        30,
+        0.6643529481431982,
+        0.9266356575964831
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.75,
+      "sens": [
+        24,
+        30,
+        0.6269395261897256,
+        0.9049502189759876
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.8,
+      "sens": [
+        22,
+        30,
+        0.5555169795568831,
+        0.8581750444608938
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.85,
+      "sens": [
+        13,
+        30,
+        0.2737723743061511,
+        0.6080299045459127
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.9,
+      "sens": [
+        12,
+        30,
+        0.24590394326083403,
+        0.5767994750172616
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    },
+    {
+      "threshold": 0.95,
+      "sens": [
+        0,
+        30,
+        0.0,
+        0.113517091390478
+      ],
+      "fa_per_100pd": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "quiet_series_silent": 18
+    }
+  ],
+  "rules": {
+    "label_exertion": {
+      "sens": [
+        19,
+        30,
+        0.45513246433604937,
+        0.7812629779598231
+      ],
+      "fa_per_100pd": [
+        18.78306878306878,
+        7.671957671957672,
+        30.952380952380953
+      ],
+      "quiet_series_silent": 9
+    },
+    "label_exertion_and_sev>0.15": {
+      "sens": [
+        18,
+        30,
+        0.42320052498273836,
+        0.7540960567391659
+      ],
+      "fa_per_100pd": [
+        17.46031746031746,
+        6.607142857142858,
+        29.894179894179896
+      ],
+      "quiet_series_silent": 11
+    },
+    "label_not_deconditioning_or_stable_and_sev>0.15": {
+      "sens": [
+        19,
+        30,
+        0.45513246433604937,
+        0.7812629779598231
+      ],
+      "fa_per_100pd": [
+        17.46031746031746,
+        6.607142857142858,
+        29.894179894179896
+      ],
+      "quiet_series_silent": 11
+    },
+    "pulse_high": {
+      "sens": [
+        21,
+        30,
+        0.5212387898833981,
+        0.8333543735604105
+      ],
+      "fa_per_100pd": [
+        24.074074074074073,
+        10.582010582010582,
+        38.630952380952344
+      ],
+      "quiet_series_silent": 10
+    },
+    "deployed_decide_alert": {
+      "sens": [
+        21,
+        30,
+        0.5212387898833981,
+        0.8333543735604105
+      ],
+      "fa_per_100pd": [
+        8.73015873015873,
+        3.439153439153439,
+        16.137566137566136
+      ],
+      "quiet_series_silent": 10
+    }
+  },
+  "label_exertion_vs_pulse_high_days": {
+    "label=False,high=False": 756,
+    "label=False,high=True": 269,
+    "label=True,high=False": 39,
+    "label=True,high=True": 196
+  },
+  "confusion_story_label": {
+    "stable": {
+      "stable": 44,
+      "fluid_overload": 34,
+      "cardiac_stress": 72,
+      "deconditioning": 480,
+      "acute_deterioration": 0
+    },
+    "fluid_overload": {
+      "stable": 0,
+      "fluid_overload": 3,
+      "cardiac_stress": 10,
+      "deconditioning": 113,
+      "acute_deterioration": 0
+    },
+    "cardiac_stress": {
+      "stable": 10,
+      "fluid_overload": 0,
+      "cardiac_stress": 59,
+      "deconditioning": 57,
+      "acute_deterioration": 0
+    },
+    "deconditioning": {
+      "stable": 20,
+      "fluid_overload": 0,
+      "cardiac_stress": 1,
+      "deconditioning": 105,
+      "acute_deterioration": 0
+    },
+    "acute_deterioration": {
+      "stable": 13,
+      "fluid_overload": 0,
+      "cardiac_stress": 82,
+      "deconditioning": 146,
+      "acute_deterioration": 11
+    }
+  },
+  "confusion_onset_aware": {
+    "stable": {
+      "stable": 80,
+      "fluid_overload": 34,
+      "cardiac_stress": 121,
+      "deconditioning": 521,
+      "acute_deterioration": 0
+    },
+    "fluid_overload": {
+      "stable": 0,
+      "fluid_overload": 3,
+      "cardiac_stress": 8,
+      "deconditioning": 97,
+      "acute_deterioration": 0
+    },
+    "cardiac_stress": {
+      "stable": 0,
+      "fluid_overload": 0,
+      "cardiac_stress": 55,
+      "deconditioning": 53,
+      "acute_deterioration": 0
+    },
+    "deconditioning": {
+      "stable": 7,
+      "fluid_overload": 0,
+      "cardiac_stress": 1,
+      "deconditioning": 100,
+      "acute_deterioration": 0
+    },
+    "acute_deterioration": {
+      "stable": 0,
+      "fluid_overload": 0,
+      "cardiac_stress": 39,
+      "deconditioning": 130,
+      "acute_deterioration": 11
+    }
+  },
+  "accuracy_story_label": 0.1761904761904762,
+  "accuracy_onset_aware": 0.1976190476190476,
+  "predicted_label_share": {
+    "stable": 0.06904761904761905,
+    "fluid_overload": 0.029365079365079365,
+    "cardiac_stress": 0.17777777777777778,
+    "deconditioning": 0.7150793650793651,
+    "acute_deterioration": 0.00873015873015873
+  },
+  "p_high_given_label": {
+    "stable": [
+      9,
+      87
+    ],
+    "fluid_overload": [
+      2,
+      37
+    ],
+    "cardiac_stress": [
+      185,
+      224
+    ],
+    "deconditioning": [
+      255,
+      898
+    ],
+    "acute_deterioration": [
+      11,
+      11
+    ]
+  },
+  "dev_selected_threshold": {
+    "selection_rule": "lowest threshold with dev FA <= deployed dev FA",
+    "deployed_dev_fa": 5.8201058201058204,
+    "chosen_threshold": 0.55,
+    "dev": {
+      "classifier": {
+        "sens": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "fa_per_100pd": [
+          5.291005291005291,
+          1.0582010582010581,
+          10.582010582010582
+        ],
+        "quiet_series_silent": 5
+      },
+      "deployed": {
+        "sens": [
+          11,
+          15,
+          0.4804911034231324,
+          0.8910272389681718
+        ],
+        "fa_per_100pd": [
+          5.8201058201058204,
+          0.0,
+          11.640211640211641
+        ],
+        "quiet_series_silent": 6
+      }
+    },
+    "heldout": {
+      "classifier": {
+        "sens": [
+          15,
+          15,
+          0.7961107336956521,
+          1.0
+        ],
+        "fa_per_100pd": [
+          11.640211640211641,
+          4.232804232804233,
+          20.105820105820104
+        ],
+        "quiet_series_silent": 4
+      },
+      "deployed": {
+        "sens": [
+          10,
+          15,
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "fa_per_100pd": [
+          11.640211640211641,
+          3.1746031746031744,
+          25.396825396825395
+        ],
+        "quiet_series_silent": 4
+      }
+    }
+  }
+}

@@ -34,27 +34,6 @@ ax.legend(frameon=False, loc="lower left", ncol=2, bbox_to_anchor=(0, 1.0))
 fig.savefig(os.path.join(OUT, "fig_batch_success.png"))
 plt.close(fig)
 
-# 2. Alert-system ablation, all six seeds (results/scenario_tests/posthoc/ablation_eval.json,
-#    src/evaluation/scenario_tests/ablation_eval.py)
-import json
-ab = json.load(open(os.path.join(OUT, "..", "..", "results", "scenario_tests", "posthoc", "ablation_eval.json")))["failed_as_alert"]["all"]
-names = {"weight_rule": "Weight rule", "rf_severity": "Classifier only", "pulse_high": "+ Pulse risk (HIGH)",
-         "decide_alert": "+ C3 guard (deployed)", "decide_watch": "Deployed, WATCH+"}
-cols = {"weight_rule": GREY, "rf_severity": RED, "pulse_high": ORANGE, "decide_alert": BLUE, "decide_watch": "#7fb0e8"}
-offs = {"weight_rule": (6, -2), "rf_severity": (-40, -14), "pulse_high": (2, -16), "decide_alert": (-24, 12), "decide_watch": (4, 12)}
-fig, ax = plt.subplots(figsize=(COL, 2.4))
-for k, e in ab.items():
-    sens = e["sensitivity_series"]; fa = e["false_alerts_per_100pd"]
-    x, y = fa[0], 100 * sens[0] / sens[1]
-    ax.errorbar(x, y, xerr=[[x - fa[1]], [fa[2] - x]], yerr=[[y - 100 * sens[2]], [100 * sens[3] - y]],
-                fmt="o", color=cols[k], ms=4, lw=0.9, capsize=2, label=names[k])
-ax.legend(frameon=False, loc="lower right", fontsize=6.5)
-ax.set_xlabel("False alerts / 100 patient-days (stable stories)")
-ax.set_ylabel("Deteriorating series detected (%)")
-ax.set_xlim(-3, 85); ax.set_ylim(-5, 108)
-fig.savefig(os.path.join(OUT, "fig_ablation.png"))
-plt.close(fig)
-
 # 3. Real-outcome discrimination, AUC with 95% CI (docs/methodology.md 7.X-7.CC, docs/claims_methodology.md)
 rows = [
     ("Baseline-deficit score, MIMIC-IV (n=17,129)", 0.596, 0.585, 0.608, BLUE),
