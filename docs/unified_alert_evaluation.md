@@ -88,3 +88,18 @@ sources), while measurably reducing how often P08's one confirmed false alarm re
 previously-invisible elevated case (P04 seed 47) as WATCH. It does not and cannot fix P04's/P05's
 structural zero-signal misses, and it correctly does NOT suppress the newly-observed P01 seed 47
 case, since that one has real corroborating instability.
+
+## Note: WATCH is effectively always on for EF<=40 patients
+
+Checked directly against the original 30-case `fluid_overload` validation dataset (`data/
+simulation_runs/features_dataset.csv`, `docs/followup_analysis_2026-10-05.md` item 4): **29 of
+29 EF<=40 cases reach at least `WATCH` (`risk_bucket` `MODERATE` or `HIGH`); the single EF>40
+case does not (0/1).** This isn't a property of `decide_alert()` or C3 -- it's `ef_to_
+cardiovascular_modifiers()`'s own `ChronicVentricularSystolicDysfunction` condition
+(`HFREF_EF_THRESHOLD_PCT=40`) congesting `map_start` at construction time, which `baseline_
+deficit_score` then reads directly. Worth stating plainly: for this scorer, **EF<=40 is, on this
+evidence, close to a sufficient condition for at least a WATCH-level flag on its own**,
+independent of anything the acute hemodynamic features or the ML severity classifier contribute.
+Not evaluated here: whether this holds outside the 30-case dataset, or whether it's desirable
+(a cheap, interpretable floor) or a liability (a patient at the boundary of this cutoff gets a
+qualitatively different baseline regardless of how mild their actual presentation is).
