@@ -11,7 +11,9 @@ from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.api.database import Base
-from src.analytics.score_reporting import build_score_report, severity_band
+from src.analytics.score_reporting import (
+    build_score_report, decide_alert, determine_simulation_status, severity_band,
+)
 
 
 def _uuid() -> str:
@@ -112,6 +114,14 @@ class RiskAssessment(Base):
     # the stored data explaining why. Nullable: existing rows predate this field (2026-08-28).
     baseline_deficit_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     dominant_mechanism: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # decide_alert()'s C3 persistence state (fix/unified-alert-decision, 2026-10-03): consecutive
+    # days (including this one) risk_bucket=="HIGH" and dominant_mechanism=="baseline" for this
+    # patient, and whether instability_flag==1 was seen on any day within that streak. Computed
+    # at write-time from the previous RiskAssessment row (O(1), not a full history re-scan) --
+    # see compute_baseline_high_streak() in score_reporting.py. Nullable: existing rows predate
+    # this field; treated as streak=0/instability_seen=False when absent.
+    baseline_high_streak_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    instability_seen_in_streak: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     nyha_class: Mapped[str] = mapped_column(String)
     risk_caveats: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     deterioration_direction: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -144,6 +154,21 @@ class RiskAssessment(Base):
         """Descriptive label, explicitly NOT a clinical alert threshold -- see
         src/analytics/score_reporting.py's own docstring for why 0.65 isn't used here."""
         return severity_band(self.severity)
+
+    @property
+    def alert(self) -> dict:
+        """THE single alert decision for this assessment (fix/unified-alert-decision,
+        2026-10-03) -- decide_alert()'s {level, source}, ALERT/WATCH/NONE. A RiskAssessment row
+        only ever exists once Pulse has actually run (src/api/services.py never creates one on a
+        failed run), so pulse_succeeded is always True here and simulation_status can only come
+        back "valid" or "unstable" (the crash-zone check), never "not_run" -- same precondition
+        score_provenance() above already documents."""
+        status = determine_simulation_status(
+            self.scenario_type, self.severity, pulse_attempted=True, pulse_succeeded=True,
+        )
+        decide_status = "unstable_completed" if status == "unstable" else status
+        report = decide_alert(self, decide_status)
+        return {"level": report.level, "source": report.source}
 
     @property
     def score_provenance(self) -> dict:

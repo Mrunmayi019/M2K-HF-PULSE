@@ -464,7 +464,17 @@ implementation bug; see §8.
 whichever mechanism, acute or chronic, is worse) that leaves the 5 acute weights above completely
 unchanged rather than diluting them into a 6-term reweight. Post-fix, `fluid_overload`'s mean
 `risk_score` rose from 0.000 to 0.501 (close to its mean true severity of 0.580) and `risk_bucket`
-shifted from 30/30 `LOW` to 29/30 `MODERATE`. Fine-grained ranking *within* `fluid_overload` is
+shifted from 30/30 `LOW` to 29/30 `MODERATE` -- **this 0.000->0.501 shift is driven by EF<=40, not
+severity or the fluid_overload label itself**: `src/patient_builder/patient_file.py::ef_to_
+cardiovascular_modifiers()` only applies Pulse's `ChronicVentricularSystolicDysfunction`
+condition (the mechanism that congests `map_start` at construction time, independent of anything
+during the encounter) when `ejection_fraction_pct <= HFREF_EF_THRESHOLD_PCT` (40.0); 29 of these
+30 cases have EF<=40 (`map_start` ~78-79mmHg regardless of severity, confirmed across a 0.3-0.964
+severity range). The one exception, EF=43.5 (>40), has `map_start=94.0` -- healthy -- and is
+exactly the 1/30 that stays `LOW` (fix/unified-alert-decision branch, `docs/followup_analysis_
+2026-10-05.md` item 4, where the same mechanism explains why a later synthetic cohort's
+neutral-EF fluid_overload patient, EF>40 by construction, barely moves at all). Fine-grained
+ranking *within* `fluid_overload` is
 still weak (r=−0.05) because Pulse's own scenario generation barely varies `map_start` with
 severity for this scenario type — a separate, smaller, scenario-generation-level limitation, not a
 regression of this fix. Full writeup: `models/model_card.md`,
