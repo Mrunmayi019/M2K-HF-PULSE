@@ -1,0 +1,231 @@
+{
+  "patient_summaries": {
+    "P01": {
+      "42": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "43": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "44": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "45": {
+        "scenario_counts": {
+          "deconditioning": 18,
+          "cardiac_stress": 3
+        },
+        "first_exercise_day": 18,
+        "first_MODERATE_day": 18,
+        "first_HIGH_day": null
+      },
+      "46": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "47": {
+        "scenario_counts": {
+          "deconditioning": 20,
+          "cardiac_stress": 1
+        },
+        "first_exercise_day": 5,
+        "first_MODERATE_day": 5,
+        "first_HIGH_day": 10
+      }
+    },
+    "P04": {
+      "42": {
+        "scenario_counts": {
+          "deconditioning": 19,
+          "fluid_overload": 2
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "43": {
+        "scenario_counts": {
+          "deconditioning": 16,
+          "cardiac_stress": 5
+        },
+        "first_exercise_day": 6,
+        "first_MODERATE_day": 6,
+        "first_HIGH_day": 8
+      },
+      "44": {
+        "scenario_counts": {
+          "deconditioning": 19,
+          "cardiac_stress": 1,
+          "fluid_overload": 1
+        },
+        "first_exercise_day": 9,
+        "first_MODERATE_day": 9,
+        "first_HIGH_day": 10
+      },
+      "45": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "46": {
+        "scenario_counts": {
+          "deconditioning": 21
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "47": {
+        "scenario_counts": {
+          "cardiac_stress": 4,
+          "deconditioning": 17
+        },
+        "first_exercise_day": 1,
+        "first_MODERATE_day": 2,
+        "first_HIGH_day": null
+      }
+    },
+    "P05": {
+      "42": {
+        "scenario_counts": {
+          "stable": 1,
+          "deconditioning": 20
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "43": {
+        "scenario_counts": {
+          "stable": 4,
+          "deconditioning": 17
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "44": {
+        "scenario_counts": {
+          "stable": 6,
+          "deconditioning": 15
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "45": {
+        "scenario_counts": {
+          "stable": 3,
+          "deconditioning": 17,
+          "cardiac_stress": 1
+        },
+        "first_exercise_day": 5,
+        "first_MODERATE_day": 5,
+        "first_HIGH_day": 6
+      },
+      "46": {
+        "scenario_counts": {
+          "deconditioning": 19,
+          "stable": 2
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      },
+      "47": {
+        "scenario_counts": {
+          "stable": 4,
+          "deconditioning": 17
+        },
+        "first_exercise_day": null,
+        "first_MODERATE_day": null,
+        "first_HIGH_day": null
+      }
+    },
+    "P08": {
+      "42": {
+        "scenario_counts": {
+          "stable": 7,
+          "deconditioning": 5,
+          "cardiac_stress": 9
+        },
+        "first_exercise_day": 11,
+        "first_MODERATE_day": 11,
+        "first_HIGH_day": 12
+      },
+      "43": {
+        "scenario_counts": {
+          "stable": 6,
+          "deconditioning": 3,
+          "cardiac_stress": 12
+        },
+        "first_exercise_day": 9,
+        "first_MODERATE_day": 9,
+        "first_HIGH_day": 10
+      },
+      "44": {
+        "scenario_counts": {
+          "stable": 7,
+          "cardiac_stress": 11,
+          "deconditioning": 3
+        },
+        "first_exercise_day": 5,
+        "first_MODERATE_day": 5,
+        "first_HIGH_day": 9
+      },
+      "45": {
+        "scenario_counts": {
+          "deconditioning": 7,
+          "stable": 6,
+          "cardiac_stress": 8
+        },
+        "first_exercise_day": 9,
+        "first_MODERATE_day": 9,
+        "first_HIGH_day": 10
+      },
+      "46": {
+        "scenario_counts": {
+          "stable": 5,
+          "cardiac_stress": 13,
+          "deconditioning": 3
+        },
+        "first_exercise_day": 5,
+        "first_MODERATE_day": 5,
+        "first_HIGH_day": 6
+      },
+      "47": {
+        "scenario_counts": {
+          "stable": 6,
+          "cardiac_stress": 13,
+          "deconditioning": 2
+        },
+        "first_exercise_day": 5,
+        "first_MODERATE_day": 5,
+        "first_HIGH_day": 6
+      }
+    }
+  },
+  "high_preceded_by_exercise_violations": []
+}

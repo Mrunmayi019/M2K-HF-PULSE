@@ -1,0 +1,577 @@
+{
+  "table": {
+    "P01": {
+      "group": "should_stay_quiet",
+      "perturbation_start": null,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P02": {
+      "group": "edge_case",
+      "perturbation_start": 5,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 10,
+          "days_WATCH": 4,
+          "first_ALERT_day": 9,
+          "first_WATCH_day": 5,
+          "first_detect_ALERT_day": 9,
+          "first_detect_WATCH_day": 5,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P03": {
+      "group": "edge_case",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P04": {
+      "group": "should_catch",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 14,
+          "days_WATCH": 2,
+          "first_ALERT_day": 8,
+          "first_WATCH_day": 6,
+          "first_detect_ALERT_day": 8,
+          "first_detect_WATCH_day": 6,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 12,
+          "days_WATCH": 1,
+          "first_ALERT_day": 10,
+          "first_WATCH_day": 9,
+          "first_detect_ALERT_day": 10,
+          "first_detect_WATCH_day": 9,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P05": {
+      "group": "should_catch",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P06": {
+      "group": "should_catch",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 3,
+          "days_WATCH": 15,
+          "first_ALERT_day": 5,
+          "first_WATCH_day": 4,
+          "first_detect_ALERT_day": 5,
+          "first_detect_WATCH_day": 4,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 3,
+          "days_WATCH": 15,
+          "first_ALERT_day": 5,
+          "first_WATCH_day": 4,
+          "first_detect_ALERT_day": 5,
+          "first_detect_WATCH_day": 4,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 5,
+          "days_WATCH": 14,
+          "first_ALERT_day": 4,
+          "first_WATCH_day": 3,
+          "first_detect_ALERT_day": 4,
+          "first_detect_WATCH_day": 6,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [
+            3
+          ],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": true
+        }
+      }
+    },
+    "P07": {
+      "group": "should_catch",
+      "perturbation_start": 10,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 20,
+          "days_WATCH": 0,
+          "first_ALERT_day": 2,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": 10,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": true,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 17,
+          "days_WATCH": 0,
+          "first_ALERT_day": 5,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": 10,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": true,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 18,
+          "days_WATCH": 2,
+          "first_ALERT_day": 3,
+          "first_WATCH_day": 2,
+          "first_detect_ALERT_day": 10,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            3,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "false_WATCH_days": [
+            2,
+            4
+          ],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": true,
+          "any_false_WATCH": true
+        }
+      }
+    },
+    "P08": {
+      "group": "should_stay_quiet",
+      "perturbation_start": 5,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 3,
+          "days_WATCH": 8,
+          "first_ALERT_day": 12,
+          "first_WATCH_day": 11,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            12,
+            13,
+            14
+          ],
+          "false_WATCH_days": [
+            11,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": true,
+          "any_false_WATCH": true
+        },
+        "43": {
+          "days_ALERT": 3,
+          "days_WATCH": 10,
+          "first_ALERT_day": 10,
+          "first_WATCH_day": 9,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            10,
+            11,
+            12
+          ],
+          "false_WATCH_days": [
+            9,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": true,
+          "any_false_WATCH": true
+        },
+        "44": {
+          "days_ALERT": 5,
+          "days_WATCH": 12,
+          "first_ALERT_day": 9,
+          "first_WATCH_day": 5,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            9,
+            10,
+            11,
+            20,
+            21
+          ],
+          "false_WATCH_days": [
+            5,
+            6,
+            7,
+            8,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": true,
+          "any_false_WATCH": true
+        }
+      }
+    },
+    "P09": {
+      "group": "should_stay_quiet",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "44": {
+          "days_ALERT": 0,
+          "days_WATCH": 0,
+          "first_ALERT_day": null,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": null,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": false,
+          "any_detect_WATCH_or_ALERT": false,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        }
+      }
+    },
+    "P10": {
+      "group": "should_catch",
+      "perturbation_start": 4,
+      "per_seed": {
+        "42": {
+          "days_ALERT": 17,
+          "days_WATCH": 1,
+          "first_ALERT_day": 5,
+          "first_WATCH_day": 4,
+          "first_detect_ALERT_day": 5,
+          "first_detect_WATCH_day": 4,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": false
+        },
+        "43": {
+          "days_ALERT": 3,
+          "days_WATCH": 16,
+          "first_ALERT_day": 4,
+          "first_WATCH_day": 3,
+          "first_detect_ALERT_day": 4,
+          "first_detect_WATCH_day": 7,
+          "false_ALERT_days": [],
+          "false_WATCH_days": [
+            3
+          ],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": false,
+          "any_false_WATCH": true
+        },
+        "44": {
+          "days_ALERT": 20,
+          "days_WATCH": 0,
+          "first_ALERT_day": 2,
+          "first_WATCH_day": null,
+          "first_detect_ALERT_day": 4,
+          "first_detect_WATCH_day": null,
+          "false_ALERT_days": [
+            2,
+            3
+          ],
+          "false_WATCH_days": [],
+          "any_detect_ALERT": true,
+          "any_detect_WATCH_or_ALERT": true,
+          "any_false_ALERT": true,
+          "any_false_WATCH": false
+        }
+      }
+    }
+  },
+  "totals": {
+    "should_catch_reaching_ALERT_on_or_after_perturbation_all_seeds": "3/5",
+    "should_catch_reaching_at_least_WATCH_on_or_after_perturbation_all_seeds": "3/5",
+    "should_stay_quiet_any_ALERT_any_day_any_seed": {
+      "P01": false,
+      "P08": true,
+      "P09": false
+    },
+    "should_stay_quiet_any_WATCH_any_day_any_seed": {
+      "P01": false,
+      "P08": true,
+      "P09": false
+    }
+  }
+}
