@@ -451,3 +451,106 @@ unwelcome, or doesn't match a pre-registered expectation -- is a finding to repo
 not something to adjust the harness, cohort, or schedules to fix. Freeze takes effect as of
 commit `f33eaac` (this entry's commit). Proceeding to the full batch (10 patients x 3 seeds,
 N=6 parallel), then the analysis and write-up.
+
+## 2026-10-05: Post-freeze findings -- protocol deviation (day-1 step), EF/OOD finding, label-dependence
+
+Everything below is a FINDING, logged per the freeze policy above -- nothing in `cohort.yaml`,
+`build_cohort.py`, or the harness is changed by this entry. Full investigation and evidence:
+`fix/unified-alert-decision` branch, `docs/followup_analysis_2026-10-05.md` through `-07.md`.
+
+### 1. Protocol deviation: the day-1 step contradicts the pre-registered "normal/flat" framing
+
+**The deviation, stated precisely**: `build_cohort.py`'s own comments and `expected_outcomes.md`'s
+table describe each should_catch patient's pre-perturbation days as unperturbed -- e.g. line 271's
+`# P07 -- Sudden deterioration. Normal days 1-9; days 10-13 severity_target jumps 0.20->0.40`, and
+`expected_outcomes.md`'s "severity 0.20->0.50, **days 4-21**" framing for P04/P05/P06/P10 (implying
+days 1-3 are flat/clean at the chronic baseline). **The actual generated schedule is not flat
+there**: every should_catch patient's `resting_hr_bpm`/`hrv_rmssd_ms` on monitored day 1 (and
+every day before its own event starts) already differs from `baseline_wearable` by exactly
+`generate_wearable_trends.py::SCENARIO_SIGNAL_DELTAS[<that patient's story>] * 0.20` (their flat,
+pre-registered `severity_target`) -- confirmed exact to the decimal for all 5 (P04 +2.4/-1.2bpm/ms,
+P05 +1.6/-1.0, P06 +4.0/-2.4, P07 +5.0/-3.0, P10 +5.0/-3.0).
+
+**This is a genuine contradiction between the pre-registered description and the generated data,
+even though the mechanism that produces it is NOT a harness bug** -- it faithfully reuses
+`generate_wearable_trends.py`'s own documented per-scenario delta table, just evaluated at the
+flat baseline severity instead of assuming severity 0 pre-perturbation. The comments/table calling
+this period "normal"/"flat" were written as if `severity_target=0.20` meant zero wearable
+deviation; it doesn't, for any patient whose chronic scenario_type has a nonzero
+`SCENARIO_SIGNAL_DELTAS` entry.
+
+**Detection, reported as a range rather than one number**, since which day counts as "the story
+starting" is exactly what this deviation puts in question:
+- **14/30** should_catch patient-seed series, counting detection only from the STATED story start
+  (`cohort.yaml`'s own `event`-bearing day -- day 10 for P07, day 4 for P04/P05/P06/P10).
+- **21/30**, counting from day 1 instead -- i.e. treating the day-1 step itself as the effective
+  start of the measurable story, since it already encodes the chronic condition `generate_
+  wearable_trends.py`'s own convention associates with that scenario type.
+
+Neither number is "the" correct one on its own; the range is the honest report of what this
+deviation leaves ambiguous. Full per-patient breakdown:
+`docs/followup_analysis_2026-10-07.md` item 1, `docs/followup_analysis_2026-10-06.md` item 4.
+
+### 2. EF finding: Amendment A's neutral band is out-of-distribution for the trained classifier
+
+Amendment A's EF band (48-57%, one point apart per patient by patient-ID order) sits **below the
+training data's own `stable`-class EF range (51.3-70.7%, mean 61.2) and almost exactly on the
+`deconditioning`-class mean (50.55%)**. Fed each patient's flat, zero-noise, zero-event day-1
+baseline through the real frozen classifier: **4 of 10 patients (P01-P04) predict
+`deconditioning` from that alone** -- the decision boundary falls between EF 51 (P04) and EF 52
+(P05), nearly bisecting the cohort. Full evidence: `docs/followup_analysis_2026-10-07.md` item 2.
+
+**The 17.62% scenario-label accuracy figure (`docs/followup_analysis_2026-10-06.md` item 2)
+should be read as 17.62% on an out-of-distribution cohort**, not as a general statement about the
+classifier's accuracy -- the cohort's own EF band was never checked against the trained model's
+decision boundary before being adopted (Amendment A was approved to fix a different confound,
+EF-matches-severity; this consequence of that choice wasn't known at the time).
+
+### 3. Which conclusions depend on the scenario LABEL, and which don't
+
+Given finding 2, a natural question: does the alert/watch behaviour reported throughout this
+investigation actually depend on getting the scenario label right? **No, not materially.**
+Reviewing every mechanism this investigation traced back to its root cause:
+
+- **Every `HIGH` day in all 60 patient-seed series is preceded by an Exercise-triggering
+  prediction** (`cardiac_stress` or `acute_deterioration` -- `EXERCISE_SCENARIO_INTENSITY_FACTOR`'s
+  only two keys, confirmed with zero exceptions, `docs/followup_analysis_2026-10-05.md` item 3).
+  `deconditioning` -- the over-predicted label driving the 17.62% figure -- **never triggers
+  Exercise at all** and therefore never drives `map_start` anywhere on its own.
+- **`baseline_deficit_score` (the other path to `HIGH`/`WATCH`) is driven by `map_start`, which is
+  driven by EF<=40 via `ChronicVentricularSystolicDysfunction`** (`ef_to_cardiovascular_
+  modifiers()`), not by which scenario label was predicted. The 30-case validation set confirms
+  this is 100% EF-gated (29/29 EF<=40 cases reach at least `WATCH`; 0/1 EF>40 cases do) --
+  independent of scenario label entirely.
+- So: **alert/watch outcomes in this investigation are driven by (a) whether an Exercise-
+  triggering label was EVER predicted, and (b) EF<=40 -- not by the specific wrong label
+  (`deconditioning`) the classifier most often lands on.** A patient mislabelled `deconditioning`
+  instead of `stable` produces the same (non-)alert outcome as a patient correctly labelled
+  `stable`, because `deconditioning` is, for alerting purposes, behaviourally identical to
+  `stable` (same null Exercise effect, same non-involvement in `baseline_deficit_score`). The
+  label-collapse finding (17.62% accuracy) is real and worth fixing on its own terms, but it is
+  NOT the mechanism behind any of this investigation's alert/false-alert/miss findings -- those
+  all trace to Exercise-triggering labels and EF<=40, which the label-collapse problem doesn't
+  touch (the collapse is entirely INTO `deconditioning`, the one label that's inert either way).
+
+### 4. P09's day-1 step, traced to source
+
+Unlike the should_catch patients' mechanism above, P09's step is NOT `SCENARIO_SIGNAL_DELTAS`-
+derived (`"stable"`-chronic patients get no entry in that table). Traced directly to
+`build_cohort.py::schedule_p09()`:
+
+```python
+this_steps = steps * _weekday_step_factor(d) * 1.25  # consistently more active baseline
+...
+rows.append(_day(d, 0.20, w, this_steps, hr - 2.0, hrv + 4.0, sleep, event=event))
+```
+
+**A hardcoded, permanent offset (`resting_hr_bpm - 2.0`, `hrv_rmssd_ms + 4.0`, steps x1.25),
+applied to EVERY one of the 21 monitored days identically -- not a day-1-specific artefact at
+all.** It only reads as a "day 1 step" because `baseline_wearable` (the 21-day window immediately
+before) doesn't carry this same offset, so day 1 of monitoring is where the constant jump first
+appears. The comment (`"consistently more active baseline"`) states the intent directly: this is
+a deliberate, explicit authoring choice for P09's "Active, stable patient" story (fitter than its
+own resting baseline), not an oversight, and not the same mechanism as P04-P10's story-delta-
+driven step.
+
