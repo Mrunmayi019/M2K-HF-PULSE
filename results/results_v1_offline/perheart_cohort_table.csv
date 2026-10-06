@@ -1,0 +1,28 @@
+user_id,eligible,exclusion_reason,overlapping_real_days,age,sex,replayed,replay_status,failure_reason,scenario_type,risk_bucket
+1,True,,>=21 (latest 21-day window replayed),71,Male,True,complete,,stable,LOW
+2,True,,>=21 (latest 21-day window replayed),75,Male,True,complete,,cardiac_stress,MODERATE
+3,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+4,True,,>=21 (latest 21-day window replayed),81,Male,True,complete,,cardiac_stress,HIGH
+5,True,,>=21 (latest 21-day window replayed),83,Female,True,complete,,cardiac_stress,HIGH
+6,True,,>=21 (latest 21-day window replayed),90,Male,True,failed,"Pulse engine crash: PulseScenarioDriver exited 1 (both attempts); root cause not recorded -- severity-shift hypothesis only, real_world_data_integration.md §8.4",,
+7,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+8,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+9,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+10,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+11,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+12,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+13,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+14,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+15,True,,>=21 (latest 21-day window replayed),77,Male,True,complete,,cardiac_stress,MODERATE
+16,True,,>=21 (latest 21-day window replayed),83,Male,True,complete,,cardiac_stress,MODERATE
+17,True,,>=21 (latest 21-day window replayed),80,Female,True,complete,,cardiac_stress,HIGH
+18,True,,>=21 (latest 21-day window replayed),74,Female,True,failed,"Pulse engine crash: PulseScenarioDriver exited 1 (both attempts); root cause not recorded -- severity-shift hypothesis only, real_world_data_integration.md §8.4",,
+19,True,,>=21 (latest 21-day window replayed),77,Male,True,complete,,stable,LOW
+20,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+21,True,,>=21 (latest 21-day window replayed),75,Female,True,complete,,cardiac_stress,HIGH
+22,True,,>=21 (latest 21-day window replayed),82,Male,True,failed,"Pulse engine crash: PulseScenarioDriver exited 1 (both attempts); root cause not recorded -- severity-shift hypothesis only, real_world_data_integration.md §8.4",,
+23,True,,>=21 (latest 21-day window replayed),77,Male,True,complete,,stable,LOW
+24,True,,>=21 (latest 21-day window replayed),78,Female,True,complete,,cardiac_stress,HIGH
+25,True,,>=21 (latest 21-day window replayed),85,Male,True,complete,,cardiac_stress,MODERATE
+26,False,"fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, real_world_data_integration.md §5)",not recorded,not recorded,not recorded,False,,,,
+27,True,,>=21 (latest 21-day window replayed),88,Male,True,complete,,fluid_overload,LOW
