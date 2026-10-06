@@ -120,6 +120,24 @@ class AlertReportPayload(BaseModel):
     source: Literal["risk_scorer", "c3_downgraded", "failed_fallback", "unstable_completed", "moderate"]
 
 
+class MlSeverityAlertPayload(BaseModel):
+    """src.analytics.score_reporting.ml_severity_alert() (fix/alert-both-signals): ML Model 1's
+    own signal, reported SEPARATELY from the twin-based `alert`. `level` is ALERT when `severity`
+    exceeds `threshold` (STABLE_SEVERITY_CAP, 0.15 -- the existing, unvalidated engineering
+    placeholder; no new threshold), otherwise NONE."""
+    level: Literal["ALERT", "NONE"]
+    severity: float
+    threshold: float
+    source: Literal["ml_severity"]
+
+
+SIGNALS_DISAGREE_DESCRIPTION = (
+    "True when exactly one of the two signals fires: the twin-based `alert` (fires at ALERT or "
+    "WATCH) and `ml_severity_alert` (fires at ALERT). Always False on a failed or crash-zone Pulse "
+    "run, where `alert` itself falls back to the same severity rule. None when either is missing."
+)
+
+
 class ProjectionHorizon(BaseModel):
     projected_severity: float
     risk_score: Optional[float] = None
@@ -155,6 +173,15 @@ class RiskAssessmentPayload(BaseModel):
             "frontend included, should read this field and nothing else for alert/watch state."
         ),
     )
+    ml_severity_alert: Optional[MlSeverityAlertPayload] = Field(
+        default=None,
+        description=(
+            "ML Model 1's own severity signal (fix/alert-both-signals), separate from the "
+            "twin-based `alert`. For a valid Pulse run `alert` does not use severity at all, so "
+            "this is where the classifier's opinion is reported."
+        ),
+    )
+    signals_disagree: Optional[bool] = Field(default=None, description=SIGNALS_DISAGREE_DESCRIPTION)
     nyha_class: str
     risk_caveats: Optional[str] = Field(default=None, description=RISK_CAVEATS_DESCRIPTION)
     deterioration_direction: Optional[str] = None
@@ -255,6 +282,15 @@ class StatusResponse(BaseModel):
             "'collecting' or 'pending')."
         ),
     )
+    ml_severity_alert: Optional[MlSeverityAlertPayload] = Field(
+        default=None,
+        description=(
+            "ML Model 1's own severity signal for the same run `alert` is about (the latest run "
+            "when it failed, otherwise latest_assessment's), reported separately from the twin "
+            "(fix/alert-both-signals)."
+        ),
+    )
+    signals_disagree: Optional[bool] = Field(default=None, description=SIGNALS_DISAGREE_DESCRIPTION)
     latest_wearable: Optional[WearableReadingResponse] = None
     error_message: Optional[str] = None
     waveform_data: Optional[dict] = Field(

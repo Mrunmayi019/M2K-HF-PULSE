@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from src.analytics.score_reporting import (
     AlertAssessmentView, build_score_report, decide_alert, determine_simulation_status,
+    ml_severity_alert, signals_disagree,
 )
 from src.api import models, schemas, services
 from src.api.database import SessionLocal, get_db
@@ -185,12 +186,15 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
         decide_status = "unstable_failed" if status == "unstable" else status
         report = decide_alert(AlertAssessmentView(severity=latest_run.severity), decide_status)
         alert = {"level": report.level, "source": report.source}
+        ml_alert = ml_severity_alert(latest_run.severity)
     elif assessment is not None and not newer_run_failed:
         current_alert = assessment.score_provenance
         alert = assessment.alert
+        ml_alert = assessment.ml_severity_alert
     else:
         current_alert = None
         alert = None
+        ml_alert = None
 
     return schemas.StatusResponse(
         patient_id=patient.id,
@@ -200,6 +204,8 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
         latest_assessment_stale=assessment is not None and newer_run_failed,
         current_alert=current_alert,
         alert=alert,
+        ml_severity_alert=ml_alert,
+        signals_disagree=signals_disagree(alert["level"] if alert else None, ml_alert),
         latest_wearable=schemas.WearableReadingResponse.model_validate(latest_wearable) if latest_wearable else None,
         error_message=latest_run.error_message if latest_run and latest_run.status == "failed" else None,
         # From the assessment's own linked run, not `latest_run` -- if a newer run failed after

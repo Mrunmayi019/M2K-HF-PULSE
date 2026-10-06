@@ -1,0 +1,278 @@
+{
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+  ],
+  "definition": "signals_disagree(): twin fires at ALERT or WATCH, ML fires at ALERT (severity > 0.15)",
+  "all": {
+    "patient_days": 1260,
+    "disagree": 399,
+    "disagree_pct": 31.7,
+    "ml_flags_twin_none": 348,
+    "twin_flags_ml_none": 51,
+    "disagree_if_twin_fires_only_at_ALERT": 568,
+    "disagree_if_twin_fires_only_at_ALERT_pct": 45.1,
+    "twin_x_ml": {
+      "ALERT/ALERT": 278,
+      "ALERT/NONE": 20,
+      "NONE/ALERT": 348,
+      "NONE/NONE": 383,
+      "WATCH/ALERT": 200,
+      "WATCH/NONE": 31
+    },
+    "failed_days": 3,
+    "unstable_completed_days": 1
+  },
+  "by_group": {
+    "should_catch": {
+      "patient_days": 630,
+      "disagree": 155,
+      "disagree_pct": 24.6,
+      "ml_flags_twin_none": 144,
+      "twin_flags_ml_none": 11,
+      "disagree_if_twin_fires_only_at_ALERT": 285,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 45.2,
+      "twin_x_ml": {
+        "ALERT/ALERT": 254,
+        "ALERT/NONE": 1,
+        "NONE/ALERT": 144,
+        "NONE/NONE": 81,
+        "WATCH/ALERT": 140,
+        "WATCH/NONE": 10
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 1
+    },
+    "should_stay_quiet": {
+      "patient_days": 378,
+      "disagree": 171,
+      "disagree_pct": 45.2,
+      "ml_flags_twin_none": 144,
+      "twin_flags_ml_none": 27,
+      "disagree_if_twin_fires_only_at_ALERT": 214,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 56.6,
+      "twin_x_ml": {
+        "ALERT/ALERT": 23,
+        "ALERT/NONE": 10,
+        "NONE/ALERT": 144,
+        "NONE/NONE": 124,
+        "WATCH/ALERT": 60,
+        "WATCH/NONE": 17
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "edge_case": {
+      "patient_days": 252,
+      "disagree": 73,
+      "disagree_pct": 29.0,
+      "ml_flags_twin_none": 60,
+      "twin_flags_ml_none": 13,
+      "disagree_if_twin_fires_only_at_ALERT": 69,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 27.4,
+      "twin_x_ml": {
+        "ALERT/ALERT": 1,
+        "ALERT/NONE": 9,
+        "NONE/ALERT": 60,
+        "NONE/NONE": 178,
+        "WATCH/NONE": 4
+      },
+      "failed_days": 3,
+      "unstable_completed_days": 0
+    }
+  },
+  "by_patient": {
+    "P01": {
+      "expected_group": "should_stay_quiet",
+      "patient_days": 126,
+      "disagree": 34,
+      "disagree_pct": 27.0,
+      "ml_flags_twin_none": 19,
+      "twin_flags_ml_none": 15,
+      "disagree_if_twin_fires_only_at_ALERT": 29,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 23.0,
+      "twin_x_ml": {
+        "ALERT/ALERT": 4,
+        "ALERT/NONE": 8,
+        "NONE/ALERT": 19,
+        "NONE/NONE": 86,
+        "WATCH/ALERT": 2,
+        "WATCH/NONE": 7
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P02": {
+      "expected_group": "edge_case",
+      "patient_days": 126,
+      "disagree": 55,
+      "disagree_pct": 43.7,
+      "ml_flags_twin_none": 42,
+      "twin_flags_ml_none": 13,
+      "disagree_if_twin_fires_only_at_ALERT": 51,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 40.5,
+      "twin_x_ml": {
+        "ALERT/ALERT": 1,
+        "ALERT/NONE": 9,
+        "NONE/ALERT": 42,
+        "NONE/NONE": 70,
+        "WATCH/NONE": 4
+      },
+      "failed_days": 3,
+      "unstable_completed_days": 0
+    },
+    "P03": {
+      "expected_group": "edge_case",
+      "patient_days": 126,
+      "disagree": 18,
+      "disagree_pct": 14.3,
+      "ml_flags_twin_none": 18,
+      "twin_flags_ml_none": 0,
+      "disagree_if_twin_fires_only_at_ALERT": 18,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 14.3,
+      "twin_x_ml": {
+        "NONE/ALERT": 18,
+        "NONE/NONE": 108
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P04": {
+      "expected_group": "should_catch",
+      "patient_days": 126,
+      "disagree": 59,
+      "disagree_pct": 46.8,
+      "ml_flags_twin_none": 55,
+      "twin_flags_ml_none": 4,
+      "disagree_if_twin_fires_only_at_ALERT": 74,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 58.7,
+      "twin_x_ml": {
+        "ALERT/ALERT": 26,
+        "NONE/ALERT": 55,
+        "NONE/NONE": 22,
+        "WATCH/ALERT": 19,
+        "WATCH/NONE": 4
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P05": {
+      "expected_group": "should_catch",
+      "patient_days": 126,
+      "disagree": 80,
+      "disagree_pct": 63.5,
+      "ml_flags_twin_none": 79,
+      "twin_flags_ml_none": 1,
+      "disagree_if_twin_fires_only_at_ALERT": 92,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 73.0,
+      "twin_x_ml": {
+        "ALERT/ALERT": 3,
+        "NONE/ALERT": 79,
+        "NONE/NONE": 30,
+        "WATCH/ALERT": 13,
+        "WATCH/NONE": 1
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P06": {
+      "expected_group": "should_catch",
+      "patient_days": 126,
+      "disagree": 4,
+      "disagree_pct": 3.2,
+      "ml_flags_twin_none": 3,
+      "twin_flags_ml_none": 1,
+      "disagree_if_twin_fires_only_at_ALERT": 76,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 60.3,
+      "twin_x_ml": {
+        "ALERT/ALERT": 38,
+        "NONE/ALERT": 3,
+        "NONE/NONE": 11,
+        "WATCH/ALERT": 73,
+        "WATCH/NONE": 1
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P07": {
+      "expected_group": "should_catch",
+      "patient_days": 126,
+      "disagree": 8,
+      "disagree_pct": 6.3,
+      "ml_flags_twin_none": 6,
+      "twin_flags_ml_none": 2,
+      "disagree_if_twin_fires_only_at_ALERT": 8,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 6.3,
+      "twin_x_ml": {
+        "ALERT/ALERT": 109,
+        "ALERT/NONE": 1,
+        "NONE/ALERT": 6,
+        "NONE/NONE": 8,
+        "WATCH/ALERT": 1,
+        "WATCH/NONE": 1
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P08": {
+      "expected_group": "should_stay_quiet",
+      "patient_days": 126,
+      "disagree": 19,
+      "disagree_pct": 15.1,
+      "ml_flags_twin_none": 7,
+      "twin_flags_ml_none": 12,
+      "disagree_if_twin_fires_only_at_ALERT": 67,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 53.2,
+      "twin_x_ml": {
+        "ALERT/ALERT": 18,
+        "ALERT/NONE": 2,
+        "NONE/ALERT": 7,
+        "NONE/NONE": 31,
+        "WATCH/ALERT": 58,
+        "WATCH/NONE": 10
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P09": {
+      "expected_group": "should_stay_quiet",
+      "patient_days": 126,
+      "disagree": 118,
+      "disagree_pct": 93.7,
+      "ml_flags_twin_none": 118,
+      "twin_flags_ml_none": 0,
+      "disagree_if_twin_fires_only_at_ALERT": 118,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 93.7,
+      "twin_x_ml": {
+        "ALERT/ALERT": 1,
+        "NONE/ALERT": 118,
+        "NONE/NONE": 7
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 0
+    },
+    "P10": {
+      "expected_group": "should_catch",
+      "patient_days": 126,
+      "disagree": 4,
+      "disagree_pct": 3.2,
+      "ml_flags_twin_none": 1,
+      "twin_flags_ml_none": 3,
+      "disagree_if_twin_fires_only_at_ALERT": 35,
+      "disagree_if_twin_fires_only_at_ALERT_pct": 27.8,
+      "twin_x_ml": {
+        "ALERT/ALERT": 78,
+        "NONE/ALERT": 1,
+        "NONE/NONE": 10,
+        "WATCH/ALERT": 34,
+        "WATCH/NONE": 3
+      },
+      "failed_days": 0,
+      "unstable_completed_days": 1
+    }
+  }
+}

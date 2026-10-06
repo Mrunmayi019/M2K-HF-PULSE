@@ -577,3 +577,31 @@ class TestComputeBaselineHighStreak:
         )
         assert streak2 == streak1 + 1
         assert instability2 is True  # still remembered, even though today's own flag is 0
+
+
+class TestBothSignals:
+    """ml_severity_alert() / signals_disagree() (fix/alert-both-signals)."""
+
+    def test_ml_alert_uses_existing_cap_no_new_threshold(self):
+        from src.analytics.score_reporting import STABLE_SEVERITY_CAP, ml_severity_alert
+        assert ml_severity_alert(STABLE_SEVERITY_CAP)["level"] == "NONE"  # <= cap is within stable range
+        assert ml_severity_alert(STABLE_SEVERITY_CAP + 1e-6)["level"] == "ALERT"
+        assert ml_severity_alert(0.6)["threshold"] == STABLE_SEVERITY_CAP
+        assert ml_severity_alert(None) is None
+
+    @pytest.mark.parametrize("twin,ml,expected", [
+        ("NONE", "ALERT", True),
+        ("ALERT", "NONE", True),
+        ("WATCH", "NONE", True),
+        ("WATCH", "ALERT", False),
+        ("ALERT", "ALERT", False),
+        ("NONE", "NONE", False),
+    ])
+    def test_disagree_truth_table(self, twin, ml, expected):
+        from src.analytics.score_reporting import signals_disagree
+        assert signals_disagree(twin, {"level": ml}) is expected
+
+    def test_disagree_none_when_a_signal_is_missing(self):
+        from src.analytics.score_reporting import signals_disagree
+        assert signals_disagree(None, {"level": "ALERT"}) is None
+        assert signals_disagree("NONE", None) is None

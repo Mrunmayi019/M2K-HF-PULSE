@@ -51,7 +51,7 @@ CARDIAC_STRESS = {"start": dict(hr=75, spo2=96.5, weight=0.0, steps=7000, sleep=
 DEMO_PATIENTS = [
     {"label": "DEMO 1 - Stable (EF 58)", "age": 62, "sex": "Female", "height_cm": 163, "weight_kg": 70,
      "ef": 58.0, "bnp": 120.0, "trend": STABLE},
-    {"label": "DEMO 2 - EF 30, mild decline", "age": 68, "sex": "Male", "height_cm": 172, "weight_kg": 82,
+    {"label": "DEMO 2 - EF 30, rising HR -> acute deterioration", "age": 68, "sex": "Male", "height_cm": 172, "weight_kg": 82,
      "ef": 30.0, "bnp": 2500.0, "trend": MILD_DECLINE},
     {"label": "DEMO 3 - EF not measured", "age": 68, "sex": "Male", "height_cm": 172, "weight_kg": 82,
      "ef": None, "bnp": 2500.0, "trend": MILD_DECLINE},
