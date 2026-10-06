@@ -1,0 +1,42 @@
+{
+  "status": {
+    "n": 50,
+    "mean_ms": 3.93,
+    "median_ms": 3.88,
+    "p95_ms": 4.34,
+    "min_ms": 3.39,
+    "max_ms": 5.81
+  },
+  "history": {
+    "n": 50,
+    "mean_ms": 3.24,
+    "median_ms": 3.02,
+    "p95_ms": 3.84,
+    "min_ms": 2.74,
+    "max_ms": 10.7
+  },
+  "wearable_history": {
+    "n": 50,
+    "mean_ms": 3.09,
+    "median_ms": 3.0,
+    "p95_ms": 3.29,
+    "min_ms": 2.8,
+    "max_ms": 5.13
+  },
+  "projection": {
+    "n": 50,
+    "mean_ms": 2.73,
+    "median_ms": 2.7,
+    "p95_ms": 2.99,
+    "min_ms": 2.52,
+    "max_ms": 3.73
+  },
+  "report": {
+    "n": 50,
+    "mean_ms": 5.19,
+    "median_ms": 4.2,
+    "p95_ms": 5.28,
+    "min_ms": 3.83,
+    "max_ms": 48.78
+  }
+}
