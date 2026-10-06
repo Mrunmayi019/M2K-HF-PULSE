@@ -1,0 +1,42 @@
+{
+  "perheart": {
+    "total": 27,
+    "eligible_replayed": 16,
+    "completed": 13,
+    "failed_user_ids": [
+      6,
+      18,
+      22
+    ],
+    "excluded_user_ids": [
+      3,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      20,
+      26
+    ]
+  },
+  "plausibility_ranges_used": {
+    "resting_hr_bpm (assumed_default, source null)": [
+      54,
+      86
+    ],
+    "decompensated_hr_reference (mimic_bigquery_extract)": [
+      54.629999999999995,
+      114.87
+    ]
+  },
+  "batch_runs_with_outputs": 117,
+  "batch_failed_rows_in_failed_runs_csv": 33,
+  "projection_verdicts": {
+    "P1": "FLAT (identical risk at every horizon)",
+    "P2": "near-flat (< 0.01 change, same bucket)",
+    "P3": "FLAT (identical risk at every horizon)"
+  }
+}

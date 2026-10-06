@@ -1,0 +1,43 @@
+scenario_type,value,range,range_bpm,n,pct_inside
+acute_deterioration,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,12,100.0
+acute_deterioration,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,12,100.0
+acute_deterioration,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,12,0.0
+acute_deterioration,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,12,25.0
+acute_deterioration,MAP,none in reference_stats.yaml,,12,not computed
+acute_deterioration,cardiac output,none in reference_stats.yaml,,12,not computed
+acute_deterioration,stroke volume,none in reference_stats.yaml,,12,not computed
+cardiac_stress,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,15,100.0
+cardiac_stress,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,15,100.0
+cardiac_stress,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,15,0.0
+cardiac_stress,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,15,0.0
+cardiac_stress,MAP,none in reference_stats.yaml,,15,not computed
+cardiac_stress,cardiac output,none in reference_stats.yaml,,15,not computed
+cardiac_stress,stroke volume,none in reference_stats.yaml,,15,not computed
+deconditioning,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+deconditioning,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+deconditioning,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+deconditioning,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+deconditioning,MAP,none in reference_stats.yaml,,30,not computed
+deconditioning,cardiac output,none in reference_stats.yaml,,30,not computed
+deconditioning,stroke volume,none in reference_stats.yaml,,30,not computed
+fluid_overload,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+fluid_overload,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+fluid_overload,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+fluid_overload,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+fluid_overload,MAP,none in reference_stats.yaml,,30,not computed
+fluid_overload,cardiac output,none in reference_stats.yaml,,30,not computed
+fluid_overload,stroke volume,none in reference_stats.yaml,,30,not computed
+stable,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+stable,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+stable,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,30,100.0
+stable,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,30,100.0
+stable,MAP,none in reference_stats.yaml,,30,not computed
+stable,cardiac output,none in reference_stats.yaml,,30,not computed
+stable,stroke volume,none in reference_stats.yaml,,30,not computed
+ALL,hr_start,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,117,100.0
+ALL,hr_start,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,117,100.0
+ALL,hr_end,"resting_hr_bpm (assumed_default, source null)",54.0-86.0,117,76.9
+ALL,hr_end,decompensated_hr_reference (mimic_bigquery_extract),54.6-114.9,117,79.5
+ALL,MAP,none in reference_stats.yaml,,117,not computed
+ALL,cardiac output,none in reference_stats.yaml,,117,not computed
+ALL,stroke volume,none in reference_stats.yaml,,117,not computed

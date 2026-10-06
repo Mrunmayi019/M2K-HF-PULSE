@@ -1,0 +1,95 @@
+{
+  "_provenance": "Live real-Pulse test patients from docs/app_integration_audit.md section 3b (2026-10-06): backend image built from origin/main f1c8656 (= results-v1 + PR #5; projection/risk/feature/builder/runner/classifier code identical to results-v1), frozen artifacts/results-v1 models (SHA-256 verified). Inputs: age 68, Male, 172 cm, 82 kg, NT-proBNP 2500; 21-day trends from the dashboard's generateTrend() presets.",
+  "patients": {
+    "P1": {
+      "ef_input": "EF 30 (measured)",
+      "trend": "Mild Decline preset",
+      "ef_used": 30.0,
+      "ef_is_fallback": false,
+      "scenario_type": "deconditioning",
+      "severity_now": 0.5867300000000002,
+      "risk_now": 0.4874,
+      "bucket_now": "MODERATE",
+      "horizons": {
+        "7": {
+          "projected_severity": 0.6056825252525259,
+          "risk_score": 0.4874,
+          "risk_bucket": "MODERATE",
+          "status": "ok"
+        },
+        "14": {
+          "projected_severity": 0.6246350505050514,
+          "risk_score": 0.4874,
+          "risk_bucket": "MODERATE",
+          "status": "ok"
+        },
+        "30": {
+          "projected_severity": 0.66795510822511,
+          "risk_score": 0.4874,
+          "risk_bucket": "MODERATE",
+          "status": "ok"
+        }
+      }
+    },
+    "P2": {
+      "ef_input": "EF blank (62% default)",
+      "trend": "Mild Decline preset",
+      "ef_used": 62.0,
+      "ef_is_fallback": true,
+      "scenario_type": "deconditioning",
+      "severity_now": 0.7270100000000003,
+      "risk_now": 0.0654,
+      "bucket_now": "LOW",
+      "horizons": {
+        "7": {
+          "projected_severity": 0.7472260101010103,
+          "risk_score": 0.0645,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        },
+        "14": {
+          "projected_severity": 0.7674420202020203,
+          "risk_score": 0.0679,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        },
+        "30": {
+          "projected_severity": 0.8136500432900433,
+          "risk_score": 0.0721,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        }
+      }
+    },
+    "P3": {
+      "ef_input": "EF blank (62% default)",
+      "trend": "weight-gain (fluid) trend",
+      "ef_used": 62.0,
+      "ef_is_fallback": true,
+      "scenario_type": "fluid_overload",
+      "severity_now": 0.6645166666666665,
+      "risk_now": 0.0,
+      "bucket_now": "LOW",
+      "horizons": {
+        "7": {
+          "projected_severity": 0.697941818181818,
+          "risk_score": 0.0,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        },
+        "14": {
+          "projected_severity": 0.7313669696969696,
+          "risk_score": 0.0,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        },
+        "30": {
+          "projected_severity": 0.8077673160173158,
+          "risk_score": 0.0,
+          "risk_bucket": "LOW",
+          "status": "ok"
+        }
+      }
+    }
+  }
+}

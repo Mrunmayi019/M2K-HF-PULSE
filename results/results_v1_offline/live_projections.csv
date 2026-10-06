@@ -1,0 +1,4 @@
+patient,ef_input,trend,scenario_type,risk_now,risk_7d,risk_14d,risk_30d,bucket_now_to_30d,severity_now,severity_30d,risk_change_0_to_30d,verdict
+P1,EF 30 (measured),Mild Decline preset,deconditioning,0.4874,0.4874,0.4874,0.4874,MODERATE / MODERATE / MODERATE / MODERATE,0.587,0.668,0.0,FLAT (identical risk at every horizon)
+P2,EF blank (62% default),Mild Decline preset,deconditioning,0.0654,0.0645,0.0679,0.0721,LOW / LOW / LOW / LOW,0.727,0.814,0.0076,"near-flat (< 0.01 change, same bucket)"
+P3,EF blank (62% default),weight-gain (fluid) trend,fluid_overload,0.0,0.0,0.0,0.0,LOW / LOW / LOW / LOW,0.665,0.808,0.0,FLAT (identical risk at every horizon)

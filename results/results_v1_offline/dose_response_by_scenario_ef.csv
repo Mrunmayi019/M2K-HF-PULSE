@@ -1,0 +1,33 @@
+scenario_type,ef_group,output,n,spearman_rho,p_value
+acute_deterioration,EF<=40,MAP (mmHg),12,-0.317,0.3148
+acute_deterioration,EF<=40,cardiac output (mL/min),12,0.916,0.0
+acute_deterioration,EF<=40,stroke volume (mL),12,-0.258,0.4191
+acute_deterioration,EF<=40,heart rate (bpm),12,0.894,0.0001
+cardiac_stress,EF<=40,MAP (mmHg),1,not computed (n<5),
+cardiac_stress,EF<=40,cardiac output (mL/min),1,not computed (n<5),
+cardiac_stress,EF<=40,stroke volume (mL),1,not computed (n<5),
+cardiac_stress,EF<=40,heart rate (bpm),1,not computed (n<5),
+cardiac_stress,EF>40,MAP (mmHg),14,-0.729,0.0031
+cardiac_stress,EF>40,cardiac output (mL/min),14,0.811,0.0004
+cardiac_stress,EF>40,stroke volume (mL),14,-0.073,0.8045
+cardiac_stress,EF>40,heart rate (bpm),14,0.915,0.0
+deconditioning,EF<=40,MAP (mmHg),4,not computed (n<5),
+deconditioning,EF<=40,cardiac output (mL/min),4,not computed (n<5),
+deconditioning,EF<=40,stroke volume (mL),4,not computed (n<5),
+deconditioning,EF<=40,heart rate (bpm),4,not computed (n<5),
+deconditioning,EF>40,MAP (mmHg),26,-0.833,0.0
+deconditioning,EF>40,cardiac output (mL/min),26,0.104,0.6146
+deconditioning,EF>40,stroke volume (mL),26,0.58,0.0019
+deconditioning,EF>40,heart rate (bpm),26,-0.791,0.0
+fluid_overload,EF<=40,MAP (mmHg),29,0.149,0.4413
+fluid_overload,EF<=40,cardiac output (mL/min),29,0.488,0.0072
+fluid_overload,EF<=40,stroke volume (mL),29,0.462,0.0117
+fluid_overload,EF<=40,heart rate (bpm),29,0.844,0.0
+fluid_overload,EF>40,MAP (mmHg),1,not computed (n<5),
+fluid_overload,EF>40,cardiac output (mL/min),1,not computed (n<5),
+fluid_overload,EF>40,stroke volume (mL),1,not computed (n<5),
+fluid_overload,EF>40,heart rate (bpm),1,not computed (n<5),
+stable,EF>40,MAP (mmHg),30,0.032,0.8659
+stable,EF>40,cardiac output (mL/min),30,-0.119,0.5308
+stable,EF>40,stroke volume (mL),30,-0.084,0.6599
+stable,EF>40,heart rate (bpm),30,-0.051,0.7885
