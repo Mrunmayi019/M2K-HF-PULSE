@@ -1,17 +1,7 @@
 import EcgWave from './EcgWave.jsx'
 import AlertSignals from '../shared/AlertSignals.jsx'
 import { riskColor } from '../../utils/format.js'
-
-// Keyed on `assessment.alert.level` (fix/unified-alert-decision) -- NOT risk_bucket directly.
-// risk_bucket still drives the badge's color (kept for visual continuity across LOW/MODERATE/
-// HIGH), but whether this card reads as urgent is the backend's single decide_alert() decision,
-// so a C3-downgraded HIGH (sustained baseline-only elevation, no corroborating acute signal)
-// reads as WATCH here too, not as a repeated urgent alert.
-const ALERT_SUMMARY = {
-  ALERT: 'Significant deterioration detected — clinical follow-up is recommended today.',
-  WATCH: 'Some signs of strain detected — monitor closely and review symptoms.',
-  NONE: 'This patient is stable — no action needed beyond routine monitoring.',
-}
+import { heroSummary } from '../../utils/heroSummary.js'
 
 const ALERT_WARNING = {
   ALERT: 'This projection indicates rapid decompensation risk. This is a decision-support estimate only — seek clinical evaluation promptly.',
@@ -94,7 +84,7 @@ export default function HeroStatusCard({ assessment, patientLabel }) {
             />
             <div className="heroname">{patientLabel}</div>
             <div className="herosummary">
-              {alertLevel ? ALERT_SUMMARY[alertLevel] : 'Waiting for the first completed simulation.'}
+              {heroSummary(alertLevel, assessment?.signals_disagree)}
             </div>
           </div>
           <div className="ecgwrap">

@@ -108,9 +108,17 @@ qualitatively different baseline regardless of how mild their actual presentatio
 
 The API now returns the twin-based `alert` (`decide_alert()`, unchanged) **and** the ML-severity signal
 `ml_severity_alert` (ML Model 1 severity > 0.15, the existing `STABLE_SEVERITY_CAP`, no new
-threshold) on every assessment and on `/status`. `signals_disagree` is true when exactly one fires
-(the twin fires at ALERT or WATCH; ML at ALERT). On failed or crash-zone runs the twin already falls
-back to the same severity rule, so the two can't disagree there.
+threshold) on every assessment and on `/status`.
+
+**Definition used everywhere (API, dashboard, this analysis):**
+- **The twin flags** a patient when `alert.level` is **ALERT or WATCH**.
+- **The ML signal flags** a patient when `ml_severity_alert.level` is **ALERT** (severity > 0.15).
+- **`signals_disagree`** is true when exactly one of the two flags.
+
+On failed or crash-zone runs the twin already falls back to the same severity rule, so the two
+can't disagree there. When they do disagree, the hero card's summary line reads **"Signals disagree —
+review this patient."** instead of the twin-only line, so a disagreeing patient is never shown as
+"stable — no action needed".
 
 Offline replay on the saved scenario-test runs, seeds 42–47, all 10 patients
 (`src/evaluation/scenario_tests/signal_disagreement_eval.py` →

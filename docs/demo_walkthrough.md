@@ -37,6 +37,29 @@ Supporting detail (same runs):
 - **DEMO 4: EF ≤ 40.** EF 35 lowered the resting MAP to 78.5 mmHg. That baseline deficit alone (0.508) produced MODERATE; nothing changed during the run, since fluid_overload adds no Exercise.
 - **DEMO 5: an Exercise-triggering label.** The cardiac_stress label adds Exercise. The exertion raised HR by 64 bpm and pushed MAP below 65, which produced HIGH. EF 40 alone would have given MODERATE (baseline score 0.487).
 
+## What the hero card shows (fix/alert-both-signals)
+
+The hero card shows two signals side by side:
+- **Twin**, from `decide_alert()`, which flags at ALERT or WATCH.
+- **ML severity**, the classifier's own signal, which flags at ALERT when severity > 0.15.
+
+When exactly one flags, the card adds the note "ML model flags this patient; the twin's risk score
+does not." (or the reverse), and the summary line becomes **"Signals disagree — review this
+patient."** instead of the twin-only line.
+
+| Patient | Twin | ML severity | Disagree | Summary line on the hero card |
+|---|---|---|---|---|
+| DEMO 1 | NONE | NONE (0.12) | no | This patient is stable — no action needed beyond routine monitoring. |
+| DEMO 2 | ALERT | ALERT (0.59) | no | Significant deterioration detected — clinical follow-up is recommended today. |
+| DEMO 3 | NONE | **ALERT (0.66)** | **yes** | **Signals disagree — review this patient.** (with the note "ML model flags this patient; the twin's risk score does not.") |
+| DEMO 4 | WATCH | ALERT (0.70) | no (both flag) | Some signs of strain detected — monitor closely and review symptoms. |
+| DEMO 5 | ALERT | ALERT (0.40) | no | Significant deterioration detected — clinical follow-up is recommended today. |
+
+**DEMO 3 is the one to show for the disagreement.** Its EF wasn't measured, so the twin simulates a
+normal heart and says NONE, while the classifier's severity (0.66) is well above 0.15. The card shows
+both signals, the note, the neutral summary line, and the "EF not measured, healthy default used"
+warning.
+
 ## The general rule these five show
 
 Which scenario labels add Exercise is fixed in `src/patient_builder/scenario_file.py`:
