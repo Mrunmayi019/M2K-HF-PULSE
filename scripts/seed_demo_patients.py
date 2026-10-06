@@ -41,8 +41,12 @@ MILD_DECLINE = {"start": dict(hr=74, spo2=96.5, weight=0.0, steps=7000, sleep=7.
                 "end": dict(hr=84, spo2=95.5, weight=1.2, steps=5500, sleep=6.3, hrv=24)}
 FLUID_GAIN = {"start": dict(hr=74, spo2=96.5, weight=0.0, steps=6500, sleep=6.8, hrv=29),
               "end": dict(hr=79, spo2=95.5, weight=3.5, steps=5600, sleep=6.3, hrv=26)}
+# Deliberately moderate: a steeper version (HR 75->98, HRV 31->19) classified as cardiac_stress at
+# severity 0.91, and Pulse collapsed ("negative volume", irreversible state -- the documented
+# high-severity engine instability), leaving a failed patient on the demo dashboard. This one
+# classifies as cardiac_stress (p=0.84) at severity ~0.40 with the frozen results-v1 models.
 CARDIAC_STRESS = {"start": dict(hr=75, spo2=96.5, weight=0.0, steps=7000, sleep=6.9, hrv=31),
-                  "end": dict(hr=98, spo2=95.8, weight=0.4, steps=5200, sleep=6.2, hrv=19)}
+                  "end": dict(hr=82, spo2=96.2, weight=0.2, steps=6600, sleep=6.6, hrv=24)}
 
 DEMO_PATIENTS = [
     {"label": "DEMO 1 - Stable (EF 58)", "age": 62, "sex": "Female", "height_cm": 163, "weight_kg": 70,
