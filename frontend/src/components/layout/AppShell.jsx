@@ -65,7 +65,13 @@ function DashboardBody({ patientId, patient }) {
     return (
       <>
         <TopBar simTimeIso={assessment?.created_at} isRefreshing={refreshing} isCollecting={false} readingCount={status.reading_count} onRunSimulation={refresh} />
-        <SimulationFailedState errorMessage={status.error_message} onRetry={refresh} />
+        <SimulationFailedState
+          errorMessage={status.error_message}
+          onRetry={refresh}
+          alert={status.alert}
+          mlAlert={status.ml_severity_alert}
+          disagree={status.signals_disagree}
+        />
       </>
     )
   }

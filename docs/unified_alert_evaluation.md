@@ -103,3 +103,36 @@ independent of anything the acute hemodynamic features or the ML severity classi
 Not evaluated here: whether this holds outside the 30-case dataset, or whether it's desirable
 (a cheap, interpretable floor) or a liability (a patient at the boundary of this cutoff gets a
 qualitatively different baseline regardless of how mild their actual presentation is).
+
+## Both signals side by side (fix/alert-both-signals)
+
+The API now returns the twin-based `alert` (`decide_alert()`, unchanged) **and** the ML-severity signal
+`ml_severity_alert` (ML Model 1 severity > 0.15, the existing `STABLE_SEVERITY_CAP`, no new
+threshold) on every assessment and on `/status`. `signals_disagree` is true when exactly one fires
+(the twin fires at ALERT or WATCH; ML at ALERT). On failed or crash-zone runs the twin already falls
+back to the same severity rule, so the two can't disagree there.
+
+Offline replay on the saved scenario-test runs, seeds 42–47, all 10 patients
+(`src/evaluation/scenario_tests/signal_disagreement_eval.py` →
+`results/scenario_tests/posthoc/signal_disagreement.json`). It uses the real `compute_risk_score()`,
+C3 streak, crash-zone status and `decide_alert()` per day, with no Pulse runs:
+
+| Group | Patient-days | Disagree | ML flags, twin NONE | Twin flags, ML NONE | Disagree if the twin fires only at ALERT |
+|---|---|---|---|---|---|
+| should_catch (P04, P05, P06, P07, P10) | 630 | 155 (24.6%) | 144 | 11 | 285 (45.2%) |
+| should_stay_quiet (P01, P08, P09) | 378 | 171 (45.2%) | 144 | 27 | 214 (56.6%) |
+| edge_case (P02, P03) | 252 | 73 (29.0%) | 60 | 13 | 69 (27.4%) |
+| **All** | **1,260** | **399 (31.7%)** | **348** | **51** | **568 (45.1%)** |
+
+- **Disagreement is mostly one-directional.** In 348 of 399 days, the ML model flags the patient
+  while the twin's risk score says NONE.
+- **It's concentrated in a few patients:**
+  - **P09** (should_stay_quiet): 118/126 days, ML ALERT, twin NONE.
+  - **P05** (should_catch): 79/126 days, ML ALERT, twin NONE.
+  - **P04** (should_catch): 55/126 days, ML ALERT, twin NONE.
+  - **P02** (edge_case): 42/126 days, ML ALERT, twin NONE.
+- **Neither signal is the right one on its own.** In the should_stay_quiet group the ML signal
+  over-fires (ALERT on 227/378 days, 60%). In the should_catch group, 144 days are caught by the ML
+  signal alone.
+- **These are synthetic patients with unvalidated thresholds.** The numbers describe how the two
+  signals behave relative to each other, not which is clinically correct.

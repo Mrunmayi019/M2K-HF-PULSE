@@ -559,3 +559,79 @@ class TestReport:
         body = r.json()
         assert body["status"]["patient_id"] == patient_id
         assert body["projection"]["patient_id"] == patient_id
+
+
+# ---- Both alert signals (fix/alert-both-signals) ----
+
+class TestBothAlertSignals:
+    """The twin-based `alert` (decide_alert()) and the ML-severity signal are returned side by side,
+    with `signals_disagree` when exactly one fires."""
+
+    @staticmethod
+    def _both(status: dict) -> tuple[dict, dict, bool]:
+        return status["alert"], status["ml_severity_alert"], status["signals_disagree"]
+
+    def test_completed_run_has_both_fields(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 60, "nt_probnp_pg_ml": 150})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("stable"), _FakeModel(0.05))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        alert, ml, disagree = self._both(status)
+        assert status["simulation_status"] == "complete"
+        assert alert == {"level": "NONE", "source": "risk_scorer"}
+        assert ml == {"level": "NONE", "severity": 0.05, "threshold": 0.15, "source": "ml_severity"}
+        assert disagree is False
+        # Same three on the assessment payload itself.
+        a = status["latest_assessment"]
+        assert (a["alert"], a["ml_severity_alert"], a["signals_disagree"]) == (alert, ml, disagree)
+
+    def test_failed_run_has_both_fields_and_cannot_disagree(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 2000})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("acute_deterioration"), _FakeModel(0.8))), \
+             patch("src.pulse_runner.runner.run_pulse", side_effect=PulseExecutionError("simulated crash")):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        alert, ml, disagree = self._both(status)
+        assert status["simulation_status"] == "failed"
+        assert alert == {"level": "ALERT", "source": "failed_fallback"}
+        assert ml["level"] == "ALERT" and ml["severity"] == 0.8
+        assert disagree is False
+
+    def test_unstable_completed_run_has_both_fields(self, client):
+        """acute_deterioration at severity 0.7 is inside the documented crash zone: Pulse succeeds
+        but its output is untrusted, so the twin falls back to the same severity rule."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 2000})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("acute_deterioration"), _FakeModel(0.7))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        alert, ml, disagree = self._both(status)
+        assert status["simulation_status"] == "complete"
+        assert alert == {"level": "ALERT", "source": "unstable_completed"}
+        assert ml["level"] == "ALERT"
+        assert disagree is False
+
+    def test_ef_blank_fluid_overload_twin_none_ml_alert_disagree(self, client):
+        """The gap_report G2/G3 case: EF omitted -> healthy 62% default -> normal simulated heart ->
+        risk LOW -> twin NONE, while the classifier's severity (0.6) is well above 0.15."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": None, "nt_probnp_pg_ml": None})
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("fluid_overload"), _FakeModel(0.6))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        status = client.get(f"/patients/{patient_id}/status").json()
+        alert, ml, disagree = self._both(status)
+        assert status["latest_assessment"]["risk_bucket"] == "LOW"
+        assert status["latest_assessment"]["ef_is_fallback"] is True
+        assert alert["level"] == "NONE"
+        assert ml["level"] == "ALERT"
+        assert disagree is True
+        assert status["latest_assessment"]["signals_disagree"] is True

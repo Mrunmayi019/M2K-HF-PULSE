@@ -1,4 +1,5 @@
 import EcgWave from './EcgWave.jsx'
+import AlertSignals from '../shared/AlertSignals.jsx'
 import { riskColor } from '../../utils/format.js'
 
 // Keyed on `assessment.alert.level` (fix/unified-alert-decision) -- NOT risk_bucket directly.
@@ -86,6 +87,11 @@ export default function HeroStatusCard({ assessment, patientLabel }) {
             <div className="badgerow">
               {assessment?.nyha_class && <span className="tag">NYHA Class {assessment.nyha_class}</span>}
             </div>
+            <AlertSignals
+              alert={assessment?.alert}
+              mlAlert={assessment?.ml_severity_alert}
+              disagree={assessment?.signals_disagree}
+            />
             <div className="heroname">{patientLabel}</div>
             <div className="herosummary">
               {alertLevel ? ALERT_SUMMARY[alertLevel] : 'Waiting for the first completed simulation.'}

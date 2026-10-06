@@ -12,7 +12,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.api.database import Base
 from src.analytics.score_reporting import (
-    build_score_report, decide_alert, determine_simulation_status, severity_band,
+    build_score_report, decide_alert, determine_simulation_status, ml_severity_alert,
+    severity_band, signals_disagree,
 )
 
 
@@ -175,6 +176,18 @@ class RiskAssessment(Base):
         decide_status = "unstable_completed" if status == "unstable" else status
         report = decide_alert(self, decide_status)
         return {"level": report.level, "source": report.source}
+
+    @property
+    def ml_severity_alert(self) -> Optional[dict]:
+        """The classifier's own signal (severity > STABLE_SEVERITY_CAP), reported next to the
+        twin-based `alert` rather than folded into it (fix/alert-both-signals)."""
+        return ml_severity_alert(self.severity)
+
+    @property
+    def signals_disagree(self) -> Optional[bool]:
+        """True when exactly one of `alert` (twin, fires at ALERT/WATCH) and
+        `ml_severity_alert` (fires at ALERT) fires."""
+        return signals_disagree(self.alert["level"], self.ml_severity_alert)
 
     @property
     def score_provenance(self) -> dict:

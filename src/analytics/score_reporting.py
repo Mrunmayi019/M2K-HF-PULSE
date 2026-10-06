@@ -504,6 +504,36 @@ def decide_alert(assessment, simulation_status: DecideAlertStatus) -> AlertRepor
     return AlertReport("NONE", "risk_scorer")  # "not_run" -- nothing to decide from yet
 
 
+def ml_severity_alert(severity: Optional[float]) -> Optional[dict]:
+    """The ML-severity signal, reported ALONGSIDE decide_alert()'s twin-based level rather than
+    folded into it (fix/alert-both-signals). No new threshold: this is the existing rule
+    severity_band() / alert_decision() already apply -- ML Model 1's severity above
+    STABLE_SEVERITY_CAP (0.15, an unvalidated engineering placeholder, docs/data_provenance.md).
+    For a valid Pulse run decide_alert() ignores severity entirely, so this is the only place the
+    classifier's own opinion still reaches the response. None when there is no severity yet."""
+    if severity is None:
+        return None
+    fires = severity_band(severity) == "exceeds_stable_range"
+    return {
+        "level": "ALERT" if fires else "NONE",
+        "severity": severity,
+        "threshold": STABLE_SEVERITY_CAP,
+        "source": "ml_severity",
+    }
+
+
+def signals_disagree(twin_level: Optional[str], ml_alert: Optional[dict]) -> Optional[bool]:
+    """True when exactly one of the two signals fires. The twin "fires" at ALERT or WATCH (any
+    level other than NONE); the ML signal fires at ALERT. None when either signal is missing.
+
+    On a failed or crash-zone Pulse run decide_alert() itself falls back to the same severity rule
+    as ml_severity_alert(), so the two can't disagree there -- disagreement only arises when the
+    twin produced a valid risk score."""
+    if twin_level is None or ml_alert is None:
+        return None
+    return (twin_level != "NONE") != (ml_alert["level"] == "ALERT")
+
+
 def compute_baseline_high_streak(
     previous_streak_days: Optional[int],
     previous_instability_seen: Optional[bool],
