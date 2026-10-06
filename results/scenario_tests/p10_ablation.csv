@@ -1,0 +1,5 @@
+ablation,peak_predicted_severity,first_day_severity_above_0.20,delta_peak_vs_full,delta_first_alert_day_vs_full
+none,0.8483,2,0.0,0
+weight_kg,0.9151,2,0.06679999999999997,0
+steps_per_day,0.6743,2,-0.17400000000000004,0
+hrv_rmssd_ms,0.841,2,-0.007300000000000084,0

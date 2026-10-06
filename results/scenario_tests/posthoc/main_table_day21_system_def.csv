@@ -1,0 +1,11 @@
+patient_id,story,expected_group,alerted_all_seeds_system_def,first_alert_day_by_seed_system_def,lead_time_days_system_def
+P01,"Stable patient, ordinary life",should_stay_quiet,False,"[None, None, None]",
+P02,Salty weekend,edge_case,False,"[None, None, 9]",
+P03,"Slow, quiet weight gain",edge_case,False,"[None, None, None]",
+P04,Fluid overload building up,should_catch,False,"[None, 8, 10]",
+P05,Gradual deconditioning,should_catch,False,"[None, None, None]",
+P06,Cardiac stress,should_catch,True,"[5, 5, 4]",0.0
+P07,Sudden deterioration,should_catch,True,"[2, 5, 3]",-8.0
+P08,"Stressful fortnight, healthy heart",should_stay_quiet,True,"[12, 10, 9]",4.0
+P09,"Active, stable patient",should_stay_quiet,False,"[None, None, None]",
+P10,Everything goes wrong,should_catch,True,"[5, 4, 2]",-2.0

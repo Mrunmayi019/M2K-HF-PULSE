@@ -1,0 +1,11 @@
+patient_id,weight_rule_triggered,weight_rule_first_trigger_day,pipeline_alerted_all_seeds
+P01,False,,True
+P02,True,5.0,True
+P03,False,,False
+P04,True,19.0,True
+P05,False,,True
+P06,False,,True
+P07,False,,True
+P08,False,,True
+P09,False,,True
+P10,False,,True
