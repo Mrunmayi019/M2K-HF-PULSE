@@ -1,0 +1,230 @@
+{
+  "reference_range_check": {
+    "metric": "hr_end <= MIMIC inpatient mean+2sd (84.75+2*15.06=114.87), the ONLY vital with a documented MIMIC-derived reference in this project",
+    "pct_within_overall": 79.5,
+    "pct_within_by_scenario": {
+      "acute_deterioration": 25.0,
+      "cardiac_stress": 0.0,
+      "deconditioning": 100.0,
+      "fluid_overload": 100.0,
+      "stable": 100.0
+    },
+    "map_co_sv_not_computed_reason": "no MIMIC-derived reference range exists in this codebase for MAP, CO, or SV -- reference_stats.yaml has none, and inventing a generic clinical range would not be a documented-convention comparison."
+  },
+  "dose_response_spearman": {
+    "acute_deterioration": {
+      "n": 12,
+      "spearman_severity_vs_co_drop_pct": [
+        -0.93,
+        0.0
+      ],
+      "spearman_severity_vs_sv_ratio": [
+        -0.601,
+        0.0386
+      ]
+    },
+    "cardiac_stress": {
+      "n": 15,
+      "spearman_severity_vs_co_drop_pct": [
+        -0.529,
+        0.0428
+      ],
+      "spearman_severity_vs_sv_ratio": [
+        -0.674,
+        0.0059
+      ]
+    },
+    "deconditioning": {
+      "n": 30,
+      "spearman_severity_vs_co_drop_pct": [
+        0.288,
+        0.1226
+      ],
+      "spearman_severity_vs_sv_ratio": [
+        0.739,
+        0.0
+      ]
+    },
+    "fluid_overload": {
+      "n": 30,
+      "spearman_severity_vs_co_drop_pct": [
+        -0.923,
+        0.0
+      ],
+      "spearman_severity_vs_sv_ratio": [
+        0.872,
+        0.0
+      ]
+    },
+    "stable": {
+      "n": 30,
+      "spearman_severity_vs_co_drop_pct": [
+        -0.113,
+        0.5527
+      ],
+      "spearman_severity_vs_sv_ratio": [
+        0.112,
+        0.5551
+      ]
+    }
+  },
+  "regressor_r2": 0.957,
+  "severity_band_split": {
+    "acute_deterioration": {
+      "low": {
+        "n": 1,
+        "mean_risk_score": 0.527,
+        "severity_range": [
+          0.046,
+          0.046
+        ]
+      },
+      "mid": {
+        "n": 7,
+        "mean_risk_score": 0.624,
+        "severity_range": [
+          0.148,
+          0.483
+        ]
+      },
+      "high": {
+        "n": 4,
+        "mean_risk_score": 0.74,
+        "severity_range": [
+          0.594,
+          0.846
+        ]
+      }
+    },
+    "cardiac_stress": {
+      "low": {
+        "n": 5,
+        "mean_risk_score": 0.43,
+        "severity_range": [
+          0.007,
+          0.113
+        ]
+      },
+      "mid": {
+        "n": 10,
+        "mean_risk_score": 0.575,
+        "severity_range": [
+          0.147,
+          0.454
+        ]
+      }
+    },
+    "deconditioning": {
+      "low": {
+        "n": 2,
+        "mean_risk_score": 0.093,
+        "severity_range": [
+          0.011,
+          0.058
+        ]
+      },
+      "mid": {
+        "n": 10,
+        "mean_risk_score": 0.033,
+        "severity_range": [
+          0.175,
+          0.472
+        ]
+      },
+      "high": {
+        "n": 18,
+        "mean_risk_score": 0.162,
+        "severity_range": [
+          0.496,
+          0.933
+        ]
+      }
+    },
+    "fluid_overload": {
+      "low": {
+        "n": 2,
+        "mean_risk_score": 0.527,
+        "severity_range": [
+          0.003,
+          0.135
+        ]
+      },
+      "mid": {
+        "n": 11,
+        "mean_risk_score": 0.517,
+        "severity_range": [
+          0.179,
+          0.49
+        ]
+      },
+      "high": {
+        "n": 17,
+        "mean_risk_score": 0.488,
+        "severity_range": [
+          0.503,
+          0.99
+        ]
+      }
+    },
+    "stable": {
+      "low": {
+        "n": 29,
+        "mean_risk_score": 0.005,
+        "severity_range": [
+          0.001,
+          0.132
+        ]
+      },
+      "mid": {
+        "n": 1,
+        "mean_risk_score": 0.005,
+        "severity_range": [
+          0.142,
+          0.142
+        ]
+      }
+    }
+  },
+  "leave_one_scenario_out": {
+    "acute_deterioration": {
+      "n_held_out": 389,
+      "predicted_as": {
+        "fluid_overload": 353,
+        "cardiac_stress": 36
+      }
+    },
+    "cardiac_stress": {
+      "n_held_out": 405,
+      "predicted_as": {
+        "acute_deterioration": 224,
+        "deconditioning": 147,
+        "stable": 32,
+        "fluid_overload": 2
+      }
+    },
+    "deconditioning": {
+      "n_held_out": 414,
+      "predicted_as": {
+        "cardiac_stress": 300,
+        "fluid_overload": 28,
+        "stable": 69,
+        "acute_deterioration": 17
+      }
+    },
+    "fluid_overload": {
+      "n_held_out": 392,
+      "predicted_as": {
+        "acute_deterioration": 380,
+        "deconditioning": 8,
+        "cardiac_stress": 4
+      }
+    },
+    "stable": {
+      "n_held_out": 400,
+      "predicted_as": {
+        "cardiac_stress": 77,
+        "deconditioning": 323
+      }
+    }
+  }
+}
