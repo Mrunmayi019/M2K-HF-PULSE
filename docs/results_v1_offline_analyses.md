@@ -124,3 +124,105 @@ All five read endpoints are single-digit milliseconds at the median and p95; `/r
 48.78ms outlier (vs. its own 5.28ms p95) is almost certainly a one-off cold-cache/GC pause on the
 first or an early call, not a systematic cost -- not investigated further since it's a single
 outlier in 50 calls and every other endpoint's max stays under 11ms.
+
+## 5. PerHeart cohort table and flow diagram
+
+Script: `src/evaluation/results_v1_offline/cohort_plausibility_projection.py` (offline, no Pulse).
+Outputs: `results/results_v1_offline/perheart_cohort_table.csv` (all 27 patients) and
+`figures/perheart_flow.png`.
+
+**27 in → 16 eligible and replayed → 13 completed.**
+
+- **Eligibility:** the only rule is ≥21 overlapping real HR+SpO2+weight days.
+  `docs/real_world_data_integration.md` §5 records the rule and the 16 eligible `user_id`s (1, 2, 4,
+  5, 6, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 27).
+- **Excluded (11):** `user_id` 3, 7, 8, 9, 10, 11, 12, 13, 14, 20, 26, for having fewer than 21
+  overlapping days. Their **per-patient day counts, ages and sex were never recorded** (the raw
+  PerHeart files are gitignored and were not re-read), so they appear as "not recorded" in the table.
+- **Failed (3):** `user_id` 6, 18, 22, in the latest replay (`data/real_world_validation/20260817_141634`).
+  `PulseScenarioDriver exited 1` on both attempts. The root cause is **not recorded**: §8.4 gives a
+  severity-shift hypothesis only.
+- **Completed (13):** 9 cardiac_stress, 3 stable, 1 fluid_overload. Risk buckets: 5 HIGH, 4 MODERATE,
+  4 LOW.
+
+## 6. Physiological plausibility of the saved Pulse batch
+
+Output: `plausibility_by_scenario.csv`. Data: `data/simulation_runs/features_dataset.csv`
+(117 completed runs; the 33 rows in `failed_runs.csv` have no outputs).
+
+**Ranges used.** These are the only ones `src/data_synthesis/reference_stats.yaml` defines for any of
+MAP, cardiac output, stroke volume or heart rate. Both are heart-rate entries, taken as mean ± 2 SD:
+
+- `wearable_baseline.resting_hr_bpm`: 70 ± 8, so **54–86 bpm**. Status `assumed_default`, `source: null`.
+- `wearable_baseline.decompensated_hr_reference`: 84.75 ± 15.06, so **54.6–114.9 bpm**. Source
+  `mimic_bigquery_extract` (MIMIC-IV inpatient HR); labelled "sanity ceiling" in the YAML.
+
+**MAP, cardiac output and stroke volume: not computed.** `reference_stats.yaml` has no range for
+them, and none was invented.
+
+| Scenario | n | HR at start inside 54–86 / 54.6–114.9 | HR at end inside 54–86 / 54.6–114.9 |
+|---|---|---|---|
+| stable | 30 | 100% / 100% | 100% / 100% |
+| deconditioning | 30 | 100% / 100% | 100% / 100% |
+| fluid_overload | 30 | 100% / 100% | 100% / 100% |
+| cardiac_stress | 15 | 100% / 100% | **0% / 0%** |
+| acute_deterioration | 12 | 100% / 100% | **0% / 25%** |
+| all | 117 | 100% / 100% | 76.9% / 79.5% |
+
+Every run starts inside both HR ranges. The end-of-run values outside them all come from the two
+scenarios that add an `Exercise` action (`scenario_file.py`). Both ranges are **resting** references,
+so an exertion heart rate above them is expected rather than evidence of implausibility. These
+ranges can't judge exercise-phase values.
+
+## 7. Dose response: severity vs Pulse outputs, by scenario and EF group
+
+Output: `dose_response_by_scenario_ef.csv`. Spearman ρ between classifier severity and end-of-run
+values; groups with n < 5 are not computed.
+
+| Scenario | EF group | n | MAP | Cardiac output | Stroke volume | Heart rate |
+|---|---|---|---|---|---|---|
+| stable | EF > 40 | 30 | 0.03 (p 0.87) | −0.12 (0.53) | −0.08 (0.66) | −0.05 (0.79) |
+| deconditioning | EF > 40 | 26 | **−0.83** (<0.001) | 0.10 (0.61) | **0.58** (0.002) | **−0.79** (<0.001) |
+| deconditioning | EF ≤ 40 | 4 | not computed | | | |
+| fluid_overload | EF ≤ 40 | 29 | 0.15 (0.44) | **0.49** (0.007) | **0.46** (0.012) | **0.84** (<0.001) |
+| fluid_overload | EF > 40 | 1 | not computed | | | |
+| cardiac_stress | EF > 40 | 14 | **−0.73** (0.003) | **0.81** (<0.001) | −0.07 (0.80) | **0.92** (<0.001) |
+| cardiac_stress | EF ≤ 40 | 1 | not computed | | | |
+| acute_deterioration | EF ≤ 40 | 12 | −0.32 (0.31) | **0.92** (<0.001) | −0.26 (0.42) | **0.89** (<0.001) |
+| acute_deterioration | EF > 40 | 0 | not computed | | | |
+
+**Caveat:** in this batch, scenario and EF group are almost confounded. Synthetic acute_deterioration
+patients all have EF ≤ 40 and stable patients all have EF > 40. So **no scenario supports an EF ≤ 40
+vs EF > 40 comparison**: each one has fewer than 5 patients in one of the two groups.
+
+**Findings:**
+- **Stable** shows no dose response, as intended.
+- **The two Exercise scenarios** show strong severity → HR and severity → cardiac output responses,
+  driven by exercise intensity scaling with severity.
+- **cardiac_stress** also shows a severity → MAP fall.
+- **Deconditioning:** higher severity *lowers* HR (ρ −0.79) and MAP.
+- **fluid_overload:** severity barely moves MAP (ρ 0.15). That's consistent with the documented lack
+  of a volume-loading mechanism (methodology §8).
+
+## 8. Forward projections for the three live-test patients
+
+Output: `live_projections.csv`; inputs saved in `live_projection_inputs.json`. These are real Pulse
+projection runs from `docs/app_integration_audit.md` §3b. The projection, risk, feature, builder,
+runner and classifier code there is identical to `results-v1` (verified by `git diff`), with the
+same frozen models.
+
+| Patient | EF | Scenario | Risk now | +7 d | +14 d | +30 d | Bucket | Severity now → +30 d | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| P1 | 30 (measured) | deconditioning | 0.4874 | 0.4874 | 0.4874 | 0.4874 | MODERATE throughout | 0.587 → 0.668 | **Flat** |
+| P2 | blank (62% default) | deconditioning | 0.0654 | 0.0645 | 0.0679 | 0.0721 | LOW throughout | 0.727 → 0.814 | **Near-flat** (Δ 0.008) |
+| P3 | blank (62% default) | fluid_overload | 0.0000 | 0.0000 | 0.0000 | 0.0000 | LOW throughout | 0.665 → 0.808 | **Flat** |
+
+**Projected risk is flat for all three, even though projected severity rises 0.08–0.14.**
+
+- **P1:** the risk is the EF-driven `baseline_deficit_score` (0.4874), which no projected severity
+  changes.
+- **P2 and P3:** the defaulted EF gives a structurally normal simulated heart, and neither scenario
+  adds Exercise, so nothing pushes MAP down at any horizon.
+
+The dashboard's per-horizon risk bucket therefore never changes for these patients. Only the
+projected severity line moves.
