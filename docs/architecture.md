@@ -33,8 +33,8 @@ Wearable / clinical report input
          │
          ▼
   src/scenario_classifier/              — Phase 3, BUILT
-         │  ML Model 1: RandomForestClassifier (scenario_type, 92% test acc.) +
-         │  RandomForestRegressor (severity, MAE 0.048), on clinical + wearable-trend features
+         │  ML Model 1: RandomForestClassifier (scenario_type, 90.7% test acc.) +
+         │  RandomForestRegressor (severity, MAE 0.047), on clinical + wearable-trend features
          │  (scenario_type, severity)
          ▼
   src/patient_builder/                  — Phase 2, BUILT
@@ -68,9 +68,9 @@ Wearable / clinical report input
          │                                 7/14/30-day horizons, reuses patient_builder/pulse_runner)
          ▼
   src/api/ (FastAPI) + SQLite/Postgres    — Phase 6, BUILT; extended Phase 7
-         │  (5 tables: patients, clinical_reports, wearable_readings, simulation_runs,
-         │   risk_assessments -- orchestrates everything above via one BackgroundTasks pipeline
-         │   per /wearable-sync call once a 21-day window fills; every GET endpoint is a fast DB
+         │  (6 tables: patients, clinical_reports, wearable_readings, simulation_runs,
+         │   risk_assessments, pulse_states [script-only] -- orchestrates everything above via
+         │   one BackgroundTasks pipeline per /wearable-sync call once a 21-day window fills; every GET endpoint is a fast DB
          │   read, zero Pulse calls in the request path; see methodology.md §6.4). Phase 7 added
          │   GET /patients, exposed scenario_type/severity/EF/BNP/vital_slopes/latest_wearable
          │   (already computed, previously discarded after use), and CORS middleware (needed the

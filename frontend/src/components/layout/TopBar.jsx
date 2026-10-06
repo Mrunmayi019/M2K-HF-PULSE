@@ -19,7 +19,7 @@ export default function TopBar({ simTimeIso, isRefreshing, isCollecting, reading
           title={isCollecting ? `${readingCount}/21 days collected` : undefined}
         >
           {isRefreshing && <span className="spin" />}
-          {isRefreshing ? 'Refreshing…' : isCollecting ? `${readingCount}/21 days collected` : 'Run New Simulation'}
+          {isRefreshing ? 'Refreshing…' : isCollecting ? `${readingCount}/21 days collected` : 'Refresh'}
         </button>
       </div>
     </div>

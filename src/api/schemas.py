@@ -20,6 +20,8 @@ class PatientCreate(BaseModel):
     sex: Sex
     height_cm: float = Field(ge=50, le=250)
     weight_kg: float = Field(ge=2, le=400)
+    # Optional display name for demo patients (scripts/seed_demo_patients.py). Never a real name.
+    label: Optional[str] = Field(default=None, max_length=80)
 
 
 class PatientResponse(BaseModel):
@@ -201,6 +203,19 @@ class RiskAssessmentPayload(BaseModel):
     )
     ejection_fraction_pct: Optional[float] = None
     nt_probnp_pg_ml: Optional[float] = None
+    ef_is_fallback: Optional[bool] = Field(
+        default=None,
+        description=(
+            "True when ejection_fraction_pct above was NOT measured and the Tier-1 healthy-population "
+            "default was used instead (docs/data_provenance.md). The default gives Pulse a "
+            "structurally normal heart and also feeds the classifier, so it can make a sick patient "
+            "look LOW-risk for any scenario_type. None for assessments that predate this field."
+        ),
+    )
+    bnp_is_fallback: Optional[bool] = Field(
+        default=None,
+        description="True when nt_probnp_pg_ml above was the Tier-1 fallback default, not measured.",
+    )
     vital_slopes: Optional[dict] = None
     created_at: datetime.datetime
 

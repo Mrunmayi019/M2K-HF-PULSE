@@ -36,8 +36,8 @@ class Patient(Base):
     # Demo-convenience only (2026-09-03) -- not project functionality. No patient has a real name
     # anywhere in this system; this exists so a handful of hand-picked demo patients can be found
     # by a human on stage instead of by UUID. Nullable, unset for every patient created before this
-    # column existed and for any patient created normally going forward -- nothing reads or writes
-    # it except a one-off SQL UPDATE for the chosen demo patients and the Sidebar's display fallback.
+    # column existed and for any patient created normally going forward. Set via the optional
+    # `label` on POST /patients (used by scripts/seed_demo_patients.py); read for display only.
     label: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     clinical_reports: Mapped[list["ClinicalReport"]] = relationship(back_populates="patient")
@@ -132,9 +132,15 @@ class RiskAssessment(Base):
     # what powered a given assessment rather than only the current/latest clinical report).
     ejection_fraction_pct: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     nt_probnp_pg_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # Whether the two values above were Tier-1 fallback defaults rather than measured (copied from
+    # the ClinicalReport flags at pipeline time). A defaulted EF changes both the classifier input
+    # and the simulated heart, so the dashboard warns on it for every scenario_type -- not only the
+    # fluid_overload caveat. Nullable: rows created before this field existed have none.
+    ef_is_fallback: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    bnp_is_fallback: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     # Per-vital trend slopes from compute_deterioration_rate(), native units/day (e.g. resting_hr_bpm
-    # rising 0.8 bpm/day) -- powers the frontend's "7-Day Trend" column instead of a fabricated
-    # "Simulation Output" figure that was never actually computed.
+    # rising 0.8 bpm/day), fitted over the full 21-day window -- powers the frontend's "21-Day
+    # Trend" column instead of a fabricated "Simulation Output" figure that was never computed.
     vital_slopes: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
 

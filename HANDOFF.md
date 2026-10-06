@@ -431,7 +431,7 @@ authoritative current list.
 | Re-run live severity/scenario re-validation | `python -m scripts.nyha_fix_live_revalidation [n_per_scenario]` |
 | Regenerate ROC/AUC + bootstrap CI report | `python -m scripts.model1_extended_eval` |
 | Retrain ML Model 1 (classifier + regressor) | `python -m src.scenario_classifier.train` |
-| Run the test suite | `pytest tests/ -v` (143 tests, no Docker required) |
+| Run the test suite | `pytest tests/ -v` (285 tests, no Docker required; Pulse is mocked) |
 | Primary risk-score formula | `src/analytics/risk_score.py` (read its module docstring first) |
 
 **2-worker concurrency ceiling**: any script hitting the live API with multiple patients at once

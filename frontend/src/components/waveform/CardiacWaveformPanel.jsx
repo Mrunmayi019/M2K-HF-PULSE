@@ -15,8 +15,10 @@ function deriveStats(waveformData) {
   const vols = loop.map((p) => p.volume_ml)
   const press = loop.map((p) => p.pressure_mmhg)
   const strokeVolumeMl = Math.max(...vols) - Math.min(...vols)
-  const pulsePressureMmhg = Math.max(...press) - Math.min(...press)
-  return { strokeVolumeMl, pulsePressureMmhg }
+  // Left-ventricular pressure over one cycle (peak systolic minus end-diastolic, near zero) -- NOT
+  // arterial pulse pressure (systolic minus diastolic arterial), which this loop doesn't contain.
+  const lvPressureRangeMmhg = Math.max(...press) - Math.min(...press)
+  return { strokeVolumeMl, lvPressureRangeMmhg }
 }
 
 // Single source of truth for the panel subtitle -- it appeared twice (empty-state + real render)
@@ -86,8 +88,8 @@ export default function CardiacWaveformPanel({ waveformData, assessment }) {
             <div className="minilabel">Stroke Volume (mL, from loop)</div>
           </div>
           <div className="minicard">
-            <div className="minival">{fmt1(stats.pulsePressureMmhg)}</div>
-            <div className="minilabel">Pulse Pressure (mmHg, from loop)</div>
+            <div className="minival">{fmt1(stats.lvPressureRangeMmhg)}</div>
+            <div className="minilabel">LV Pressure Range (mmHg, from loop)</div>
           </div>
         </div>
       )}

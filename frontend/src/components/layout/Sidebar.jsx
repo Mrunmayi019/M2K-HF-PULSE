@@ -91,7 +91,7 @@ export default function Sidebar({ patients, reports, selectedId, onSelect, activ
           )
         })}
       </div>
-      <div style={{ marginTop: 'auto', fontSize: 10.5, color: '#64748B' }}>v0.1.0 · HIPAA-audited env</div>
+      <div style={{ marginTop: 'auto', fontSize: 10.5, color: '#64748B' }}>v0.1.0</div>
     </div>
   )
 }

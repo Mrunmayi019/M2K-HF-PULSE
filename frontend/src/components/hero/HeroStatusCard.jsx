@@ -15,7 +15,30 @@ const ALERT_SUMMARY = {
 const ALERT_WARNING = {
   ALERT: 'This projection indicates rapid decompensation risk. This is a decision-support estimate only — seek clinical evaluation promptly.',
   WATCH: 'Trends suggest early strain. A closer review may be warranted at the next visit.',
-  NONE: 'Model confidence is high. Continue daily wearable syncing for best accuracy.',
+  NONE: 'No alert from the latest assessment. Continue daily wearable syncing.',
+}
+
+// Shown for EVERY scenario_type when the backend reports EF was Tier-1-defaulted (ef_is_fallback),
+// not only for the fluid_overload caveat: the default feeds both the classifier and the simulated
+// heart, so any scenario can read as lower-risk than it is (docs/gap_report.md G3).
+function efDefaultWarning(efPct) {
+  const value = efPct === null || efPct === undefined ? '' : ` (${efPct}%)`
+  return (
+    `EF not measured, healthy default${value} used. The simulated heart is structurally normal, ` +
+    'so this risk level may understate a sick patient. A measured ejection fraction would change it.'
+  )
+}
+
+function Banner({ text, background, color, border }) {
+  return (
+    <div className="warnbanner" style={{ background, color, border }}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: 1 }}>
+        <path d="M12 3l10 18H2L12 3z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M12 10v4M12 17.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+      <div>{text}</div>
+    </div>
+  )
 }
 
 // alert.source === 'c3_downgraded': a HIGH risk_bucket that's been driven by baseline_deficit_score
@@ -35,9 +58,18 @@ export default function HeroStatusCard({ assessment, patientLabel }) {
   const isAlert = alertLevel === 'ALERT'
   const badgeLabel =
     alertLevel === 'WATCH' ? 'WATCH' : riskBucket ? `${riskBucket} RISK` : 'NO ASSESSMENT YET'
-  const warningText =
-    assessment?.risk_caveats ||
-    (alertSource === 'c3_downgraded' ? C3_DOWNGRADED_WARNING : alertLevel ? ALERT_WARNING[alertLevel] : null)
+  // The risk warning and the caveats are separate banners: risk_caveats is always populated for a
+  // completed run (it carries the ECG reference-template disclaimer), so letting it replace the
+  // risk warning -- as `risk_caveats || warning` did -- hid every risk-level warning.
+  const riskWarning =
+    alertSource === 'c3_downgraded' ? C3_DOWNGRADED_WARNING : alertLevel ? ALERT_WARNING[alertLevel] : null
+  const efWarning = assessment?.ef_is_fallback ? efDefaultWarning(assessment?.ejection_fraction_pct) : null
+  const caveats = assessment?.risk_caveats || null
+  const tone = {
+    background: `${color}0F`,
+    color: color === '#22C55E' ? '#166534' : color === '#EAB308' ? '#854D0E' : '#B91C1C',
+    border: `1px solid ${color}33`,
+  }
 
   return (
     <div className="section">
@@ -63,21 +95,12 @@ export default function HeroStatusCard({ assessment, patientLabel }) {
             <EcgWave color={color === '#64748B' ? '#94A3B8' : color} />
           </div>
         </div>
-        {warningText && (
-          <div
-            className="warnbanner"
-            style={{
-              background: `${color}0F`,
-              color: color === '#22C55E' ? '#166534' : color === '#EAB308' ? '#854D0E' : '#B91C1C',
-              border: `1px solid ${color}33`,
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: 1 }}>
-              <path d="M12 3l10 18H2L12 3z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-              <path d="M12 10v4M12 17.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <div>{warningText}</div>
-          </div>
+        {riskWarning && <Banner text={riskWarning} {...tone} />}
+        {efWarning && (
+          <Banner text={efWarning} background="#EAB3081A" color="#854D0E" border="1px solid #EAB30855" />
+        )}
+        {caveats && (
+          <Banner text={caveats} background="var(--surface-2, #64748B0F)" color="var(--muted)" border="1px solid #64748B33" />
         )}
       </div>
     </div>

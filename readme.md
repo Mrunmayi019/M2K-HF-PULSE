@@ -55,11 +55,11 @@ This repo currently contains two things side by side:
      detection, validated against all 5 locked scenario types running inside the actual Pulse
      Docker container.
    - **Phase 3 (done):** ML scenario classifier (`src/scenario_classifier/`) — a RandomForest
-     classifier predicts the 5-way `scenario_type` from clinical + wearable-trend features (92%
-     test accuracy), paired with a RandomForestRegressor for `severity` (MAE 0.048). See
+     classifier predicts the 5-way `scenario_type` from clinical + wearable-trend features (90.7%
+     held-out test accuracy), paired with a RandomForestRegressor for `severity` (MAE 0.047). See
      `docs/methodology.md` §5 for the train/val/test protocol and feature design.
    - **Phase 4 (done):** batch Pulse simulation dataset (`src/pulse_runner/batch_runner.py`,
-     `src/simulation_features.py`) — a stratified sample of 150 synthetic patients run through
+     `src/analytics/simulation_features.py`) — a stratified sample of 150 synthetic patients run through
      Pulse in parallel (117 succeeded, 33 failed — almost entirely high-severity
      `cardiac_stress`/`acute_deterioration` runs destabilizing the engine, a known Phase 2 limit),
      with per-run features (HR rise, MAP drop, CO drop%, compensation/instability flags) extracted
@@ -72,10 +72,12 @@ This repo currently contains two things side by side:
      deterioration rate calculator (`deterioration_rate.py`); and forward projection via
      incremental Pulse re-simulation (`projection.py`). See `docs/methodology.md` §6 for the full
      scoring formula, citations, and a known limitation found during validation.
-   - **Phase 6 (done):** FastAPI backend (`src/api/`) — 5 SQLAlchemy tables (patients,
-     clinical_reports, wearable_readings, simulation_runs, risk_assessments), Pydantic
-     request/response schemas with physiological-range validation, and 8 endpoints (the 8th,
-     `GET /patients/{id}/wearable-history`, added in the Phase 7 frontend extension below).
+   - **Phase 6 (done):** FastAPI backend (`src/api/`) — 6 SQLAlchemy tables (patients,
+     clinical_reports, wearable_readings, simulation_runs, risk_assessments, plus pulse_states,
+     which only the script-driven continuous-state mode writes), Pydantic request/response
+     schemas with physiological-range validation, and 9 endpoints (`POST`/`GET /patients`,
+     `POST .../clinical-report`, `POST .../wearable-sync`, `GET .../wearable-history`,
+     `.../status`, `.../history`, `.../projection`, `.../report`).
      Wearable data
      is submitted daily and accumulates to a 21-day window before `BackgroundTasks` triggers one
      assessment pipeline (ML Model 1 → Pulse → risk scoring → staging → projection) — every read
@@ -144,7 +146,7 @@ python3 /workspace/app.py                     # simpler Flask fallback, port 500
 pip install -r requirements.txt
 python3 -m src.data_synthesis.generate_patients        # writes data/synthetic/patients.csv (n=2000)
 python3 -m src.data_synthesis.generate_wearable_trends  # writes data/synthetic/wearable_trends.csv
-pytest tests/ -v                                        # 137 tests, no Docker required
+pytest tests/ -v                                        # 285 tests, no Docker required (Pulse is mocked)
 ```
 
 ### Train the Phase 3 scenario classifier (no Docker needed)
@@ -183,29 +185,29 @@ docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c
 
 ### Verify the Phase 5 forward projection (Docker required, calls Pulse repeatedly)
 
+Uses the backend image (it has Pulse and the exact pinned Python dependencies; the raw
+`kitware/pulse:4.3.1` image's Python 3.9 can't install those pins):
+
 ```bash
-docker run --rm -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
-  pip3 install -q pandas pyyaml
-  python3 -c \"
+docker compose build pulse-backend
+docker compose run --rm --no-deps pulse-backend python -c "
 import pandas as pd
 from src.analytics.projection import project_physiology
-patients = pd.read_csv('data/synthetic/patients.csv')
-patient = patients.iloc[0].to_dict()
-print(project_physiology(patient, patient['scenario_type'], float(patient['severity']), deterioration_rate_per_day=0.03))
-\"
+patient = pd.read_csv('data/synthetic/patients.csv').iloc[0].to_dict()
+# composite_rate: raw population-SD-per-day wearable drift, as compute_deterioration_rate() returns it
+print(project_physiology(patient, patient['scenario_type'], float(patient['severity']), composite_rate=0.05))
 "
 ```
 
 ### Run the Phase 6 API server (Docker required for real assessments, calls Pulse)
 
 The server itself is pure Python (no Docker needed just to start it), but the background
-assessment pipeline calls `run_pulse()`, so run it inside the container for real end-to-end use:
+assessment pipeline calls `run_pulse()`, so run it from the backend image for real end-to-end use
+(defaults to a SQLite file inside the container; `docker compose up` uses Postgres instead):
 
 ```bash
-docker run --rm -p 8000:8000 -v "$(pwd)":/workspace -w /workspace kitware/pulse:4.3.1 bash -c "
-  pip3 install -q -r requirements.txt
-  uvicorn src.api.main:app --host 0.0.0.0
-"
+docker build --platform linux/amd64 -t m2k-hf-pulse-backend -f backend/Dockerfile .
+docker run --rm -p 8000:8000 m2k-hf-pulse-backend
 ```
 
 Then visit `http://localhost:8000/docs` for the interactive OpenAPI UI (this is also where the
@@ -288,9 +290,9 @@ src/
                                    #   + Phase 5: risk_score.py (primary), staging.py,
                                    #   deterioration_rate.py, projection.py
   ml_models/                      # Phase 5: train_risk_scorer.py (secondary/experimental XGBoost)
-  api/                            # Phase 6: database.py, models.py (5 tables), schemas.py,
+  api/                            # Phase 6: database.py, models.py (6 tables), schemas.py,
                                    #   services.py (Tier 1 fallback + background pipeline),
-                                   #   routes.py (7 endpoints), main.py (FastAPI app)
+                                   #   routes.py (9 endpoints), main.py (FastAPI app)
 data/
   synthetic/                      # generated patients.csv / wearable_trends.csv
   simulation_runs/                # Phase 4: features_dataset.csv / failed_runs.csv / checkpoint.csv
@@ -324,7 +326,7 @@ scripts/
                                    #   the live API pipeline end to end (see docs/methodology.md §7)
   perheart_real_data_replay.py    # replays a real, published HF-patient dataset (PerHeart, Zenodo)
                                    #   through the live API (see docs/real_world_data_integration.md)
-tests/                            # 137 tests, no Docker required
+tests/                            # 285 tests, no Docker required (Pulse is mocked)
 backend/Dockerfile                # Phase 9: FastAPI + Pulse engine image (linux/amd64, see file
                                    #   for why); build context is the repo root, not backend/
 frontend/Dockerfile               # Phase 9: Vite build -> nginx serve, multi-stage

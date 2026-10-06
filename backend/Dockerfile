@@ -49,6 +49,12 @@ COPY --from=pulse-source /pulse /pulse
 WORKDIR /workspace
 
 COPY requirements.txt .
+# pip's defaults (15s read timeout, 5 retries) fail on slow or flaky links -- the pinned xgboost
+# pulls a ~350MB nvidia_nccl_cu12 wheel. Longer timeout + more retries make the first build
+# survivable there. (If pip instead reports CERTIFICATE_VERIFY_FAILED, the host is intercepting
+# TLS -- e.g. antivirus HTTPS scanning -- see docs/running_the_stack.md, Troubleshooting.)
+ENV PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=10
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copies the whole repo context (filtered by .dockerignore) rather than an explicit file list --

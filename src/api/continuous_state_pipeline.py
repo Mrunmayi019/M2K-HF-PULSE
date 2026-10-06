@@ -102,9 +102,9 @@ def _load_scenario_classifier_models() -> tuple[object, object]:
 
 def _resolve_clinical_values(
     db: Session, patient_id: str, last_state: models.PulseState | None
-) -> tuple[float, float, bool, bool]:
+) -> tuple[float, float, bool, bool, bool]:
     """Returns (ejection_fraction_pct, nt_probnp_pg_ml, is_new_report_since_last_resume,
-    ef_is_fallback).
+    ef_is_fallback, bnp_is_fallback).
 
     Multi-rate: only adopts a ClinicalReport's values if it arrived after the last saved
     PulseState (or none exists yet, i.e. day 1) -- otherwise reuses the EF the last state was
@@ -118,8 +118,8 @@ def _resolve_clinical_values(
     )
 
     if latest_report is None:
-        ef, bnp, ef_is_fallback, _ = apply_tier1_fallback(None, None)
-        return ef, bnp, last_state is None, ef_is_fallback
+        ef, bnp, ef_is_fallback, bnp_is_fallback = apply_tier1_fallback(None, None)
+        return ef, bnp, last_state is None, ef_is_fallback, bnp_is_fallback
 
     is_new = last_state is None or latest_report.reported_at > last_state.saved_at
     if is_new:
@@ -128,6 +128,7 @@ def _resolve_clinical_values(
             latest_report.nt_probnp_pg_ml,
             True,
             latest_report.ef_is_fallback,
+            latest_report.bnp_is_fallback,
         )
 
     # No new report since last resume -- carry the EF that was actually used last time forward,
@@ -138,6 +139,7 @@ def _resolve_clinical_values(
         latest_report.nt_probnp_pg_ml,
         False,
         latest_report.ef_is_fallback,
+        latest_report.bnp_is_fallback,
     )
 
 
@@ -186,7 +188,7 @@ def run_daily_continuous_pipeline(
         .first()
     )
 
-    ejection_fraction_pct, nt_probnp_pg_ml, _, ef_is_fallback = _resolve_clinical_values(
+    ejection_fraction_pct, nt_probnp_pg_ml, _, ef_is_fallback, bnp_is_fallback = _resolve_clinical_values(
         db, patient_id, last_state
     )
 
@@ -368,6 +370,8 @@ def run_daily_continuous_pipeline(
             projection_json=projection_json,
             ejection_fraction_pct=ejection_fraction_pct,
             nt_probnp_pg_ml=nt_probnp_pg_ml,
+            ef_is_fallback=ef_is_fallback,
+            bnp_is_fallback=bnp_is_fallback,
             vital_slopes=rate_info["vital_slopes"],
         )
     )

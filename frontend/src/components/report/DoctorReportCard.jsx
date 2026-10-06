@@ -7,13 +7,13 @@ function waveformSummaryLines(waveformData) {
   const vols = loop.map((p) => p.volume_ml)
   const press = loop.map((p) => p.pressure_mmhg)
   const strokeVolumeMl = Math.max(...vols) - Math.min(...vols)
-  const pulsePressureMmhg = Math.max(...press) - Math.min(...press)
+  const lvPressureRangeMmhg = Math.max(...press) - Math.min(...press)
   return [
     '',
     'CARDIAC WAVEFORM SUMMARY (PV loop computed by this run\'s Pulse simulation; ECG is a',
     'reference rhythm template scaled to simulated HR, not a recorded patient ECG)',
     `  Stroke volume (from PV loop) ... ${strokeVolumeMl.toFixed(1)} mL`,
-    `  Pulse pressure (from PV loop) .. ${pulsePressureMmhg.toFixed(1)} mmHg`,
+    `  LV pressure range (PV loop) .... ${lvPressureRangeMmhg.toFixed(1)} mmHg`,
   ]
 }
 
@@ -33,8 +33,8 @@ function buildReportText({ patientLabel, patient, assessment, wearable, daysToNe
     `  Heart Rate ......... ${wearable?.resting_hr_bpm ?? '—'} bpm`,
     `  SpO2 ............... ${wearable?.spo2_pct ?? '—'}%`,
     `  Weight ............. ${wearable?.weight_kg ?? '—'} kg`,
-    `  Ejection Fraction .. ${assessment.ejection_fraction_pct ?? '—'}%`,
-    `  BNP ................ ${assessment.nt_probnp_pg_ml ?? '—'} pg/mL`,
+    `  Ejection Fraction .. ${assessment.ejection_fraction_pct ?? '—'}%${assessment.ef_is_fallback ? ' (NOT MEASURED - healthy default used)' : ''}`,
+    `  NT-proBNP .......... ${assessment.nt_probnp_pg_ml ?? '—'} pg/mL${assessment.bnp_is_fallback ? ' (NOT MEASURED - default used)' : ''}`,
     '',
     'PROJECTION',
     `  Deterioration direction: ${assessment.deterioration_direction ?? '—'}`,
