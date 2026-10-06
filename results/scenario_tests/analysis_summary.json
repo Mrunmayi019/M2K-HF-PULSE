@@ -1,0 +1,74 @@
+{
+  "groups_day21": {
+    "should_catch_n": 5,
+    "should_catch_caught": 5,
+    "should_quiet_n": 3,
+    "should_quiet_false_alerts": 3,
+    "edge_cases": [
+      {
+        "patient_id": "P02",
+        "story": "Salty weekend",
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          10,
+          7,
+          13
+        ]
+      },
+      {
+        "patient_id": "P03",
+        "story": "Slow, quiet weight gain",
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          10,
+          null,
+          7
+        ]
+      }
+    ]
+  },
+  "groups_day14": {
+    "should_catch_n": 5,
+    "should_catch_caught": 5,
+    "should_quiet_n": 3,
+    "should_quiet_false_alerts": 3,
+    "edge_cases": [
+      {
+        "patient_id": "P02",
+        "story": "Salty weekend",
+        "alerted_all_seeds": true,
+        "first_alert_day_by_seed": [
+          10,
+          7,
+          13
+        ]
+      },
+      {
+        "patient_id": "P03",
+        "story": "Slow, quiet weight gain",
+        "alerted_all_seeds": false,
+        "first_alert_day_by_seed": [
+          10,
+          null,
+          7
+        ]
+      }
+    ]
+  },
+  "false_alerts_day21": {
+    "quiet_group_patient_days": 189,
+    "false_alert_days": 111,
+    "false_alerts_per_100_patient_days": 58.73,
+    "total_scorer_alerts_whole_cohort": 402,
+    "total_unstable_completed_alerts_whole_cohort": 1,
+    "total_failed_fallback_alerts_whole_cohort": 0
+  },
+  "false_alerts_day14": {
+    "quiet_group_patient_days": 126,
+    "false_alert_days": 72,
+    "false_alerts_per_100_patient_days": 57.14,
+    "total_scorer_alerts_whole_cohort": 252,
+    "total_unstable_completed_alerts_whole_cohort": 1,
+    "total_failed_fallback_alerts_whole_cohort": 0
+  }
+}
