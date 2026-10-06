@@ -154,6 +154,18 @@ If a patient already got stuck in `pending` from before the fix, their triggerin
 call already fired and won't retry itself — push one more day's reading for that same patient
 (any date past the 21-day window) to re-trigger the pipeline now that the models exist.
 
+### `pulse-backend` build fails at `pip install`: `CERTIFICATE_VERIFY_FAILED`, `ReadTimeoutError`, or `THESE PACKAGES DO NOT MATCH THE HASHES`
+
+Seen on Windows (2026-10-06). The real cause was **antivirus HTTPS scanning** (Avast Web Shield):
+it intercepts every TLS connection and re-signs it with its own root certificate. Windows tools
+trust that certificate, so `curl` and the browser work, but the Linux build container doesn't. The
+symptoms were certificate errors, read timeouts, and corrupted downloads of the 351 MB
+`nvidia_nccl_cu12` wheel. Check which certificate the host actually sees for `pypi.org`; if its
+issuer is the antivirus rather than a public CA, turn off the antivirus's HTTPS scanning for the
+duration of the build, then turn it back on. Running the built stack needs no internet. On a
+genuinely slow link, `backend/Dockerfile` already sets `PIP_DEFAULT_TIMEOUT=120` and
+`PIP_RETRIES=10`.
+
 ### General Apple Silicon note
 
 Every Pulse-related step (`--build`'s Pulse stage, the smoke test's ~10-minute wait) is slower on

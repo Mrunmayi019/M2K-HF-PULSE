@@ -50,7 +50,7 @@ export default function CurrentConditionPanel({ assessment, wearable }) {
             </div>
             <div>
               <div className="scenname">{assessment ? scenario.name : 'Not yet classified'}</div>
-              <div className="scensub">Classified from wearable input · last 21-day window</div>
+              <div className="scensub">Classified from wearable and clinical inputs · last 21-day window</div>
             </div>
           </div>
           <div className="gaugewrap">
@@ -68,11 +68,15 @@ export default function CurrentConditionPanel({ assessment, wearable }) {
           <div className="efbnprow">
             <div className="minicard">
               <div className="minival">{assessment?.ejection_fraction_pct ?? '—'}%</div>
-              <div className="minilabel">Ejection Fraction</div>
+              <div className="minilabel">
+                Ejection Fraction{assessment?.ef_is_fallback ? ' · not measured, healthy default' : ''}
+              </div>
             </div>
             <div className="minicard">
               <div className="minival">{assessment?.nt_probnp_pg_ml ?? '—'}</div>
-              <div className="minilabel">BNP pg/mL</div>
+              <div className="minilabel">
+                NT-proBNP pg/mL{assessment?.bnp_is_fallback ? ' · not measured, default' : ''}
+              </div>
             </div>
           </div>
         </div>

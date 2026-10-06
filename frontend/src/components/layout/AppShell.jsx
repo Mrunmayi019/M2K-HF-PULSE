@@ -31,7 +31,7 @@ function DashboardBody({ patientId, patient }) {
   const simStatus = status.simulation_status
   const assessment = status.latest_assessment
   const wearable = status.latest_wearable
-  const patientLabel = avatarFromId(patientId).label
+  const patientLabel = patient?.label || avatarFromId(patientId).label
 
   // NOTE: routes.py's _build_status reports "complete" whenever a prior assessment exists, even if
   // a newer run is currently in progress -- so "running"/"pending" is only actually observable

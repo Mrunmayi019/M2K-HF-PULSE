@@ -12,7 +12,7 @@ export default function VitalsTable({ wearable, vitalSlopes }) {
             <tr>
               <th>Metric</th>
               <th>Today's Input</th>
-              <th>7-Day Trend</th>
+              <th>21-Day Trend</th>
             </tr>
           </thead>
           <tbody>

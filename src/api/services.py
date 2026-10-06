@@ -215,8 +215,9 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         ejection_fraction_pct = latest_report.ejection_fraction_pct
         nt_probnp_pg_ml = latest_report.nt_probnp_pg_ml
         ef_is_fallback = latest_report.ef_is_fallback
+        bnp_is_fallback = latest_report.bnp_is_fallback
     else:
-        ejection_fraction_pct, nt_probnp_pg_ml, ef_is_fallback, _ = apply_tier1_fallback(None, None)
+        ejection_fraction_pct, nt_probnp_pg_ml, ef_is_fallback, bnp_is_fallback = apply_tier1_fallback(None, None)
 
     trends_df = get_wearable_window(db, patient_id)
     if trends_df is None:
@@ -371,6 +372,8 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
             projection_json=projection_json,
             ejection_fraction_pct=ejection_fraction_pct,
             nt_probnp_pg_ml=nt_probnp_pg_ml,
+            ef_is_fallback=ef_is_fallback,
+            bnp_is_fallback=bnp_is_fallback,
             vital_slopes=rate_info["vital_slopes"],
         )
     )

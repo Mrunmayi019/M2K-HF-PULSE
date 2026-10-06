@@ -121,6 +121,15 @@ class TestCreatePatient:
         r = client.post("/patients", json={"age": -5, "sex": "Male", "height_cm": 175, "weight_kg": 80})
         assert r.status_code == 422
 
+    def test_optional_label_round_trips(self, client):
+        r = client.post("/patients", json={"age": 65, "sex": "Male", "height_cm": 175, "weight_kg": 80, "label": "Demo 1 - Stable"})
+        assert r.status_code == 201
+        assert r.json()["label"] == "Demo 1 - Stable"
+        assert client.get("/patients").json()[0]["label"] == "Demo 1 - Stable"
+
+    def test_label_defaults_to_none(self, client):
+        assert client.post("/patients", json={"age": 65, "sex": "Male", "height_cm": 175, "weight_kg": 80}).json()["label"] is None
+
 
 # ---- POST /patients/{id}/clinical-report ----
 
@@ -405,6 +414,34 @@ class TestFluidOverloadCaveat:
         assert assessment["risk_bucket"] == "LOW"
         assert "ejection_fraction_pct was not measured" in assessment["risk_caveats"]
         assert "healthy-population-mean fallback" in assessment["risk_caveats"]
+
+    def test_fallback_flags_returned_for_non_fluid_overload_scenario(self, client):
+        """The dashboard's "EF not measured" warning must not depend on scenario_type: a
+        deconditioning patient with EF/BNP omitted gets no fluid_overload caveat, so the API has
+        to return the fallback flags themselves on the assessment payload."""
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": None, "nt_probnp_pg_ml": None})
+
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("deconditioning"), _FakeModel(0.7))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        assessment = client.get(f"/patients/{patient_id}/report").json()["status"]["latest_assessment"]
+        assert assessment["ef_is_fallback"] is True
+        assert assessment["bnp_is_fallback"] is True
+        assert "ejection_fraction_pct was not measured" not in assessment["risk_caveats"]
+
+    def test_fallback_flags_false_when_measured(self, client):
+        patient_id = _create_patient(client)
+        client.post(f"/patients/{patient_id}/clinical-report", json={"ejection_fraction_pct": 30, "nt_probnp_pg_ml": 1500})
+
+        with patch("src.api.services._load_scenario_classifier_models", return_value=(_FakeModel("deconditioning"), _FakeModel(0.7))), \
+             patch("src.pulse_runner.runner.run_pulse", return_value=_fake_pulse_df()):
+            _fill_wearable_window(client, patient_id)
+
+        assessment = client.get(f"/patients/{patient_id}/status").json()["latest_assessment"]
+        assert assessment["ef_is_fallback"] is False
+        assert assessment["bnp_is_fallback"] is False
 
     def test_real_ef_still_gets_generic_caveat_not_the_fallback_one(self, client):
         """Same congested-but-flat Pulse response as test_risk_caveats_populated_for_fluid_overload
