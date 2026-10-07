@@ -1,0 +1,213 @@
+{
+  "days": [
+    {
+      "run_n": 1,
+      "sync_status": "simulation_triggered",
+      "wall_s": 332.9,
+      "states_saved": 1,
+      "simulation_time_s": 660.0,
+      "last_run": [
+        "complete",
+        "deconditioning",
+        0.04655666666666664
+      ],
+      "engine_lag_days": 0
+    },
+    {
+      "run_n": 2,
+      "sync_status": "simulation_triggered",
+      "wall_s": 224.6,
+      "states_saved": 2,
+      "simulation_time_s": 1260.0,
+      "last_run": [
+        "complete",
+        "deconditioning",
+        0.047813333333333305
+      ],
+      "engine_lag_days": 0
+    },
+    {
+      "run_n": 3,
+      "sync_status": "simulation_triggered",
+      "wall_s": 253.9,
+      "states_saved": 3,
+      "simulation_time_s": 1860.0,
+      "last_run": [
+        "complete",
+        "deconditioning",
+        0.04909666666666665
+      ],
+      "engine_lag_days": 0
+    },
+    {
+      "run_n": 4,
+      "sync_status": "simulation_triggered",
+      "wall_s": 298.6,
+      "states_saved": 4,
+      "simulation_time_s": 2460.0,
+      "last_run": [
+        "complete",
+        "deconditioning",
+        0.05255666666666666
+      ],
+      "engine_lag_days": 0
+    },
+    {
+      "run_n": 5,
+      "sync_status": "simulation_triggered",
+      "wall_s": 426.9,
+      "states_saved": 5,
+      "simulation_time_s": 3060.0,
+      "last_run": [
+        "complete",
+        "deconditioning",
+        0.06264666666666668
+      ],
+      "engine_lag_days": 0
+    }
+  ],
+  "checks": {
+    "five_runs_completed": true,
+    "five_states_saved": true,
+    "first_run_660s": true,
+    "plus_600s_each_day": true,
+    "each_state_distinct": true,
+    "reset_pending_before_next_run": true,
+    "fresh_start_after_reset": true,
+    "new_state_started_at": true,
+    "history_kept": true,
+    "status_complete": true
+  },
+  "reset": {
+    "response": {
+      "patient_id": "62eb4156-6e67-4975-ba20-5240fa94254c",
+      "reset_requested_at": "2026-10-07T05:29:48.787639",
+      "pipeline_mode": "continuous",
+      "message": "The next run starts a fresh twin state. History is kept."
+    },
+    "twin_state_pending": {
+      "patient_id": "62eb4156-6e67-4975-ba20-5240fa94254c",
+      "flags": {
+        "PIPELINE_MODE": "continuous",
+        "ENABLE_BCG_MODIFIERS": false,
+        "ENABLE_HR_BASELINE": false,
+        "ENABLE_ALERT_HYSTERESIS": false,
+        "ENABLE_SCENARIO_PERSISTENCE": false
+      },
+      "pipeline_mode": "continuous",
+      "state_started_at": null,
+      "state_simulation_time_s": null,
+      "state_days": 0,
+      "engine_lag_days": 0,
+      "days_since_exercise_label": null,
+      "last_exercise_scenario_type": null,
+      "hfref_condition_mismatch": false,
+      "last_reset_at": "2026-10-07T05:29:48.787639",
+      "reset_pending": true
+    },
+    "post_reset_wall_s": 456.3,
+    "twin_state_after": {
+      "patient_id": "62eb4156-6e67-4975-ba20-5240fa94254c",
+      "flags": {
+        "PIPELINE_MODE": "continuous",
+        "ENABLE_BCG_MODIFIERS": false,
+        "ENABLE_HR_BASELINE": false,
+        "ENABLE_ALERT_HYSTERESIS": false,
+        "ENABLE_SCENARIO_PERSISTENCE": false
+      },
+      "pipeline_mode": "continuous",
+      "state_started_at": "2026-10-07T05:31:44.445914",
+      "state_simulation_time_s": 660.0,
+      "state_days": 1,
+      "engine_lag_days": 0,
+      "days_since_exercise_label": null,
+      "last_exercise_scenario_type": null,
+      "hfref_condition_mismatch": false,
+      "last_reset_at": "2026-10-07T05:29:48.787639",
+      "reset_pending": false
+    }
+  },
+  "states": [
+    {
+      "id": 1,
+      "simulation_time_s": 660.0,
+      "state_sha256": "7eff0e5bd0032794",
+      "state_bytes": 2331781,
+      "state_started_at": "2026-10-07 05:02:47.842823"
+    },
+    {
+      "id": 2,
+      "simulation_time_s": 1260.0,
+      "state_sha256": "8ad3cbdb0e43424f",
+      "state_bytes": 2332460,
+      "state_started_at": "2026-10-07 05:02:47.842823"
+    },
+    {
+      "id": 3,
+      "simulation_time_s": 1860.0,
+      "state_sha256": "bd9fd25603087053",
+      "state_bytes": 2331842,
+      "state_started_at": "2026-10-07 05:02:47.842823"
+    },
+    {
+      "id": 4,
+      "simulation_time_s": 2460.0,
+      "state_sha256": "e97d8b0425d4997d",
+      "state_bytes": 2326697,
+      "state_started_at": "2026-10-07 05:02:47.842823"
+    },
+    {
+      "id": 5,
+      "simulation_time_s": 3060.0,
+      "state_sha256": "65d561468d345c29",
+      "state_bytes": 2331389,
+      "state_started_at": "2026-10-07 05:02:47.842823"
+    },
+    {
+      "id": 6,
+      "simulation_time_s": 660.0,
+      "state_sha256": "42dafddbc39f9514",
+      "state_bytes": 2331781,
+      "state_started_at": "2026-10-07 05:31:44.445914"
+    }
+  ],
+  "runs": [
+    [
+      "complete",
+      "deconditioning",
+      0.04655666666666664,
+      null
+    ],
+    [
+      "complete",
+      "deconditioning",
+      0.047813333333333305,
+      null
+    ],
+    [
+      "complete",
+      "deconditioning",
+      0.04909666666666665,
+      null
+    ],
+    [
+      "complete",
+      "deconditioning",
+      0.05255666666666666,
+      null
+    ],
+    [
+      "complete",
+      "deconditioning",
+      0.06264666666666668,
+      null
+    ],
+    [
+      "complete",
+      "deconditioning",
+      0.11294666666666663,
+      null
+    ]
+  ],
+  "verdict": "PASS"
+}

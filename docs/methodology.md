@@ -8,6 +8,18 @@ taxonomy, dataset strategy, primary risk scorer choice) are stated where each is
 §6) and in `docs/data_provenance.md` — this document explains *why* those decisions were made and
 how each phase was executed, not just what the decisions are.
 
+**Feature flags and reported results (added with `feature/wire-research-features`).** The
+results-v1 and v1.1 results describe the app with **all research feature flags off**
+(`PIPELINE_MODE=fresh`, `ENABLE_BCG_MODIFIERS`, `ENABLE_HR_BASELINE`, `ENABLE_ALERT_HYSTERESIS`,
+`ENABLE_SCENARIO_PERSISTENCE` all off -- see the README's feature-flag table). One precision about
+which pipeline each result used: results produced through the API (`/wearable-sync`) used the
+fresh pipeline, which is what `PIPELINE_MODE=fresh` runs; the scenario-test results
+(`results/scenario_tests/`, `src/evaluation/scenario_tests/run_patient_seed.py`) called
+`run_daily_continuous_pipeline()` directly, independent of the flag, with no other research
+feature active. Nothing in either set of results used BCG modifiers, an HR baseline, alert
+hysteresis or scenario persistence. With all flags off the API's outputs are identical to the
+code those results were produced with (`tests/test_flags_off_parity.py`).
+
 ## 1. Problem Statement
 
 Heart failure (HF) affects an estimated 64 million people worldwide, and its defining clinical
