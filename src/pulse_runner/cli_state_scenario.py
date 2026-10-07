@@ -46,12 +46,18 @@ def _serialize_state_action(filename: str) -> dict:
     return {"SerializeState": {"Mode": "Save", "Filename": filename}}
 
 
-def _core_cardiovascular_modification_action(ejection_fraction_pct: float, severity: float) -> dict:
+def _core_cardiovascular_modification_action(
+    ejection_fraction_pct: float, severity: float, extra_modifiers: dict | None = None
+) -> dict:
     """The chronic/continuous multiplier only (no scenario-specific extras) -- mirrors
     sdk_runner.py's build_cardiovascular_modification_action() exactly, via the real JSON-building
-    helper scenario_file.py already uses for the working from-scratch pipeline."""
+    helper scenario_file.py already uses for the working from-scratch pipeline.
+
+    `extra_modifiers` (feature/wire-research-features, ENABLE_BCG_MODIFIERS): extra multiplier
+    fields added to the same action, e.g. bcg_to_cardiovascular_modifiers()'s output. None (the
+    default, and every flag-off call) builds exactly the action this always built."""
     modifiers = ef_to_cardiovascular_modifiers(ejection_fraction_pct, severity)
-    return scenario_file._cardiovascular_modification_action(modifiers, extra={})
+    return scenario_file._cardiovascular_modification_action(modifiers, extra=dict(extra_modifiers or {}))
 
 
 def build_exercise_action(scenario_type: str, severity: float) -> dict | None:
@@ -71,6 +77,7 @@ def build_initial_scenario(
     stabilization_s: float,
     duration_s: float,
     state_out_path: str,
+    extra_modifiers: dict | None = None,
 ) -> dict:
     """First-ever encounter for a patient: fresh PatientConfiguration, stabilize, apply the
     initial CardiovascularMechanicsModification, advance, then SerializeState/Save. No Exercise
@@ -96,7 +103,7 @@ def build_initial_scenario(
             "DataRequestManager": {"DataRequest": scenario_file.DATA_REQUESTS},
             "AnyAction": [
                 {"AdvanceTime": {"Time": {"ScalarTime": {"Value": stabilization_s, "Unit": "s"}}}},
-                scenario_file._cardiovascular_modification_action(modifiers, extra={}),
+                scenario_file._cardiovascular_modification_action(modifiers, extra=dict(extra_modifiers or {})),
                 {"AdvanceTime": {"Time": {"ScalarTime": {"Value": duration_s, "Unit": "s"}}}},
                 _serialize_state_action(state_out_path),
             ],
@@ -111,6 +118,7 @@ def build_resume_scenario(
     duration_s: float,
     scenario_type: str | None,
     state_out_path: str,
+    extra_modifiers: dict | None = None,
 ) -> dict:
     """Resumes from state_in_path, IMMEDIATELY reissues CardiovascularMechanicsModification with
     the given (possibly updated) ejection_fraction_pct/severity -- required, see
@@ -120,7 +128,7 @@ def build_resume_scenario(
     scenario-specific action (Exercise, if scenario_type calls for one), then advances, then
     SerializeState/Save. Returns the built scenario dict.
     """
-    actions = [_core_cardiovascular_modification_action(ejection_fraction_pct, severity)]
+    actions = [_core_cardiovascular_modification_action(ejection_fraction_pct, severity, extra_modifiers)]
     if scenario_type is not None:
         exercise_action = build_exercise_action(scenario_type, severity)
         if exercise_action is not None:

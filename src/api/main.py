@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src import feature_flags
 from src.api.database import init_db
 from src.api.routes import router
 
@@ -19,6 +20,8 @@ logger = logging.getLogger("m2k_hf_pulse.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    feature_flags.validate_all()
+    logger.info("research feature flags: %s", feature_flags.all_flags())
     init_db()
     yield
 

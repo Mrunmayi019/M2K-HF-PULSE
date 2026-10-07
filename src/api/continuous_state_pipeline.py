@@ -1,8 +1,31 @@
 """Continuous-state-sync feature (feature/continuous-state-sync branch, 2026-08-30): the new
 daily pipeline that resumes a patient's Pulse state instead of rebuilding it from scratch every
-time. Deliberately a separate module from src/api/services.py -- nothing there is modified, and
-nothing currently calls into this module. Not wired into any route yet; that integration is
-explicitly out of scope until this is reviewed and approved.
+time. Deliberately a separate module from src/api/services.py.
+
+Wired to POST /patients/{id}/wearable-sync when PIPELINE_MODE=continuous (feature/wire-research-
+features); the default, PIPELINE_MODE=fresh, never calls into this module from the API. The
+scenario-test harness (src/evaluation/scenario_tests/run_patient_seed.py) calls
+run_daily_continuous_pipeline() directly, independent of the flag.
+
+Behaviour added by feature/wire-research-features (each case is pinned by
+tests/test_continuous_mode.py):
+  - Two runs for the same patient at once: a per-patient lock serialises them inside one
+    process, so the second resumes from the first's saved state instead of both resuming from the
+    same parent and one day being lost. Not a cross-process lock: with several uvicorn workers
+    (or the API plus a script on the same DB) two runs can still fork the state; the API runs one
+    worker (docker-compose.yml) and this is documented, not solved.
+  - Readings sent out of order: routes.py only triggers a run when the new reading's date is
+    after every earlier reading's. An older or same-date reading is stored and joins the window
+    from the next run on; the twin is never rewound. The engine advances one 600 s encounter per
+    run, not per calendar day, so a gap in dates is not simulated as elapsed time either.
+  - A clinical report that changes mid-stream: picked up on the next run by report id (not by
+    timestamp, which skipped a report submitted while a run was in progress). EF is reapplied
+    through the reissued CardiovascularMechanicsModification. If the new EF crosses the 40% HFrEF
+    cutoff, the ChronicVentricularSystolicDysfunction condition cannot follow (it is only set when
+    a state starts) -- reported as hfref_condition_mismatch on GET /twin-state; only a manual reset
+    fixes it. There is no automatic reset rule.
+  - POST /patients/{id}/reset-state: the next run ignores every PulseState saved before the
+    latest reset and starts a fresh one (initial run). Nothing is deleted.
 
 Multi-rate update strategy:
   - severity/scenario_type: recomputed EVERY resume (fast-rate) -- driven by the 21-day sliding
@@ -44,6 +67,7 @@ import datetime
 import json
 import logging
 import pathlib
+import threading
 
 import joblib
 from sqlalchemy.orm import Session
@@ -58,17 +82,23 @@ from src.analytics.score_reporting import compute_baseline_high_streak
 from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
 from src.analytics.staging import classify_nyha
 from src.api import models
+from src import feature_flags
 from src.api.services import (
     WEARABLE_WINDOW_DAYS,
     apply_tier1_fallback,
     build_risk_caveats,
     get_wearable_window,
+    latest_clinical_report,
     mark_simulation_run_failed,
+    resolve_hysteresis_state,
+    resolve_scenario_type,
 )
 from src.data_synthesis.generate_patients import load_reference_stats
-from src.patient_builder.patient_file import build_patient_file
+from src.patient_builder import personalisation
+from src.patient_builder.patient_file import build_patient_file, ef_to_cardiovascular_modifiers
 from src.patient_builder.scenario_file import STABILIZATION_S
 from src.pulse_runner.cli_state_runner import resume_and_advance, run_initial
+from src.pulse_runner.cli_state_scenario import build_exercise_action
 from src.scenario_classifier.features import build_inference_features, feature_columns
 
 logger = logging.getLogger(__name__)
@@ -85,6 +115,16 @@ DAILY_ENCOUNTER_DURATION_S = 10.0 * 60
 
 _model_cache: dict[str, object] = {}
 
+# One lock per patient, so two runs for the same patient in this process happen one after the
+# other (see module docstring). Different patients still run in parallel.
+_patient_locks: dict[str, threading.Lock] = {}
+_patient_locks_guard = threading.Lock()
+
+
+def _patient_lock(patient_id: str) -> threading.Lock:
+    with _patient_locks_guard:
+        return _patient_locks.setdefault(patient_id, threading.Lock())
+
 
 class NotEnoughDataError(Exception):
     """Raised when the 21-day wearable window isn't full yet -- same gate services.py's pipeline
@@ -100,6 +140,25 @@ def _load_scenario_classifier_models() -> tuple[object, object]:
     return _model_cache["clf"], _model_cache["reg"]
 
 
+def latest_reset(db: Session, patient_id: str) -> models.TwinStateReset | None:
+    return (
+        db.query(models.TwinStateReset)
+        .filter(models.TwinStateReset.patient_id == patient_id)
+        .order_by(models.TwinStateReset.requested_at.desc(), models.TwinStateReset.id.desc())
+        .first()
+    )
+
+
+def current_state(db: Session, patient_id: str) -> models.PulseState | None:
+    """The PulseState the next run resumes from: the newest one saved after the latest reset, or
+    None (next run is an initial run). Older states stay in the table as history."""
+    query = db.query(models.PulseState).filter(models.PulseState.patient_id == patient_id)
+    reset = latest_reset(db, patient_id)
+    if reset is not None:
+        query = query.filter(models.PulseState.saved_at > reset.requested_at)
+    return query.order_by(models.PulseState.saved_at.desc(), models.PulseState.id.desc()).first()
+
+
 def _resolve_clinical_values(
     db: Session, patient_id: str, last_state: models.PulseState | None
 ) -> tuple[float, float, bool, bool, bool]:
@@ -109,19 +168,24 @@ def _resolve_clinical_values(
     Multi-rate: only adopts a ClinicalReport's values if it arrived after the last saved
     PulseState (or none exists yet, i.e. day 1) -- otherwise reuses the EF the last state was
     computed with, so EF doesn't silently drift day-to-day with no new clinical data behind it.
+
+    "Arrived after" is decided by report id when the last state recorded which report it used
+    (feature/wire-research-features); comparing reported_at with saved_at skipped a report that
+    was submitted while a run was in progress (reported before the run saved, but after it read
+    its inputs). States saved before that column existed fall back to the timestamp comparison.
     """
-    latest_report = (
-        db.query(models.ClinicalReport)
-        .filter(models.ClinicalReport.patient_id == patient_id)
-        .order_by(models.ClinicalReport.reported_at.desc())
-        .first()
-    )
+    latest_report = latest_clinical_report(db, patient_id)
 
     if latest_report is None:
         ef, bnp, ef_is_fallback, bnp_is_fallback = apply_tier1_fallback(None, None)
         return ef, bnp, last_state is None, ef_is_fallback, bnp_is_fallback
 
-    is_new = last_state is None or latest_report.reported_at > last_state.saved_at
+    if last_state is None:
+        is_new = True
+    elif last_state.clinical_report_id is not None:
+        is_new = latest_report.id != last_state.clinical_report_id
+    else:
+        is_new = latest_report.reported_at > last_state.saved_at
     if is_new:
         return (
             latest_report.ejection_fraction_pct,
@@ -171,6 +235,66 @@ def run_daily_continuous_pipeline(
     (PulseState rows are append-only and the old code only ever constructed one after a successful
     run_initial()/resume_and_advance() call), not a new guarantee added then.
     """
+    with _patient_lock(patient_id):
+        return _run_daily_continuous_pipeline(patient_id, db, compute_projection)
+
+
+def run_continuous_pipeline_task(patient_id: str, session_factory) -> None:
+    """BackgroundTasks entry point for PIPELINE_MODE=continuous (routes.py). Opens its own session,
+    same as services.run_assessment_pipeline()."""
+    db = session_factory()
+    try:
+        run_daily_continuous_pipeline(patient_id, db)
+    except NotEnoughDataError:
+        logger.warning("continuous pipeline: window not full yet for patient_id=%s", patient_id)
+    finally:
+        db.close()
+
+
+def _continuous_personalisation(
+    report, last_state: models.PulseState | None
+) -> tuple[dict | None, float | None, dict | None]:
+    """ENABLE_BCG_MODIFIERS / ENABLE_HR_BASELINE in continuous mode. Returns (extra_modifiers for
+    the reissued CardiovascularMechanicsModification, hr_baseline_bpm for an initial run's patient
+    file, record).
+
+    BCG modifiers are reissued with the core modification every day, so they apply on every day
+    including stable ones (unlike fresh mode, where a stable day has no modification action).
+    The HR baseline lives in the patient file, which Pulse only reads on an initial run: it is set
+    when a state starts and carried by that state until a reset, whatever the flag or the report
+    says later. The record says so whenever the two disagree."""
+    record: dict = {}
+    extra = None
+    hr_for_initial = None
+
+    if feature_flags.bcg_modifiers_enabled() and personalisation.report_has_bcg(report):
+        extra = personalisation.bcg_modifiers_for(report)
+        record["bcg"] = personalisation.bcg_record(report, extra, applied=True)
+
+    requested = report.hr_baseline_bpm if report is not None else None
+    if last_state is None:
+        if feature_flags.hr_baseline_enabled() and requested is not None:
+            hr_for_initial = requested
+            record["hr_baseline"] = personalisation.hr_baseline_record(requested, applied=True)
+    elif last_state.hr_baseline_bpm is not None:
+        note = "set when the current state started; Pulse does not re-read the patient file on resume"
+        if requested != last_state.hr_baseline_bpm:
+            note += f"; the latest report says {requested}, which needs a twin reset to take effect"
+        record["hr_baseline"] = personalisation.hr_baseline_record(last_state.hr_baseline_bpm, True, note)
+    elif feature_flags.hr_baseline_enabled() and requested is not None:
+        record["hr_baseline"] = personalisation.hr_baseline_record(
+            requested, False, "the current state started without an HR baseline; reset the twin to apply it"
+        )
+
+    if not record:
+        return None, None, None
+    record["projection_personalised"] = False
+    return extra, hr_for_initial, record
+
+
+def _run_daily_continuous_pipeline(
+    patient_id: str, db: Session, compute_projection: bool
+) -> models.PulseState | None:
     patient = db.get(models.Patient, patient_id)
     if patient is None:
         raise ValueError(f"no such patient: {patient_id}")
@@ -181,16 +305,12 @@ def run_daily_continuous_pipeline(
             f"patient {patient_id} has fewer than {WEARABLE_WINDOW_DAYS} wearable readings"
         )
 
-    last_state = (
-        db.query(models.PulseState)
-        .filter(models.PulseState.patient_id == patient_id)
-        .order_by(models.PulseState.saved_at.desc())
-        .first()
-    )
+    last_state = current_state(db, patient_id)
 
     ejection_fraction_pct, nt_probnp_pg_ml, _, ef_is_fallback, bnp_is_fallback = _resolve_clinical_values(
         db, patient_id, last_state
     )
+    latest_report = latest_clinical_report(db, patient_id)
 
     bmi = patient.weight_kg / (patient.height_cm / 100.0) ** 2
     ml_row = {
@@ -214,8 +334,11 @@ def run_daily_continuous_pipeline(
     clf, reg = _load_scenario_classifier_models()
     features_df = build_inference_features(ml_row, trends_df)
     cols = feature_columns(features_df)
-    scenario_type = str(clf.predict(features_df[cols])[0])
+    raw_scenario_type = str(clf.predict(features_df[cols])[0])
     severity = float(reg.predict(features_df[cols])[0])
+    scenario_type = resolve_scenario_type(db, patient_id, raw_scenario_type)
+    bcg_extra, hr_baseline_bpm, personalisation_record = _continuous_personalisation(latest_report, last_state)
+    exercise_applied = last_state is not None and build_exercise_action(scenario_type, severity) is not None
 
     output_dir = SCENARIOS_DIR / patient_id
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -230,15 +353,24 @@ def run_daily_continuous_pipeline(
         severity=severity,
         status="running",
         started_at=datetime.datetime.now(datetime.timezone.utc),
+        pipeline_mode="continuous",
+        raw_scenario_type=raw_scenario_type,
+        severity_hysteresis_state=resolve_hysteresis_state(db, patient_id, severity),
+        personalisation_json=personalisation_record,
+        exercise_applied=exercise_applied,
     )
     db.add(run)
     db.commit()
     db.refresh(run)
 
+    # Pulse-call kwargs are only passed when a flag produced something, so a flag-off run makes
+    # exactly the call it always made (tests mock these functions and check their arguments).
+    flag_kwargs = {"extra_modifiers": bcg_extra} if bcg_extra else {}
+
     try:
         if last_state is None:
             patient_path = output_dir / "patient.json"
-            patient_path.write_text(json.dumps(build_patient_file(demo_row), indent=2))
+            patient_path.write_text(json.dumps(build_patient_file(demo_row, hr_baseline_bpm=hr_baseline_bpm), indent=2))
 
             new_state_json, snap, df = run_initial(
                 patient_json_path=str(patient_path),
@@ -246,6 +378,7 @@ def run_daily_continuous_pipeline(
                 severity=severity,
                 stabilization_s=STABILIZATION_S,
                 duration_s=DAILY_ENCOUNTER_DURATION_S,
+                **flag_kwargs,
             )
         else:
             new_state_json, snap, df = resume_and_advance(
@@ -255,6 +388,7 @@ def run_daily_continuous_pipeline(
                 duration_s=DAILY_ENCOUNTER_DURATION_S,
                 prior_offset_s=last_state.simulation_time_s,
                 scenario_type=scenario_type,
+                **flag_kwargs,
             )
     except Exception as e:
         # Mirrors services.py's defensive "never leave a run stuck at running" -- catches
@@ -272,13 +406,28 @@ def run_daily_continuous_pipeline(
         mark_simulation_run_failed(db, run, f"{type(e).__name__}: {e}")
         return None
 
+    saved_at = datetime.datetime.now(datetime.timezone.utc)
+    if last_state is None:
+        state_started_at = saved_at
+        hfref_condition_applied = ef_to_cardiovascular_modifiers(ejection_fraction_pct, severity)[
+            "apply_systolic_dysfunction_condition"
+        ]
+        state_hr_baseline = hr_baseline_bpm
+    else:
+        state_started_at = last_state.state_started_at
+        hfref_condition_applied = last_state.hfref_condition_applied
+        state_hr_baseline = last_state.hr_baseline_bpm
     new_state = models.PulseState(
         patient_id=patient_id,
         state_json=new_state_json,
         last_ejection_fraction_pct=ejection_fraction_pct,
         last_severity=severity,
         simulation_time_s=snap["simulation_time_s"],
-        saved_at=datetime.datetime.now(datetime.timezone.utc),
+        saved_at=saved_at,
+        state_started_at=state_started_at,
+        clinical_report_id=latest_report.id if latest_report is not None else None,
+        hfref_condition_applied=hfref_condition_applied,
+        hr_baseline_bpm=state_hr_baseline,
     )
     db.add(new_state)
 
@@ -334,7 +483,7 @@ def run_daily_continuous_pipeline(
         # this block, never from projection output). Skipping it changes nothing else.
         projection_json = None
 
-    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
+    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"], personalisation_record)
 
     # decide_alert()'s C3 persistence state -- O(1), reads only this patient's most recent prior
     # RiskAssessment (see compute_baseline_high_streak()'s docstring).

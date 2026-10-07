@@ -7,15 +7,20 @@ background job the last /wearable-sync call that filled the 21-day window kicked
 """
 from __future__ import annotations
 
+import datetime
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
+from src import feature_flags
 from src.analytics.score_reporting import (
-    AlertAssessmentView, build_score_report, decide_alert, determine_simulation_status,
-    ml_severity_alert, signals_disagree,
+    AlertAssessmentView, apply_hysteresis_to_ml_alert, apply_severity_hysteresis, build_score_report,
+    decide_alert, determine_simulation_status, ml_severity_alert, signals_disagree,
 )
-from src.api import models, schemas, services
+from src.api import continuous_state_pipeline, models, schemas, services
 from src.api.database import SessionLocal, get_db
+from src.patient_builder.patient_file import HFREF_EF_THRESHOLD_PCT
 
 router = APIRouter()
 
@@ -60,6 +65,10 @@ def create_clinical_report(
         nt_probnp_pg_ml=bnp,
         ef_is_fallback=ef_is_fallback,
         bnp_is_fallback=bnp_is_fallback,
+        rj_interval_ms=payload.rj_interval_ms,
+        ij_amplitude=payload.ij_amplitude,
+        jk_amplitude=payload.jk_amplitude,
+        hr_baseline_bpm=payload.hr_baseline_bpm,
     )
     db.add(report)
     db.commit()
@@ -92,6 +101,29 @@ def sync_wearable_reading(
             reading_count=reading_count,
             message=f"{reading_count}/{services.WEARABLE_WINDOW_DAYS} days collected; "
             "simulation triggers once the window is full.",
+        )
+
+    if feature_flags.pipeline_mode() == "continuous":
+        # Only a reading dated after every earlier one advances the twin by a day; an older or
+        # same-date reading is kept and joins the window from the next run on (see
+        # continuous_state_pipeline's module docstring). Fresh mode is unchanged below.
+        newest_before = (
+            db.query(func.max(models.WearableReading.recorded_date))
+            .filter(models.WearableReading.patient_id == patient.id, models.WearableReading.id != reading.id)
+            .scalar()
+        )
+        if newest_before is not None and reading.recorded_date <= newest_before:
+            return schemas.WearableSyncResponse(
+                status="stored_not_newest",
+                reading_count=reading_count,
+                message=f"Stored. {reading.recorded_date} is not after the newest reading ({newest_before}), "
+                "so the twin is not advanced; it joins the window from the next run on.",
+            )
+        background_tasks.add_task(continuous_state_pipeline.run_continuous_pipeline_task, patient.id, SessionLocal)
+        return schemas.WearableSyncResponse(
+            status="simulation_triggered",
+            reading_count=reading_count,
+            message="Continuous mode: advancing the twin by one day in the background.",
         )
 
     background_tasks.add_task(services.run_assessment_pipeline, patient.id, SessionLocal)
@@ -184,9 +216,12 @@ def _build_status(db: Session, patient: models.Patient) -> schemas.StatusRespons
             latest_run.scenario_type, latest_run.severity, pulse_attempted=True, pulse_succeeded=False,
         )
         decide_status = "unstable_failed" if status == "unstable" else status
-        report = decide_alert(AlertAssessmentView(severity=latest_run.severity), decide_status)
+        report = apply_severity_hysteresis(
+            decide_alert(AlertAssessmentView(severity=latest_run.severity), decide_status),
+            latest_run.severity_hysteresis_state,
+        )
         alert = {"level": report.level, "source": report.source}
-        ml_alert = ml_severity_alert(latest_run.severity)
+        ml_alert = apply_hysteresis_to_ml_alert(ml_severity_alert(latest_run.severity), latest_run.severity_hysteresis_state)
     elif assessment is not None and not newer_run_failed:
         current_alert = assessment.score_provenance
         alert = assessment.alert
@@ -257,3 +292,82 @@ def get_report(patient: models.Patient = Depends(get_patient_or_404), db: Sessio
         status=_build_status(db, patient),
         projection=get_projection(patient, db),
     )
+
+
+
+# ---- Twin state (feature/wire-research-features) ----
+
+@router.post("/patients/{patient_id}/reset-state", response_model=schemas.ResetStateResponse)
+def reset_twin_state(patient: models.Patient = Depends(get_patient_or_404), db: Session = Depends(get_db)):
+    """Start a fresh Pulse state from the next continuous run. Keeps every saved state, run and
+    assessment; the next run simply ignores states saved before this request. Never triggered
+    automatically."""
+    reset = models.TwinStateReset(patient_id=patient.id)
+    db.add(reset)
+    db.commit()
+    db.refresh(reset)
+    mode = feature_flags.pipeline_mode()
+    message = "The next run starts a fresh twin state. History is kept."
+    if mode == "fresh":
+        message += " PIPELINE_MODE is fresh, which rebuilds the twin every run anyway; this only matters in continuous mode."
+    return schemas.ResetStateResponse(
+        patient_id=patient.id, reset_requested_at=reset.requested_at, pipeline_mode=mode, message=message,
+    )
+
+
+def _continuous_runs(db: Session, patient_id: str, after: datetime.datetime):
+    return (
+        db.query(models.SimulationRun)
+        .filter(
+            models.SimulationRun.patient_id == patient_id,
+            models.SimulationRun.started_at > after,
+            or_(models.SimulationRun.pipeline_mode.is_(None), models.SimulationRun.pipeline_mode == "continuous"),
+        )
+        .order_by(models.SimulationRun.id.asc())
+        .all()
+    )
+
+
+@router.get("/patients/{patient_id}/twin-state", response_model=schemas.TwinStateResponse)
+def get_twin_state(patient: models.Patient = Depends(get_patient_or_404), db: Session = Depends(get_db)):
+    reset = continuous_state_pipeline.latest_reset(db, patient.id)
+    state = continuous_state_pipeline.current_state(db, patient.id)
+    response = schemas.TwinStateResponse(
+        patient_id=patient.id,
+        flags=feature_flags.all_flags(),
+        pipeline_mode=feature_flags.pipeline_mode(),
+        last_reset_at=reset.requested_at if reset else None,
+        reset_pending=reset is not None and state is None,
+    )
+    if state is None:
+        return response
+
+    started_at = state.state_started_at
+    if started_at is None:
+        # States saved before state_started_at existed: the oldest state since the last reset.
+        query = db.query(func.min(models.PulseState.saved_at)).filter(models.PulseState.patient_id == patient.id)
+        if reset is not None:
+            query = query.filter(models.PulseState.saved_at > reset.requested_at)
+        started_at = query.scalar()
+
+    # The initial run started before started_at (its state is saved at the end); every later run
+    # in this state started after it.
+    later_runs = _continuous_runs(db, patient.id, started_at)
+    completed = [r for r in later_runs if r.status == "complete"]
+    exercise_idx = [i for i, r in enumerate(completed) if r.exercise_applied]
+
+    report = services.latest_clinical_report(db, patient.id)
+    mismatch = False
+    if report is not None and state.hfref_condition_applied is not None:
+        mismatch = (report.ejection_fraction_pct <= HFREF_EF_THRESHOLD_PCT) != state.hfref_condition_applied
+
+    response.state_started_at = started_at
+    response.state_simulation_time_s = state.simulation_time_s
+    response.state_days = 1 + len(completed)
+    response.engine_lag_days = sum(1 for r in later_runs if r.status == "failed")
+    if exercise_idx:
+        last = exercise_idx[-1]
+        response.days_since_exercise_label = len(completed) - 1 - last
+        response.last_exercise_scenario_type = completed[last].scenario_type
+    response.hfref_condition_mismatch = mismatch
+    return response

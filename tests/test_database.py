@@ -90,3 +90,51 @@ class TestAddMissingColumns:
         cols = {c["name"] for c in inspect(engine).get_columns("risk_assessments")}
         assert "baseline_high_streak_days" in cols
         assert "instability_seen_in_streak" in cols
+
+
+def test_add_missing_columns_upgrades_a_main_schema_db_with_the_research_feature_columns(tmp_path):
+    """feature/wire-research-features adds only nullable columns (and one new table). A DB created
+    by main's schema must come up to date via create_all() + add_missing_columns(), with no data
+    lost and the ORM able to read and write the new fields."""
+    from sqlalchemy import MetaData, Table, create_engine, inspect, text
+
+    from src.api import models  # noqa: F401  (registers every model on Base.metadata)
+    from src.api.database import Base, add_missing_columns
+
+    new_columns = {
+        "clinical_reports": {"rj_interval_ms", "ij_amplitude", "jk_amplitude", "hr_baseline_bpm"},
+        "simulation_runs": {"pipeline_mode", "raw_scenario_type", "severity_hysteresis_state",
+                            "personalisation_json", "exercise_applied"},
+        "pulse_states": {"state_started_at", "clinical_report_id", "hfref_condition_applied", "hr_baseline_bpm"},
+    }
+    old_meta = MetaData()
+    for table in Base.metadata.sorted_tables:
+        if table.name == "twin_state_resets":
+            continue
+        skip = new_columns.get(table.name, set())
+        Table(table.name, old_meta, *[c.copy() for c in table.columns if c.name not in skip])
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'old.db'}")
+    old_meta.create_all(engine)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO patients (id, age, sex, height_cm, weight_kg, created_at) VALUES ('p1', 60, 'Male', 175, 80, '2026-01-01 00:00:00')"))
+        conn.execute(text("INSERT INTO clinical_reports (patient_id, ejection_fraction_pct, nt_probnp_pg_ml, "
+                          "ef_is_fallback, bnp_is_fallback, reported_at) VALUES ('p1', 35, 900, 0, 0, '2026-01-01 00:00:00')"))
+
+    Base.metadata.create_all(bind=engine)
+    add_missing_columns(engine)
+
+    inspector = inspect(engine)
+    assert "twin_state_resets" in inspector.get_table_names()
+    for table, cols in new_columns.items():
+        assert cols <= {c["name"] for c in inspector.get_columns(table)}, table
+
+    from sqlalchemy.orm import Session
+    with Session(engine) as db:
+        report = db.query(models.ClinicalReport).one()
+        assert report.ejection_fraction_pct == 35 and report.hr_baseline_bpm is None
+        report.hr_baseline_bpm = 80.0
+        db.add(models.TwinStateReset(patient_id="p1"))
+        db.commit()
+        assert db.query(models.ClinicalReport).one().hr_baseline_bpm == 80.0
+    engine.dispose()
