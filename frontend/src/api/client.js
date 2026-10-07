@@ -64,3 +64,12 @@ export function syncWearableReading(patientId, payload) {
     body: JSON.stringify(payload),
   })
 }
+
+// feature/wire-research-features
+export function getTwinState(patientId) {
+  return request(`/patients/${patientId}/twin-state`)
+}
+
+export function resetTwinState(patientId) {
+  return request(`/patients/${patientId}/reset-state`, { method: 'POST' })
+}

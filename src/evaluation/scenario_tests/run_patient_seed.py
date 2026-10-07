@@ -29,6 +29,7 @@ import argparse
 import csv
 import datetime
 import hashlib
+import os
 import pathlib
 import sys
 import time
@@ -51,6 +52,11 @@ FROZEN_MODELS_DIR = REPO_ROOT / "artifacts" / "results-v1" / "models"
 LIVE_MODELS_DIR = REPO_ROOT / "models"
 DB_DIR = REPO_ROOT / "results" / "scenario_tests" / "dbs"
 OUTPUT_DIR = REPO_ROOT / "results" / "scenario_tests"
+# feature/wire-research-features: a flag-on rerun (e.g. ENABLE_SCENARIO_PERSISTENCE=1) must not
+# overwrite the frozen flags-off outputs above. Unset (the default) leaves both paths unchanged.
+if os.environ.get("SCENARIO_TEST_OUTPUT_DIR"):
+    OUTPUT_DIR = pathlib.Path(os.environ["SCENARIO_TEST_OUTPUT_DIR"])
+    DB_DIR = OUTPUT_DIR / "dbs"
 
 BASELINE_DAYS = 21
 MONITORED_DAYS = 21

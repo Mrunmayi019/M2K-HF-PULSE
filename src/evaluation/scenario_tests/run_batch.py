@@ -11,6 +11,7 @@ Usage (inside the backend image):
 """
 from __future__ import annotations
 
+import os
 import pathlib
 import subprocess
 import sys
@@ -21,6 +22,10 @@ import yaml
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 COHORT_PATH = REPO_ROOT / "config" / "scenario_tests" / "cohort.yaml"
 LOG_DIR = REPO_ROOT / "results" / "scenario_tests" / "logs"
+# See run_patient_seed.py: SCENARIO_TEST_OUTPUT_DIR redirects a flag-on rerun (inherited by every
+# subprocess). Unset leaves everything where it was.
+if os.environ.get("SCENARIO_TEST_OUTPUT_DIR"):
+    LOG_DIR = pathlib.Path(os.environ["SCENARIO_TEST_OUTPUT_DIR"]) / "logs"
 MAX_PARALLEL = 6
 
 
