@@ -1,0 +1,49 @@
+[subject 14 / A] running ...
+[subject 14 / A] SUCCESS in 123.8s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / BCG_only] running ...
+[subject 14 / BCG_only] SUCCESS in 113.2s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / B] running ...
+[subject 14 / B] SUCCESS in 143.5s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / C] running ...
+[subject 14 / C] SUCCESS in 144.7s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / D] running ...
+[subject 14 / D] SUCCESS in 115.0s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / D_HR] running ...
+[subject 14 / D_HR] SUCCESS in 126.7s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 14 / E] running ...
+[subject 14 / E] SUCCESS in 131.7s, 2 warning line(s)
+    [WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / A] running ...
+[subject 102 / A] SUCCESS in 119.9s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / BCG_only] running ...
+[subject 102 / BCG_only] SUCCESS in 135.3s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / B] running ...
+[subject 102 / B] SUCCESS in 134.5s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / C] running ...
+[subject 102 / C] SUCCESS in 144.0s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / D] running ...
+[subject 102 / D] SUCCESS in 137.0s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / D_HR] running ...
+[subject 102 / D_HR] SUCCESS in 234.8s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.
+[subject 102 / E] running ...
+[subject 102 / E] SUCCESS in 246.4s, 1 warning line(s)
+    [WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity.

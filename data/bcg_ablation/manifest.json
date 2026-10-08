@@ -1,0 +1,296 @@
+{
+  "duration_s": 660.0,
+  "configs": [
+    "A",
+    "BCG_only",
+    "B",
+    "C",
+    "D",
+    "D_HR",
+    "E"
+  ],
+  "subjects": {
+    "14": {
+      "subject_info": {
+        "sex": "Male",
+        "age": 53.0,
+        "height_cm": 160.0,
+        "weight_kg": 70.0,
+        "hr_bpm": 77.0,
+        "sv_ml": 113.87,
+        "ef_pct": 34.7
+      },
+      "real_co_ml_min": 8767.99,
+      "ef_modifiers": {
+        "apply_systolic_dysfunction_condition": true,
+        "stroke_volume_multiplier": 0.912,
+        "systemic_resistance_multiplier": 0.948,
+        "systemic_compliance_multiplier": 0.948
+      },
+      "bcg_modifiers": {
+        "VenousComplianceMultiplier": 0.901,
+        "SystemicComplianceMultiplier": 1.0
+      },
+      "config_audit": {
+        "A": {
+          "conditions": [],
+          "actions": [],
+          "modifiers": {},
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "BCG_only": {
+          "conditions": [],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "VenousComplianceMultiplier": 0.901,
+            "SystemicComplianceMultiplier": 1.0
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "B": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [],
+          "modifiers": {},
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "C": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 0.948
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "D": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 1.0,
+            "VenousComplianceMultiplier": 0.901
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "D_HR": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 1.0,
+            "VenousComplianceMultiplier": 0.901,
+            "HeartRateMultiplier": 1.14
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "E": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification",
+            "Exercise"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 1.0,
+            "VenousComplianceMultiplier": 0.901,
+            "HeartRateMultiplier": 1.14,
+            "Exercise.Intensity": 0.21
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        }
+      },
+      "E_matches_original": true
+    },
+    "102": {
+      "subject_info": {
+        "sex": "Male",
+        "age": 45.0,
+        "height_cm": 182.0,
+        "weight_kg": 94.0,
+        "hr_bpm": 115.0,
+        "sv_ml": 78.21,
+        "ef_pct": 35.1
+      },
+      "real_co_ml_min": 8994.15,
+      "ef_modifiers": {
+        "apply_systolic_dysfunction_condition": true,
+        "stroke_volume_multiplier": 0.912,
+        "systemic_resistance_multiplier": 0.948,
+        "systemic_compliance_multiplier": 0.948
+      },
+      "bcg_modifiers": {
+        "VenousComplianceMultiplier": 1.0,
+        "SystemicComplianceMultiplier": 0.95
+      },
+      "config_audit": {
+        "A": {
+          "conditions": [],
+          "actions": [],
+          "modifiers": {},
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "BCG_only": {
+          "conditions": [],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "VenousComplianceMultiplier": 1.0,
+            "SystemicComplianceMultiplier": 0.95
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "B": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [],
+          "modifiers": {},
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "C": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 0.948
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "D": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 0.95,
+            "VenousComplianceMultiplier": 1.0
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "D_HR": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 0.95,
+            "VenousComplianceMultiplier": 1.0,
+            "HeartRateMultiplier": 1.14
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        },
+        "E": {
+          "conditions": [
+            "ChronicVentricularSystolicDysfunction"
+          ],
+          "actions": [
+            "CardiovascularMechanicsModification",
+            "Exercise"
+          ],
+          "modifiers": {
+            "StrokeVolumeMultiplier": 0.912,
+            "SystemicResistanceMultiplier": 0.948,
+            "SystemicComplianceMultiplier": 0.95,
+            "VenousComplianceMultiplier": 1.0,
+            "HeartRateMultiplier": 1.14,
+            "Exercise.Intensity": 0.21
+          },
+          "advance_time": [
+            "60s",
+            "10.0min"
+          ],
+          "duplicates": []
+        }
+      },
+      "E_matches_original": true
+    }
+  }
+}

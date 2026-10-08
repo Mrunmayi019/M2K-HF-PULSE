@@ -1,0 +1,125 @@
+{
+  "14": {
+    "A": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 123.8,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "BCG_only": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 113.2,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "B": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 143.5,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "C": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 144.7,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "D": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 115.0,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "D_HR": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 126.7,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "E": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 131.7,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient height of 160 cm is outside of typical ranges - below 3rd percentile (190 cm). No guarantees of model validity.",
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 27.3437 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    }
+  },
+  "102": {
+    "A": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 119.9,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "BCG_only": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 135.3,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "B": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 134.5,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "C": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 144.0,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "D": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 137.0,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "D_HR": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 234.8,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    },
+    "E": {
+      "status": "SUCCESS",
+      "error": null,
+      "wall_clock_s": 246.4,
+      "warning_lines": [
+        "[WARN] [0(s)] Patient Body Mass Index (BMI) of 28.3782 kg/m^2 is overweight. No guarantees of model validity."
+      ]
+    }
+  }
+}

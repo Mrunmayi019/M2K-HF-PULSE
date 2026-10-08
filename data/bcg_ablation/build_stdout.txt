@@ -1,0 +1,100 @@
+
+################ Subject 14 ################
+Subject_Info.xlsx: {'sex': 'Male', 'age': 53.0, 'height_cm': 160.0, 'weight_kg': 70.0, 'hr_bpm': 77.0, 'sv_ml': 113.87, 'ef_pct': 34.7}
+EF-driven modifiers (ef_to_cardiovascular_modifiers(34.7, 0.35)): {'apply_systolic_dysfunction_condition': True, 'stroke_volume_multiplier': 0.912, 'systemic_resistance_multiplier': 0.948, 'systemic_compliance_multiplier': 0.948}
+BCG modifiers (bcg_to_cardiovascular_modifiers(233.0, 1.172, 1.496), ref=default=subject 102): {'VenousComplianceMultiplier': 0.901, 'SystemicComplianceMultiplier': 1.0}
+
+--- A ---
+  conditions : none
+  actions    : none
+  modifiers  : none
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- BCG_only ---
+  conditions : none
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'VenousComplianceMultiplier': 0.901, 'SystemicComplianceMultiplier': 1.0}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- B ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : none
+  modifiers  : none
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- C ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 0.948}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- D ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 1.0, 'VenousComplianceMultiplier': 0.901}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- D_HR ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 1.0, 'VenousComplianceMultiplier': 0.901, 'HeartRateMultiplier': 1.14}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- E ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification', 'Exercise']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 1.0, 'VenousComplianceMultiplier': 0.901, 'HeartRateMultiplier': 1.14, 'Exercise.Intensity': 0.21}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+Config E identical to original run's scenario.json (ignoring PatientFile path): True
+
+################ Subject 102 ################
+Subject_Info.xlsx: {'sex': 'Male', 'age': 45.0, 'height_cm': 182.0, 'weight_kg': 94.0, 'hr_bpm': 115.0, 'sv_ml': 78.21, 'ef_pct': 35.1}
+EF-driven modifiers (ef_to_cardiovascular_modifiers(35.1, 0.35)): {'apply_systolic_dysfunction_condition': True, 'stroke_volume_multiplier': 0.912, 'systemic_resistance_multiplier': 0.948, 'systemic_compliance_multiplier': 0.948}
+BCG modifiers (bcg_to_cardiovascular_modifiers(175.0, 1.061, 1.162), ref={'rj_reference_ms': 233.0, 'amplitude_reference': 1.334}): {'VenousComplianceMultiplier': 1.0, 'SystemicComplianceMultiplier': 0.95}
+
+--- A ---
+  conditions : none
+  actions    : none
+  modifiers  : none
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- BCG_only ---
+  conditions : none
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'VenousComplianceMultiplier': 1.0, 'SystemicComplianceMultiplier': 0.95}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- B ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : none
+  modifiers  : none
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- C ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 0.948}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- D ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 0.95, 'VenousComplianceMultiplier': 1.0}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- D_HR ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 0.95, 'VenousComplianceMultiplier': 1.0, 'HeartRateMultiplier': 1.14}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+--- E ---
+  conditions : ['ChronicVentricularSystolicDysfunction']
+  actions    : ['CardiovascularMechanicsModification', 'Exercise']
+  modifiers  : {'StrokeVolumeMultiplier': 0.912, 'SystemicResistanceMultiplier': 0.948, 'SystemicComplianceMultiplier': 0.95, 'VenousComplianceMultiplier': 1.0, 'HeartRateMultiplier': 1.14, 'Exercise.Intensity': 0.21}
+  AdvanceTime: ['60s', '10.0min']   duplicates: none
+
+Config E identical to original run's scenario.json (ignoring PatientFile path): True
+
+Wrote D:\5th sem notes\capstone\PULSE-2026-FINAL-CODE\M2K-HF-PULSE\data\bcg_ablation\manifest.json

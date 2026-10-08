@@ -1,0 +1,22 @@
+{
+  "Name": "Synthetic_bcg_subject102",
+  "Sex": "Male",
+  "Age": {
+    "ScalarTime": {
+      "Value": 45.0,
+      "Unit": "yr"
+    }
+  },
+  "Height": {
+    "ScalarLength": {
+      "Value": 182.0,
+      "Unit": "cm"
+    }
+  },
+  "Weight": {
+    "ScalarMass": {
+      "Value": 94.0,
+      "Unit": "kg"
+    }
+  }
+}
