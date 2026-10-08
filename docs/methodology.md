@@ -9,16 +9,15 @@ taxonomy, dataset strategy, primary risk scorer choice) are stated where each is
 how each phase was executed, not just what the decisions are.
 
 **Feature flags and reported results (added with `feature/wire-research-features`).** The
-results-v1 and v1.1 results describe the app with **all research feature flags off**
-(`PIPELINE_MODE=fresh`, `ENABLE_BCG_MODIFIERS`, `ENABLE_HR_BASELINE`, `ENABLE_ALERT_HYSTERESIS`,
-`ENABLE_SCENARIO_PERSISTENCE` all off -- see the README's feature-flag table). One precision about
-which pipeline each result used: results produced through the API (`/wearable-sync`) used the
-fresh pipeline, which is what `PIPELINE_MODE=fresh` runs; the scenario-test results
-(`results/scenario_tests/`, `src/evaluation/scenario_tests/run_patient_seed.py`) called
-`run_daily_continuous_pipeline()` directly, independent of the flag, with no other research
-feature active. Nothing in either set of results used BCG modifiers, an HR baseline, alert
-hysteresis or scenario persistence. With all flags off the API's outputs are identical to the
-code those results were produced with (`tests/test_flags_off_parity.py`).
+scenario-test results (`results/scenario_tests/`) were produced with results-v1. Every research
+feature added later is **off by default** (`PIPELINE_MODE=fresh`; `ENABLE_BCG_MODIFIERS`,
+`ENABLE_HR_BASELINE`, `ENABLE_ALERT_HYSTERESIS`, `ENABLE_SCENARIO_PERSISTENCE` off -- see the
+README's feature-flag table), and with all of them off the API's outputs are identical to the
+code those results were produced with (`tests/test_flags_off_parity.py`). The scenario-test
+harness (`src/evaluation/scenario_tests/run_patient_seed.py`) calls
+`run_daily_continuous_pipeline()` directly, independent of `PIPELINE_MODE`. The one flag-on
+rerun, under `results/scenario_tests/flag_runs/`, is reported separately in
+`docs/research_flags_evaluation.md` §5 and is not part of results-v1.
 
 ## 1. Problem Statement
 
