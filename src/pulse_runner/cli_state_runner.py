@@ -127,6 +127,7 @@ def run_initial(
     stabilization_s: float,
     duration_s: float,
     timeout_sec: int = DEFAULT_TIMEOUT_S,
+    extra_modifiers: dict | None = None,
 ) -> tuple[str, dict, "pd.DataFrame"]:
     """First-ever run for a patient. Returns (state_json_str, snapshot, df) -- `df` is this
     encounter's full raw Pulse output (stabilize + CVMod + advance), the same shape
@@ -144,6 +145,7 @@ def run_initial(
             stabilization_s=stabilization_s,
             duration_s=duration_s,
             state_out_path=str(state_out),
+            extra_modifiers=extra_modifiers,
         )
         expected_final = stabilization_s + duration_s
         df = _run_state_scenario(
@@ -163,6 +165,7 @@ def resume_and_advance(
     prior_offset_s: float,
     scenario_type: str | None = None,
     timeout_sec: int = DEFAULT_TIMEOUT_S,
+    extra_modifiers: dict | None = None,
 ) -> tuple[str, dict, "pd.DataFrame"]:
     """Resumes from state_json (the previously-saved state's raw file content, as returned by a
     prior run_initial()/resume_and_advance() call), reissues CardiovascularMechanicsModification,
@@ -188,6 +191,7 @@ def resume_and_advance(
             duration_s=duration_s,
             scenario_type=scenario_type,
             state_out_path=str(state_out),
+            extra_modifiers=extra_modifiers,
         )
         expected_final = prior_offset_s + duration_s
         df = _run_state_scenario(

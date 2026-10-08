@@ -73,11 +73,12 @@ This repo currently contains two things side by side:
      incremental Pulse re-simulation (`projection.py`). See `docs/methodology.md` §6 for the full
      scoring formula, citations, and a known limitation found during validation.
    - **Phase 6 (done):** FastAPI backend (`src/api/`) — 6 SQLAlchemy tables (patients,
-     clinical_reports, wearable_readings, simulation_runs, risk_assessments, plus pulse_states,
-     which only the script-driven continuous-state mode writes), Pydantic request/response
-     schemas with physiological-range validation, and 9 endpoints (`POST`/`GET /patients`,
-     `POST .../clinical-report`, `POST .../wearable-sync`, `GET .../wearable-history`,
-     `.../status`, `.../history`, `.../projection`, `.../report`).
+     clinical_reports, wearable_readings, simulation_runs, risk_assessments, plus pulse_states
+     and twin_state_resets, which only continuous mode writes -- see Research feature flags
+     below), Pydantic request/response schemas with physiological-range validation, and 11
+     endpoints (`POST`/`GET /patients`, `POST .../clinical-report`, `POST .../wearable-sync`,
+     `GET .../wearable-history`, `.../status`, `.../history`, `.../projection`, `.../report`,
+     plus `POST .../reset-state` and `GET .../twin-state` for continuous mode).
      Wearable data
      is submitted daily and accumulates to a 21-day window before `BackgroundTasks` triggers one
      assessment pipeline (ML Model 1 → Pulse → risk scoring → staging → projection) — every read
@@ -120,6 +121,25 @@ This repo currently contains two things side by side:
      fraction is unmeasured) all live in one place, not restated here since they change as the
      pipeline is fixed: **see `docs/real_world_data_integration.md` for the current numbers and
      complete history across all 3 runs.**
+
+## Research feature flags
+
+Five research features can be switched on with environment variables on the backend. Every flag is
+**off by default**. With all of them off, every API response is identical to the app before the
+flags existed (`tests/test_flags_off_parity.py`, checked against a golden file captured from
+`main`). Results reported for results-v1 describe the app with all flags off (see
+`docs/methodology.md`). Details, order of operations, the offline evaluation and the proposed
+simulation run are in `docs/research_flags_evaluation.md`.
+
+| Flag | Default | What it does | Evidence level |
+|---|---|---|---|
+| `PIPELINE_MODE` | `fresh` | `continuous`: `/wearable-sync` carries the patient's Pulse state forward day to day (initial run, then resume +600 s) instead of rebuilding the twin every run. Adds `POST /patients/{id}/reset-state`, `GET /patients/{id}/twin-state` and a Twin State dashboard panel. | Resume is bit-for-bit exact against an uninterrupted run; a 14-day flat patient showed no drift; the scenario-test results used this pipeline (called directly). Risk features on resumed days measure the day's change, not change from a healthy baseline, and `risk_score` was calibrated on the fresh meaning. |
+| `ENABLE_BCG_MODIFIERS` | off | Applies `bcg_to_cardiovascular_modifiers()` (venous/systemic compliance from the R-J interval and I-J/J-K amplitude) from optional clinical-report fields. Values outside the two calibration subjects' range are rejected; applied runs carry an experimental caveat. | Experimental. 2 subjects from one dataset (Zhan et al. 2025); amplitude units are specific to that dataset; single-study literature mappings; no outcome validation. |
+| `ENABLE_HR_BASELINE` | off | Sets Pulse's `HeartRateBaseline` from a clinician-entered measured resting HR on the clinical report (77-115 bpm accepted; Pulse clamps to 110). | Experimental, with a negative result: in both validation subjects HR matched better but stroke volume matched worse (`docs/bcg_validation_note.md`). |
+| `ENABLE_ALERT_HYSTERESIS` | off | Applies `hysteresis_alert_states()` (enter at severity ≥ 0.15 for 2 days, exit below 0.12 for 2 days) to the ML-severity signal and to the twin alert's severity fallback (failed / crash-zone runs) only. | Unvalidated placeholder parameters. Offline on seeds 42-47: no change to twin ALERT/WATCH counts; the ML signal fires about 1 day later on should-catch patients and longer on one should-stay-quiet patient. |
+| `ENABLE_SCENARIO_PERSISTENCE` | off | Requires the classifier's scenario label to hold for 6 days before Pulse simulates a change of scenario (the raw label is used until a first one is confirmed). | N=6 set from a single observed spurious 5-day streak. Re-simulated on the scenario cohort (seeds 42-44): no false alerts removed; one should-catch patient-seed (P04 seed 44) lost its only alert. Not recommended to turn on (`docs/research_flags_evaluation.md` §5.1). |
+
+Boolean flags accept `1/true/yes/on` and `0/false/no/off`; anything else stops the API at startup.
 
 ## Running Individual Components (Manual Setup)
 

@@ -12,8 +12,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.api.database import Base
 from src.analytics.score_reporting import (
-    build_score_report, decide_alert, determine_simulation_status, ml_severity_alert,
-    severity_band, signals_disagree,
+    apply_hysteresis_to_ml_alert, apply_severity_hysteresis, build_score_report, decide_alert,
+    determine_simulation_status, ml_severity_alert, severity_band, signals_disagree,
 )
 
 
@@ -46,6 +46,7 @@ class Patient(Base):
     simulation_runs: Mapped[list["SimulationRun"]] = relationship(back_populates="patient")
     risk_assessments: Mapped[list["RiskAssessment"]] = relationship(back_populates="patient")
     pulse_states: Mapped[list["PulseState"]] = relationship(back_populates="patient")
+    twin_state_resets: Mapped[list["TwinStateReset"]] = relationship(back_populates="patient")
 
 
 class ClinicalReport(Base):
@@ -58,6 +59,13 @@ class ClinicalReport(Base):
     ef_is_fallback: Mapped[bool] = mapped_column(Boolean, default=False)
     bnp_is_fallback: Mapped[bool] = mapped_column(Boolean, default=False)
     reported_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
+    # Optional, clinician-entered, experimental (feature/wire-research-features). Stored whenever
+    # given; only reach Pulse when ENABLE_BCG_MODIFIERS / ENABLE_HR_BASELINE is on. Accepted
+    # ranges and provenance: src/patient_builder/personalisation.py.
+    rj_interval_ms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    ij_amplitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    jk_amplitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    hr_baseline_bpm: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="clinical_reports")
 
@@ -95,6 +103,20 @@ class SimulationRun(Base):
     # "mv"}, ...]} -- see src.analytics.simulation_features.extract_waveform_data(). Nullable:
     # simulation runs created before this field was added (2026-08-28) have none.
     waveform_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # feature/wire-research-features. All nullable; rows from before this branch have none.
+    # "fresh" | "continuous" -- which pipeline produced this run.
+    pipeline_mode: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # The classifier's own label for the day. `scenario_type` above is what Pulse was actually
+    # given, which differs only when ENABLE_SCENARIO_PERSISTENCE held the previous confirmed label.
+    raw_scenario_type: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # "alert" | "no_alert" from hysteresis_alert_states() over this patient's severity history up
+    # to and including this run. Set only when ENABLE_ALERT_HYSTERESIS was on for this run.
+    severity_hysteresis_state: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # What experimental personalisation (BCG, HR baseline) was applied to this run, if any --
+    # see src/patient_builder/personalisation.py. None when no personalisation flag was on.
+    personalisation_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    # Continuous mode only: whether this run's Pulse scenario included an Exercise action.
+    exercise_applied: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="simulation_runs")
     risk_assessment: Mapped[Optional["RiskAssessment"]] = relationship(back_populates="simulation_run")
@@ -174,14 +196,23 @@ class RiskAssessment(Base):
             self.scenario_type, self.severity, pulse_attempted=True, pulse_succeeded=True,
         )
         decide_status = "unstable_completed" if status == "unstable" else status
-        report = decide_alert(self, decide_status)
+        report = apply_severity_hysteresis(decide_alert(self, decide_status), self.severity_hysteresis_state)
         return {"level": report.level, "source": report.source}
 
     @property
     def ml_severity_alert(self) -> Optional[dict]:
         """The classifier's own signal (severity > STABLE_SEVERITY_CAP), reported next to the
-        twin-based `alert` rather than folded into it (fix/alert-both-signals)."""
-        return ml_severity_alert(self.severity)
+        twin-based `alert` rather than folded into it (fix/alert-both-signals). With
+        ENABLE_ALERT_HYSTERESIS on for this run, the level is the hysteresis state instead."""
+        return apply_hysteresis_to_ml_alert(ml_severity_alert(self.severity), self.severity_hysteresis_state)
+
+    @property
+    def severity_hysteresis_state(self) -> Optional[str]:
+        return self.simulation_run.severity_hysteresis_state if self.simulation_run else None
+
+    @property
+    def personalisation(self) -> Optional[dict]:
+        return self.simulation_run.personalisation_json if self.simulation_run else None
 
     @property
     def signals_disagree(self) -> Optional[bool]:
@@ -239,5 +270,31 @@ class PulseState(Base):
     # nothing in the resume path depends on this value.
     simulation_time_s: Mapped[float] = mapped_column(Float)
     saved_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
+    # feature/wire-research-features. All nullable; rows from before this branch have none.
+    # When the chain of states this row belongs to began (the saved_at of its initial run).
+    state_started_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, nullable=True)
+    # The ClinicalReport whose EF this state was computed with. Lets the next day tell "a newer
+    # report exists" by id instead of by timestamp, so a report that arrives while a run is in
+    # progress is not skipped (see continuous_state_pipeline._resolve_clinical_values()).
+    clinical_report_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # Whether ChronicVentricularSystolicDysfunction was applied when this chain started. It can
+    # only be set on an initial run, so a later EF that crosses the 40% cutoff can't change it.
+    hfref_condition_applied: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    # HeartRateBaseline the chain was initialised with (ENABLE_HR_BASELINE), if any. The patient
+    # file is only read on an initial run, so this is fixed for the life of the chain.
+    hr_baseline_bpm: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="pulse_states")
+
+
+class TwinStateReset(Base):
+    """POST /patients/{id}/reset-state (feature/wire-research-features). Append-only: one row per
+    request. The continuous pipeline ignores every PulseState saved before the latest reset, so
+    the next run starts a fresh state; no PulseState, SimulationRun or RiskAssessment is deleted."""
+    __tablename__ = "twin_state_resets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"))
+    requested_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=_utcnow)
+
+    patient: Mapped["Patient"] = relationship(back_populates="twin_state_resets")

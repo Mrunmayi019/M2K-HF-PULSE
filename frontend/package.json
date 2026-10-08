@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --test src/utils/heroSummary.test.js"
+    "test": "node --test src/utils/heroSummary.test.js src/utils/twinState.test.js"
   },
   "dependencies": {
     "react": "^19.2.7",

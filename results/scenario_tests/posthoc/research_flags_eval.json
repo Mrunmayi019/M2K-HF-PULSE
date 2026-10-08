@@ -1,0 +1,1418 @@
+{
+  "development (42-44)": {
+    "groups": {
+      "should_stay_quiet": {
+        "patient_days": 189,
+        "current": {
+          "ALERT": 11,
+          "WATCH": 30,
+          "ml_ALERT": 111
+        },
+        "hysteresis": {
+          "ALERT": 11,
+          "WATCH": 30,
+          "ml_ALERT": 118
+        },
+        "failed_or_crash_zone_days": 0
+      },
+      "edge_case": {
+        "patient_days": 126,
+        "current": {
+          "ALERT": 10,
+          "WATCH": 4,
+          "ml_ALERT": 22
+        },
+        "hysteresis": {
+          "ALERT": 10,
+          "WATCH": 4,
+          "ml_ALERT": 22
+        },
+        "failed_or_crash_zone_days": 3
+      },
+      "should_catch": {
+        "patient_days": 315,
+        "current": {
+          "ALERT": 132,
+          "WATCH": 66,
+          "ml_ALERT": 270
+        },
+        "hysteresis": {
+          "ALERT": 132,
+          "WATCH": 66,
+          "ml_ALERT": 255
+        },
+        "failed_or_crash_zone_days": 1
+      }
+    },
+    "patients": {
+      "P01": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 12
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 18
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 16,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 4
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 6
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 3
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 6
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "44": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 5
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 6
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P02": {
+        "group": "edge_case",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 10,
+          "WATCH": 4,
+          "ml_ALERT": 19
+        },
+        "hysteresis": {
+          "ALERT": 10,
+          "WATCH": 4,
+          "ml_ALERT": 22
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 9,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 9
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 11
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 9
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 11
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "44": {
+            "current": {
+              "ALERT": 10,
+              "WATCH": 4,
+              "ml_ALERT": 1
+            },
+            "hysteresis": {
+              "ALERT": 10,
+              "WATCH": 4,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P03": {
+        "group": "edge_case",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 3
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 0
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 1
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "44": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 2
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P04": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 26,
+          "WATCH": 3,
+          "ml_ALERT": 48
+        },
+        "hysteresis": {
+          "ALERT": 26,
+          "WATCH": 3,
+          "ml_ALERT": 45
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 16
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 15
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 14,
+              "WATCH": 2,
+              "ml_ALERT": 15
+            },
+            "hysteresis": {
+              "ALERT": 14,
+              "WATCH": 2,
+              "ml_ALERT": 14
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "44": {
+            "current": {
+              "ALERT": 12,
+              "WATCH": 1,
+              "ml_ALERT": 17
+            },
+            "hysteresis": {
+              "ALERT": 12,
+              "WATCH": 1,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P05": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 49
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 46
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 17
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 17
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "44": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 15
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 14
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P06": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 11,
+          "WATCH": 44,
+          "ml_ALERT": 58
+        },
+        "hysteresis": {
+          "ALERT": 11,
+          "WATCH": 44,
+          "ml_ALERT": 55
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 15,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 15,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "43": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 15,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 15,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "44": {
+            "current": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P07": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 55,
+          "WATCH": 2,
+          "ml_ALERT": 58
+        },
+        "hysteresis": {
+          "ALERT": 55,
+          "WATCH": 2,
+          "ml_ALERT": 55
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 20,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 20,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "43": {
+            "current": {
+              "ALERT": 17,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 17,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "44": {
+            "current": {
+              "ALERT": 18,
+              "WATCH": 2,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 18,
+              "WATCH": 2,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P08": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 11,
+          "WATCH": 30,
+          "ml_ALERT": 40
+        },
+        "hysteresis": {
+          "ALERT": 11,
+          "WATCH": 30,
+          "ml_ALERT": 41
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 7,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 8,
+              "ml_ALERT": 13
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 8,
+              "ml_ALERT": 13
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "43": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 10,
+              "ml_ALERT": 15
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 10,
+              "ml_ALERT": 15
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "44": {
+            "current": {
+              "ALERT": 5,
+              "WATCH": 12,
+              "ml_ALERT": 12
+            },
+            "hysteresis": {
+              "ALERT": 5,
+              "WATCH": 12,
+              "ml_ALERT": 13
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P09": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 59
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 59
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 6,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "43": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "44": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P10": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 40,
+          "WATCH": 17,
+          "ml_ALERT": 57
+        },
+        "hysteresis": {
+          "ALERT": 40,
+          "WATCH": 17,
+          "ml_ALERT": 54
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "42": {
+            "current": {
+              "ALERT": 17,
+              "WATCH": 1,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 17,
+              "WATCH": 1,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "43": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 16,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 16,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "44": {
+            "current": {
+              "ALERT": 20,
+              "WATCH": 0,
+              "ml_ALERT": 21
+            },
+            "hysteresis": {
+              "ALERT": 20,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      }
+    }
+  },
+  "held-out (45-47)": {
+    "groups": {
+      "should_stay_quiet": {
+        "patient_days": 189,
+        "current": {
+          "ALERT": 22,
+          "WATCH": 47,
+          "ml_ALERT": 116
+        },
+        "hysteresis": {
+          "ALERT": 22,
+          "WATCH": 47,
+          "ml_ALERT": 120
+        },
+        "failed_or_crash_zone_days": 0
+      },
+      "edge_case": {
+        "patient_days": 126,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 39
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 41
+        },
+        "failed_or_crash_zone_days": 0
+      },
+      "should_catch": {
+        "patient_days": 315,
+        "current": {
+          "ALERT": 123,
+          "WATCH": 84,
+          "ml_ALERT": 268
+        },
+        "hysteresis": {
+          "ALERT": 123,
+          "WATCH": 84,
+          "ml_ALERT": 252
+        },
+        "failed_or_crash_zone_days": 0
+      }
+    },
+    "patients": {
+      "P01": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 12,
+          "WATCH": 9,
+          "ml_ALERT": 13
+        },
+        "hysteresis": {
+          "ALERT": 12,
+          "WATCH": 9,
+          "ml_ALERT": 18
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 11,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 4,
+              "ml_ALERT": 1
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 4,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 6
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 8
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 12,
+              "WATCH": 5,
+              "ml_ALERT": 6
+            },
+            "hysteresis": {
+              "ALERT": 12,
+              "WATCH": 5,
+              "ml_ALERT": 10
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P02": {
+        "group": "edge_case",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 24
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 26
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 8,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 10
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 11
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 4
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 5
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 10
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 10
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P03": {
+        "group": "edge_case",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 15
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 0,
+          "ml_ALERT": 15
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 4,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 13
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 13
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 0
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 2
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 2
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P04": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 0,
+          "WATCH": 20,
+          "ml_ALERT": 52
+        },
+        "hysteresis": {
+          "ALERT": 0,
+          "WATCH": 20,
+          "ml_ALERT": 48
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 4,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 17
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 20,
+              "ml_ALERT": 17
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 20,
+              "ml_ALERT": 15
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P05": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 3,
+          "WATCH": 14,
+          "ml_ALERT": 46
+        },
+        "hysteresis": {
+          "ALERT": 3,
+          "WATCH": 14,
+          "ml_ALERT": 43
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 16
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 15
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 14
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 13
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 16
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 15
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          }
+        }
+      },
+      "P06": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 27,
+          "WATCH": 30,
+          "ml_ALERT": 56
+        },
+        "hysteresis": {
+          "ALERT": 27,
+          "WATCH": 30,
+          "ml_ALERT": 53
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "46": {
+            "current": {
+              "ALERT": 17,
+              "WATCH": 2,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 17,
+              "WATCH": 2,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "47": {
+            "current": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 5,
+              "WATCH": 14,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P07": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 55,
+          "WATCH": 0,
+          "ml_ALERT": 58
+        },
+        "hysteresis": {
+          "ALERT": 55,
+          "WATCH": 0,
+          "ml_ALERT": 55
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 18,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 18,
+              "WATCH": 0,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "46": {
+            "current": {
+              "ALERT": 18,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 18,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "47": {
+            "current": {
+              "ALERT": 19,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 19,
+              "WATCH": 0,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P08": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 9,
+          "WATCH": 38,
+          "ml_ALERT": 43
+        },
+        "hysteresis": {
+          "ALERT": 9,
+          "WATCH": 38,
+          "ml_ALERT": 44
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 7,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 10,
+              "ml_ALERT": 12
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 10,
+              "ml_ALERT": 12
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "46": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 16
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "47": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 15
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 14,
+              "ml_ALERT": 16
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P09": {
+        "group": "should_stay_quiet",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 1,
+          "WATCH": 0,
+          "ml_ALERT": 60
+        },
+        "hysteresis": {
+          "ALERT": 1,
+          "WATCH": 0,
+          "ml_ALERT": 58
+        },
+        "alert_all_seeds_current": false,
+        "alert_all_seeds_hysteresis": false,
+        "days_changed": 4,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 21
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "46": {
+            "current": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 0,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": false,
+            "ever_alert_hysteresis": false
+          },
+          "47": {
+            "current": {
+              "ALERT": 1,
+              "WATCH": 0,
+              "ml_ALERT": 20
+            },
+            "hysteresis": {
+              "ALERT": 1,
+              "WATCH": 0,
+              "ml_ALERT": 19
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      },
+      "P10": {
+        "group": "should_catch",
+        "patient_days": 63,
+        "current": {
+          "ALERT": 38,
+          "WATCH": 20,
+          "ml_ALERT": 56
+        },
+        "hysteresis": {
+          "ALERT": 38,
+          "WATCH": 20,
+          "ml_ALERT": 53
+        },
+        "alert_all_seeds_current": true,
+        "alert_all_seeds_hysteresis": true,
+        "days_changed": 3,
+        "twin_days_changed_by_status": {
+          "failed": 0,
+          "unstable_completed": 0,
+          "valid": 0
+        },
+        "per_seed": {
+          "45": {
+            "current": {
+              "ALERT": 3,
+              "WATCH": 17,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 3,
+              "WATCH": 17,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "46": {
+            "current": {
+              "ALERT": 18,
+              "WATCH": 1,
+              "ml_ALERT": 19
+            },
+            "hysteresis": {
+              "ALERT": 18,
+              "WATCH": 1,
+              "ml_ALERT": 18
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          },
+          "47": {
+            "current": {
+              "ALERT": 17,
+              "WATCH": 2,
+              "ml_ALERT": 18
+            },
+            "hysteresis": {
+              "ALERT": 17,
+              "WATCH": 2,
+              "ml_ALERT": 17
+            },
+            "ever_alert_current": true,
+            "ever_alert_hysteresis": true
+          }
+        }
+      }
+    }
+  }
+}

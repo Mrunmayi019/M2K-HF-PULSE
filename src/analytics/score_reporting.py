@@ -563,3 +563,58 @@ def compute_baseline_high_streak(
     if instability_flag:
         instability_seen = True
     return streak, instability_seen
+
+
+# ---------------------------------------------------------------------------------------------
+# Wiring for ENABLE_ALERT_HYSTERESIS and ENABLE_SCENARIO_PERSISTENCE (feature/wire-research-
+# features). No new thresholds: hysteresis_alert_states() and scenario_type_persistence() above are
+# called with their existing defaults (ENTER/EXIT 0.15/0.12, ENTER_N/EXIT_N 2/2,
+# SCENARIO_TYPE_PERSISTENCE_N 6).
+#
+# Order of operations for one day, flags on:
+#   1. classifier -> raw scenario_type + severity
+#   2. scenario persistence: effective scenario_type = confirmed label (before Pulse; it decides
+#      which actions Pulse is given)
+#   3. hysteresis state from this patient's severity history incl. today (needs no Pulse output)
+#   4. Pulse -> risk_score -> compute_baseline_high_streak() (C3) on today's RAW risk_bucket --
+#      hysteresis never feeds C3, and C3 never feeds hysteresis
+#   5. decide_alert() exactly as before
+#   6. apply_severity_hysteresis(): replaces the level ONLY where decide_alert() itself used the
+#      severity rule (failed_fallback / unstable_completed). A valid twin level -- risk_scorer,
+#      moderate WATCH, c3_downgraded WATCH -- is never touched: the hysteresis parameters are
+#      severity thresholds and say nothing about risk_bucket.
+#   7. apply_hysteresis_to_ml_alert(): same replacement for the separately-reported ML signal.
+
+_SEVERITY_FALLBACK_SOURCES = ("failed_fallback", "unstable_completed")
+
+
+def severity_hysteresis_state(severities: list[Optional[float]]) -> str:
+    """The hysteresis state after the last day of `severities` (chronological, today last)."""
+    return hysteresis_alert_states(severities)[-1]
+
+
+def apply_severity_hysteresis(report: AlertReport, hysteresis_state: Optional[str]) -> AlertReport:
+    """Step 6 above. `hysteresis_state` None (flag off for that run) returns `report` unchanged."""
+    if hysteresis_state is None or report.source not in _SEVERITY_FALLBACK_SOURCES:
+        return report
+    return AlertReport("ALERT" if hysteresis_state == "alert" else "NONE", report.source)
+
+
+def apply_hysteresis_to_ml_alert(ml_alert: Optional[dict], hysteresis_state: Optional[str]) -> Optional[dict]:
+    """Step 7 above. Adds `hysteresis_applied: True` so a reader can tell the level came from the
+    multi-day state, not from today's severity alone. Unchanged (no extra key) when None."""
+    if ml_alert is None or hysteresis_state is None:
+        return ml_alert
+    return {**ml_alert, "level": "ALERT" if hysteresis_state == "alert" else "NONE", "hysteresis_applied": True}
+
+
+def effective_scenario_type(raw_history: list[Optional[str]], today_raw: str) -> tuple[str, Optional[str]]:
+    """Step 2 above. `raw_history` is this patient's earlier raw classifier labels, oldest first.
+    Returns (scenario_type to simulate, confirmed label or None).
+
+    Until any label has held for SCENARIO_TYPE_PERSISTENCE_N days, scenario_type_persistence()
+    has nothing confirmed and returns None; Pulse still needs a scenario, so today's raw label is
+    used in that case. This fallback is the one choice here not taken from the existing function;
+    it means persistence only starts to hold a label back once a first label is confirmed."""
+    confirmed = scenario_type_persistence([*raw_history, today_raw])[-1]
+    return (confirmed if confirmed is not None else today_raw), confirmed

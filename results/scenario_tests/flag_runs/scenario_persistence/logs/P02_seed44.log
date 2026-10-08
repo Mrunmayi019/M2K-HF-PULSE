@@ -1,0 +1,63 @@
+Model hash check: OK (models/*.joblib matches artifacts/results-v1/models/)
+[P02 seed=44] DB: /workspace/results/scenario_tests/flag_runs/scenario_persistence/dbs/P02_seed44.db
+[P02 seed=44] day  1: complete wall= 185.7s scenario=deconditioning severity=0.06152666666666671 risk=0.0 alert=False(none) lag=0
+[P02 seed=44] day  2: complete wall=  99.6s scenario=deconditioning severity=0.05550333333333334 risk=0.0023 alert=False(none) lag=0
+[P02 seed=44] day  3: complete wall= 102.6s scenario=deconditioning severity=0.06478000000000005 risk=0.0044 alert=False(none) lag=0
+[P02 seed=44] day  4: complete wall= 111.2s scenario=deconditioning severity=0.0633833333333333 risk=0.003 alert=False(none) lag=0
+[P02 seed=44] day  5: complete wall= 118.9s scenario=cardiac_stress severity=0.07034000000000006 risk=0.3577 alert=False(none) lag=0
+[P02 seed=44] day  6: complete wall= 119.3s scenario=deconditioning severity=0.07625333333333345 risk=0.4354 alert=False(none) lag=0
+[P02 seed=44] day  7: complete wall= 118.5s scenario=deconditioning severity=0.10160333333333346 risk=0.42 alert=False(none) lag=0
+[P02 seed=44] day  8: complete wall= 122.8s scenario=fluid_overload severity=0.07683333333333346 risk=0.4717 alert=False(none) lag=0
+[P02 seed=44] day  9: complete wall= 120.3s scenario=fluid_overload severity=0.09157666666666678 risk=0.85 alert=False(none) lag=0
+[P02 seed=44] day 10: complete wall= 122.5s scenario=deconditioning severity=0.10036333333333346 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 11: complete wall= 122.9s scenario=deconditioning severity=0.07110333333333341 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 12: complete wall= 118.6s scenario=deconditioning severity=0.12907000000000005 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 13: complete wall= 124.0s scenario=deconditioning severity=0.16217999999999988 risk=1.0 alert=True(scorer) lag=0
+[P02 seed=44] day 14: complete wall= 123.2s scenario=deconditioning severity=0.13293333333333335 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 15: complete wall= 127.0s scenario=deconditioning severity=0.1462999999999999 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 16: complete wall= 126.4s scenario=deconditioning severity=0.13441999999999996 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 17: complete wall= 140.2s scenario=deconditioning severity=0.11479666666666667 risk=1.0 alert=False(none) lag=0
+[P02 seed=44] day 18: complete wall= 126.1s scenario=deconditioning severity=0.13158666666666677 risk=1.0 alert=False(none) lag=0
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P02 (run_id=19)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmpvqsy44ba/scenario.json
+stderr: 
+unfiltered fatal markers: ['[ERROR] [11079(s)]   Compartment : SkinTissueExtracellular, Substance : Lactate']
+[P02 seed=44] day 19: failed   wall= 124.4s scenario=deconditioning severity=0.12677000000000008 risk=None alert=False(none) lag=1
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P02 (run_id=20)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmpvuzjwlxw/scenario.json
+stderr: 
+unfiltered fatal markers: ['[ERROR] [11079(s)]   Compartment : SkinTissueExtracellular, Substance : Lactate']
+[P02 seed=44] day 20: failed   wall= 123.1s scenario=deconditioning severity=0.12536000000000005 risk=None alert=False(none) lag=2
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P02 (run_id=21)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmptldvugi4/scenario.json
+stderr: 
+unfiltered fatal markers: ['[ERROR] [11079(s)]   Compartment : SkinTissueExtracellular, Substance : Lactate']
+[P02 seed=44] day 21: failed   wall= 124.5s scenario=deconditioning severity=0.14085666666666674 risk=None alert=False(none) lag=3
+[P02 seed=44] wrote /workspace/results/scenario_tests/flag_runs/scenario_persistence/daily_results_P02_seed44.csv (21 rows, 3 failed days)

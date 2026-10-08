@@ -1,0 +1,2880 @@
+[
+ [
+  "create P1",
+  201,
+  {
+   "age": 66.0,
+   "created_at": "<timestamp>",
+   "height_cm": 175.0,
+   "id": "P1",
+   "label": "parity P1",
+   "sex": "Male",
+   "weight_kg": 82.0
+  }
+ ],
+ [
+  "clinical P1",
+  201,
+  {
+   "bnp_is_fallback": false,
+   "ef_is_fallback": false,
+   "ejection_fraction_pct": 30.0,
+   "id": 1,
+   "nt_probnp_pg_ml": 1500.0,
+   "patient_id": "P1",
+   "reported_at": "<timestamp>"
+  }
+ ],
+ [
+  "sync P1 day 0",
+  202,
+  {
+   "message": "1/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 1,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 1",
+  202,
+  {
+   "message": "2/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 2,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 2",
+  202,
+  {
+   "message": "3/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 3,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 3",
+  202,
+  {
+   "message": "4/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 4,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 4",
+  202,
+  {
+   "message": "5/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 5,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 5",
+  202,
+  {
+   "message": "6/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 6,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 6",
+  202,
+  {
+   "message": "7/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 7,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 7",
+  202,
+  {
+   "message": "8/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 8,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 8",
+  202,
+  {
+   "message": "9/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 9,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 9",
+  202,
+  {
+   "message": "10/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 10,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 10",
+  202,
+  {
+   "message": "11/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 11,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 11",
+  202,
+  {
+   "message": "12/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 12,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 12",
+  202,
+  {
+   "message": "13/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 13,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 13",
+  202,
+  {
+   "message": "14/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 14,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 14",
+  202,
+  {
+   "message": "15/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 15,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 15",
+  202,
+  {
+   "message": "16/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 16,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 16",
+  202,
+  {
+   "message": "17/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 17,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 17",
+  202,
+  {
+   "message": "18/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 18,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 18",
+  202,
+  {
+   "message": "19/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 19,
+   "status": "collecting"
+  }
+ ],
+ [
+  "sync P1 day 19",
+  202,
+  {
+   "message": "20/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 20,
+   "status": "collecting"
+  }
+ ],
+ [
+  "status P1 day 19",
+  200,
+  {
+   "alert": null,
+   "current_alert": null,
+   "error_message": null,
+   "latest_assessment": null,
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 34.2,
+    "recorded_date": "2026-01-20",
+    "resting_hr_bpm": 75.6,
+    "sleep_hours": 6.81,
+    "spo2_pct": 96.05,
+    "steps_per_day": 5740.0,
+    "weight_kg": 81.14
+   },
+   "ml_severity_alert": null,
+   "patient_id": "P1",
+   "reading_count": 20,
+   "signals_disagree": null,
+   "simulation_status": "collecting",
+   "waveform_data": null
+  }
+ ],
+ [
+  "sync P1 day 20",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 21,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 20",
+  200,
+  {
+   "alert": {
+    "level": "NONE",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "no_alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.1,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.0,
+    "severity_band": "within_stable_range",
+    "severity_score": 0.1,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": 146,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "NONE",
+     "severity": 0.1,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "II",
+    "risk_bucket": "LOW",
+    "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.0,
+    "scenario_type": "stable",
+    "score_provenance": {
+     "alert": "no_alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.1,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "within_stable_range",
+     "severity_score": 0.1,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.1,
+    "severity_band": "within_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999968,
+     "resting_hr_bpm": 0.4000000000000011,
+     "sleep_hours": -0.010000000000000136,
+     "spo2_pct": -0.04999999999999762,
+     "steps_per_day": -40.000000000000014,
+     "weight_kg": 0.06000000000000036
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 34.0,
+    "recorded_date": "2026-01-21",
+    "resting_hr_bpm": 76.0,
+    "sleep_hours": 6.8,
+    "spo2_pct": 96.0,
+    "steps_per_day": 5700.0,
+    "weight_kg": 81.2
+   },
+   "ml_severity_alert": {
+    "level": "NONE",
+    "severity": 0.1,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 21,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8451,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 21",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 22,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 21",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.3,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.8182,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.3,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "ALERT",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.8182,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "baseline",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.3,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.8182,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.3,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.8182,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.3,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.3,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.20000000000000046,
+     "resting_hr_bpm": 0.4000000000000002,
+     "sleep_hours": -0.010000000000000002,
+     "spo2_pct": -0.050000000000000155,
+     "steps_per_day": -40.000000000000064,
+     "weight_kg": 0.05999999999999957
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 33.8,
+    "recorded_date": "2026-01-22",
+    "resting_hr_bpm": 76.4,
+    "sleep_hours": 6.79,
+    "spo2_pct": 95.95,
+    "steps_per_day": 5660.0,
+    "weight_kg": 81.26
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.3,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 22,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8571,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 22",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 23,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 22",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.3,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.8182,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.3,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "ALERT",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.8182,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "baseline",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.3,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.8182,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.3,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.8182,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.3,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.3,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.20000000000000026,
+     "resting_hr_bpm": 0.39999999999999997,
+     "sleep_hours": -0.009999999999999938,
+     "spo2_pct": -0.04999999999999821,
+     "steps_per_day": -39.999999999999936,
+     "weight_kg": 0.06000000000000037
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 33.6,
+    "recorded_date": "2026-01-23",
+    "resting_hr_bpm": 76.8,
+    "sleep_hours": 6.78,
+    "spo2_pct": 95.9,
+    "steps_per_day": 5620.0,
+    "weight_kg": 81.32
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.3,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 23,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8571,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 23",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 24,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 23",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.3,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.8182,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.3,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "ALERT",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.8182,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "baseline",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.3,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.8182,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.3,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.8182,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.3,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.3,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999962,
+     "resting_hr_bpm": 0.4000000000000016,
+     "sleep_hours": -0.010000000000000054,
+     "spo2_pct": -0.049999999999999906,
+     "steps_per_day": -39.999999999999964,
+     "weight_kg": 0.06000000000000065
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 33.4,
+    "recorded_date": "2026-01-24",
+    "resting_hr_bpm": 77.2,
+    "sleep_hours": 6.77,
+    "spo2_pct": 95.85,
+    "steps_per_day": 5580.0,
+    "weight_kg": 81.38
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.3,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 24,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8571,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 24",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 25,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 24",
+  200,
+  {
+   "alert": {
+    "level": "WATCH",
+    "source": "c3_downgraded"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.3,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.8182,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.3,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "WATCH",
+     "source": "c3_downgraded"
+    },
+    "baseline_deficit_score": 0.8182,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "baseline",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.3,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.8182,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.3,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.8182,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.3,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.3,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999998,
+     "resting_hr_bpm": 0.4000000000000005,
+     "sleep_hours": -0.01000000000000015,
+     "spo2_pct": -0.04999999999999947,
+     "steps_per_day": -40.00000000000002,
+     "weight_kg": 0.06000000000000114
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 33.2,
+    "recorded_date": "2026-01-25",
+    "resting_hr_bpm": 77.6,
+    "sleep_hours": 6.76,
+    "spo2_pct": 95.8,
+    "steps_per_day": 5540.0,
+    "weight_kg": 81.44
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.3,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 25,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8571,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 25",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 26,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 25",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "failed_fallback"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_only",
+    "classifier_severity": 0.7,
+    "confidence": 0.3,
+    "pulse_risk_score": null,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.7,
+    "simulation_status": "unstable",
+    "source": "classifier_only",
+    "threshold_clinically_validated": false
+   },
+   "error_message": "simulated crash",
+   "latest_assessment": {
+    "alert": {
+     "level": "WATCH",
+     "source": "c3_downgraded"
+    },
+    "baseline_deficit_score": 0.8182,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "baseline",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.3,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.8182,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.3,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.8182,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.3,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.3,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999998,
+     "resting_hr_bpm": 0.4000000000000005,
+     "sleep_hours": -0.01000000000000015,
+     "spo2_pct": -0.04999999999999947,
+     "steps_per_day": -40.00000000000002,
+     "weight_kg": 0.06000000000000114
+    }
+   },
+   "latest_assessment_stale": true,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 33.0,
+    "recorded_date": "2026-01-26",
+    "resting_hr_bpm": 78.0,
+    "sleep_hours": 6.75,
+    "spo2_pct": 95.75,
+    "steps_per_day": 5500.0,
+    "weight_kg": 81.5
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.7,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 26,
+   "signals_disagree": false,
+   "simulation_status": "failed",
+   "waveform_data": {
+    "cycle_duration_s": 0.8571,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 26",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 27,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 26",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "unstable_completed"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_only",
+    "classifier_severity": 0.7,
+    "confidence": 0.3,
+    "pulse_risk_score": 0.95,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.7,
+    "simulation_status": "unstable",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "ALERT",
+     "source": "unstable_completed"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.2,
+     "compensation_flag": 0.15,
+     "hr_rise": 0.1,
+     "instability_flag": 0.3,
+     "map_drop": 0.2
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.7,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.95,
+    "scenario_type": "acute_deterioration",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_only",
+     "classifier_severity": 0.7,
+     "confidence": 0.3,
+     "pulse_risk_score": 0.95,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.7,
+     "simulation_status": "unstable",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.7,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999968,
+     "resting_hr_bpm": 0.40000000000000036,
+     "sleep_hours": -0.009999999999999868,
+     "spo2_pct": -0.049999999999998684,
+     "steps_per_day": -40.000000000000014,
+     "weight_kg": 0.05999999999999904
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 32.8,
+    "recorded_date": "2026-01-27",
+    "resting_hr_bpm": 78.4,
+    "sleep_hours": 6.74,
+    "spo2_pct": 95.7,
+    "steps_per_day": 5460.0,
+    "weight_kg": 81.56
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.7,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 27,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.4615,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 27",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 28,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 27",
+  200,
+  {
+   "alert": {
+    "level": "ALERT",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.5,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.95,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.5,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "ALERT",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.2,
+     "compensation_flag": 0.15,
+     "hr_rise": 0.1,
+     "instability_flag": 0.3,
+     "map_drop": 0.2
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": null,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.5,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "IV",
+    "risk_bucket": "HIGH",
+    "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.95,
+    "scenario_type": "cardiac_stress",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.5,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.95,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.5,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.5,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999993,
+     "resting_hr_bpm": 0.4000000000000006,
+     "sleep_hours": -0.009999999999999955,
+     "spo2_pct": -0.049999999999998254,
+     "steps_per_day": -39.999999999999986,
+     "weight_kg": 0.060000000000000595
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 32.6,
+    "recorded_date": "2026-01-28",
+    "resting_hr_bpm": 78.8,
+    "sleep_hours": 6.73,
+    "spo2_pct": 95.65,
+    "steps_per_day": 5420.0,
+    "weight_kg": 81.62
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.5,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 28,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.4615,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 28",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 29,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 28",
+  200,
+  {
+   "alert": {
+    "level": "NONE",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "no_alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.05,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.0,
+    "severity_band": "within_stable_range",
+    "severity_score": 0.05,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": 146,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "NONE",
+     "severity": 0.05,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "II",
+    "risk_bucket": "LOW",
+    "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.0,
+    "scenario_type": "stable",
+    "score_provenance": {
+     "alert": "no_alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.05,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "within_stable_range",
+     "severity_score": 0.05,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.05,
+    "severity_band": "within_stable_range",
+    "signals_disagree": false,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999957,
+     "resting_hr_bpm": 0.39999999999999947,
+     "sleep_hours": -0.01000000000000005,
+     "spo2_pct": -0.05000000000000003,
+     "steps_per_day": -40.00000000000003,
+     "weight_kg": 0.06000000000000034
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 32.4,
+    "recorded_date": "2026-01-29",
+    "resting_hr_bpm": 79.2,
+    "sleep_hours": 6.72,
+    "spo2_pct": 95.6,
+    "steps_per_day": 5380.0,
+    "weight_kg": 81.68
+   },
+   "ml_severity_alert": {
+    "level": "NONE",
+    "severity": 0.05,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 29,
+   "signals_disagree": false,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8451,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "sync P1 day 29",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 30,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P1 day 29",
+  200,
+  {
+   "alert": {
+    "level": "NONE",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.2,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.0,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.2,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": false,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": 146,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": false,
+    "ejection_fraction_pct": 30.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.2,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 1500.0,
+    "nyha_class": "II",
+    "risk_bucket": "LOW",
+    "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.0,
+    "scenario_type": "deconditioning",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.2,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.2,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.2,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": true,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999898,
+     "resting_hr_bpm": 0.3999999999999987,
+     "sleep_hours": -0.010000000000000146,
+     "spo2_pct": -0.049999999999999906,
+     "steps_per_day": -40.00000000000001,
+     "weight_kg": 0.0600000000000004
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 32.2,
+    "recorded_date": "2026-01-30",
+    "resting_hr_bpm": 79.6,
+    "sleep_hours": 6.71,
+    "spo2_pct": 95.55,
+    "steps_per_day": 5340.0,
+    "weight_kg": 81.74
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.2,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P1",
+   "reading_count": 30,
+   "signals_disagree": true,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8451,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "history P1",
+  200,
+  {
+   "assessments": [
+    {
+     "alert": {
+      "level": "NONE",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": 146,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "NONE",
+      "severity": 0.1,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "II",
+     "risk_bucket": "LOW",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.0,
+     "scenario_type": "stable",
+     "score_provenance": {
+      "alert": "no_alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.1,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.0,
+      "severity_band": "within_stable_range",
+      "severity_score": 0.1,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.1,
+     "severity_band": "within_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999968,
+      "resting_hr_bpm": 0.4000000000000011,
+      "sleep_hours": -0.010000000000000136,
+      "spo2_pct": -0.04999999999999762,
+      "steps_per_day": -40.000000000000014,
+      "weight_kg": 0.06000000000000036
+     }
+    },
+    {
+     "alert": {
+      "level": "ALERT",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.8182,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "baseline",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.3,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.8182,
+     "scenario_type": "fluid_overload",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.3,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.8182,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.3,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.3,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.20000000000000046,
+      "resting_hr_bpm": 0.4000000000000002,
+      "sleep_hours": -0.010000000000000002,
+      "spo2_pct": -0.050000000000000155,
+      "steps_per_day": -40.000000000000064,
+      "weight_kg": 0.05999999999999957
+     }
+    },
+    {
+     "alert": {
+      "level": "ALERT",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.8182,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "baseline",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.3,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.8182,
+     "scenario_type": "fluid_overload",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.3,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.8182,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.3,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.3,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.20000000000000026,
+      "resting_hr_bpm": 0.39999999999999997,
+      "sleep_hours": -0.009999999999999938,
+      "spo2_pct": -0.04999999999999821,
+      "steps_per_day": -39.999999999999936,
+      "weight_kg": 0.06000000000000037
+     }
+    },
+    {
+     "alert": {
+      "level": "ALERT",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.8182,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "baseline",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.3,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.8182,
+     "scenario_type": "fluid_overload",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.3,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.8182,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.3,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.3,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999962,
+      "resting_hr_bpm": 0.4000000000000016,
+      "sleep_hours": -0.010000000000000054,
+      "spo2_pct": -0.049999999999999906,
+      "steps_per_day": -39.999999999999964,
+      "weight_kg": 0.06000000000000065
+     }
+    },
+    {
+     "alert": {
+      "level": "WATCH",
+      "source": "c3_downgraded"
+     },
+     "baseline_deficit_score": 0.8182,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "baseline",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.3,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "Detected scenario is fluid_overload -- risk_score is known to underestimate severity for this presentation (see docs/methodology.md \u00a76.1). Do not rely on risk_score alone. The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.8182,
+     "scenario_type": "fluid_overload",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.3,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.8182,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.3,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.3,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999998,
+      "resting_hr_bpm": 0.4000000000000005,
+      "sleep_hours": -0.01000000000000015,
+      "spo2_pct": -0.04999999999999947,
+      "steps_per_day": -40.00000000000002,
+      "weight_kg": 0.06000000000000114
+     }
+    },
+    {
+     "alert": {
+      "level": "ALERT",
+      "source": "unstable_completed"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.2,
+      "compensation_flag": 0.15,
+      "hr_rise": 0.1,
+      "instability_flag": 0.3,
+      "map_drop": 0.2
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.7,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.95,
+     "scenario_type": "acute_deterioration",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_only",
+      "classifier_severity": 0.7,
+      "confidence": 0.3,
+      "pulse_risk_score": 0.95,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.7,
+      "simulation_status": "unstable",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.7,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999968,
+      "resting_hr_bpm": 0.40000000000000036,
+      "sleep_hours": -0.009999999999999868,
+      "spo2_pct": -0.049999999999998684,
+      "steps_per_day": -40.000000000000014,
+      "weight_kg": 0.05999999999999904
+     }
+    },
+    {
+     "alert": {
+      "level": "ALERT",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.2,
+      "compensation_flag": 0.15,
+      "hr_rise": 0.1,
+      "instability_flag": 0.3,
+      "map_drop": 0.2
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": null,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.5,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "IV",
+     "risk_bucket": "HIGH",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.95,
+     "scenario_type": "cardiac_stress",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.5,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.95,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.5,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.5,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999993,
+      "resting_hr_bpm": 0.4000000000000006,
+      "sleep_hours": -0.009999999999999955,
+      "spo2_pct": -0.049999999999998254,
+      "steps_per_day": -39.999999999999986,
+      "weight_kg": 0.060000000000000595
+     }
+    },
+    {
+     "alert": {
+      "level": "NONE",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": 146,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "NONE",
+      "severity": 0.05,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "II",
+     "risk_bucket": "LOW",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.0,
+     "scenario_type": "stable",
+     "score_provenance": {
+      "alert": "no_alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.05,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.0,
+      "severity_band": "within_stable_range",
+      "severity_score": 0.05,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.05,
+     "severity_band": "within_stable_range",
+     "signals_disagree": false,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999957,
+      "resting_hr_bpm": 0.39999999999999947,
+      "sleep_hours": -0.01000000000000005,
+      "spo2_pct": -0.05000000000000003,
+      "steps_per_day": -40.00000000000003,
+      "weight_kg": 0.06000000000000034
+     }
+    },
+    {
+     "alert": {
+      "level": "NONE",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": 146,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.2,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "II",
+     "risk_bucket": "LOW",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.0,
+     "scenario_type": "deconditioning",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.2,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.0,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.2,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.2,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": true,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999898,
+      "resting_hr_bpm": 0.3999999999999987,
+      "sleep_hours": -0.010000000000000146,
+      "spo2_pct": -0.049999999999999906,
+      "steps_per_day": -40.00000000000001,
+      "weight_kg": 0.0600000000000004
+     }
+    }
+   ],
+   "patient_id": "P1"
+  }
+ ],
+ [
+  "projection P1",
+  200,
+  {
+   "available": true,
+   "horizons": {
+    "14": {
+     "projected_severity": 0.233638888888889,
+     "risk_bucket": "LOW",
+     "risk_score": 0.0,
+     "status": "ok"
+    },
+    "30": {
+     "projected_severity": 0.27208333333333357,
+     "risk_bucket": "LOW",
+     "risk_score": 0.0,
+     "status": "ok"
+    },
+    "7": {
+     "projected_severity": 0.2168194444444445,
+     "risk_bucket": "LOW",
+     "risk_score": 0.0,
+     "status": "ok"
+    }
+   },
+   "patient_id": "P1"
+  }
+ ],
+ [
+  "report P1",
+  200,
+  {
+   "patient_id": "P1",
+   "projection": {
+    "available": true,
+    "horizons": {
+     "14": {
+      "projected_severity": 0.233638888888889,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     },
+     "30": {
+      "projected_severity": 0.27208333333333357,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     },
+     "7": {
+      "projected_severity": 0.2168194444444445,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     }
+    },
+    "patient_id": "P1"
+   },
+   "status": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "current_alert": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.2,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.2,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "error_message": null,
+    "latest_assessment": {
+     "alert": {
+      "level": "NONE",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": false,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": 146,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": false,
+     "ejection_fraction_pct": 30.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.2,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 1500.0,
+     "nyha_class": "II",
+     "risk_bucket": "LOW",
+     "risk_caveats": "The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.0,
+     "scenario_type": "deconditioning",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.2,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.0,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.2,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.2,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": true,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999898,
+      "resting_hr_bpm": 0.3999999999999987,
+      "sleep_hours": -0.010000000000000146,
+      "spo2_pct": -0.049999999999999906,
+      "steps_per_day": -40.00000000000001,
+      "weight_kg": 0.0600000000000004
+     }
+    },
+    "latest_assessment_stale": false,
+    "latest_wearable": {
+     "hrv_rmssd_ms": 32.2,
+     "recorded_date": "2026-01-30",
+     "resting_hr_bpm": 79.6,
+     "sleep_hours": 6.71,
+     "spo2_pct": 95.55,
+     "steps_per_day": 5340.0,
+     "weight_kg": 81.74
+    },
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.2,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "patient_id": "P1",
+    "reading_count": 30,
+    "signals_disagree": true,
+    "simulation_status": "complete",
+    "waveform_data": {
+     "cycle_duration_s": 0.8451,
+     "ecg": [
+      {
+       "mv": 0.0,
+       "t_s": 0.0
+      }
+     ],
+     "pv_loop": [
+      {
+       "pressure_mmhg": 60.0,
+       "volume_ml": 100.0
+      }
+     ]
+    }
+   }
+  }
+ ],
+ [
+  "wearable-history P1",
+  200,
+  {
+   "patient_id": "P1",
+   "readings": [
+    {
+     "hrv_rmssd_ms": 38.0,
+     "recorded_date": "2026-01-01",
+     "resting_hr_bpm": 68.0,
+     "sleep_hours": 7.0,
+     "spo2_pct": 97.0,
+     "steps_per_day": 6500.0,
+     "weight_kg": 80.0
+    },
+    {
+     "hrv_rmssd_ms": 37.8,
+     "recorded_date": "2026-01-02",
+     "resting_hr_bpm": 68.4,
+     "sleep_hours": 6.99,
+     "spo2_pct": 96.95,
+     "steps_per_day": 6460.0,
+     "weight_kg": 80.06
+    },
+    {
+     "hrv_rmssd_ms": 37.6,
+     "recorded_date": "2026-01-03",
+     "resting_hr_bpm": 68.8,
+     "sleep_hours": 6.98,
+     "spo2_pct": 96.9,
+     "steps_per_day": 6420.0,
+     "weight_kg": 80.12
+    },
+    {
+     "hrv_rmssd_ms": 37.4,
+     "recorded_date": "2026-01-04",
+     "resting_hr_bpm": 69.2,
+     "sleep_hours": 6.97,
+     "spo2_pct": 96.85,
+     "steps_per_day": 6380.0,
+     "weight_kg": 80.18
+    },
+    {
+     "hrv_rmssd_ms": 37.2,
+     "recorded_date": "2026-01-05",
+     "resting_hr_bpm": 69.6,
+     "sleep_hours": 6.96,
+     "spo2_pct": 96.8,
+     "steps_per_day": 6340.0,
+     "weight_kg": 80.24
+    },
+    {
+     "hrv_rmssd_ms": 37.0,
+     "recorded_date": "2026-01-06",
+     "resting_hr_bpm": 70.0,
+     "sleep_hours": 6.95,
+     "spo2_pct": 96.75,
+     "steps_per_day": 6300.0,
+     "weight_kg": 80.3
+    },
+    {
+     "hrv_rmssd_ms": 36.8,
+     "recorded_date": "2026-01-07",
+     "resting_hr_bpm": 70.4,
+     "sleep_hours": 6.94,
+     "spo2_pct": 96.7,
+     "steps_per_day": 6260.0,
+     "weight_kg": 80.36
+    },
+    {
+     "hrv_rmssd_ms": 36.6,
+     "recorded_date": "2026-01-08",
+     "resting_hr_bpm": 70.8,
+     "sleep_hours": 6.93,
+     "spo2_pct": 96.65,
+     "steps_per_day": 6220.0,
+     "weight_kg": 80.42
+    },
+    {
+     "hrv_rmssd_ms": 36.4,
+     "recorded_date": "2026-01-09",
+     "resting_hr_bpm": 71.2,
+     "sleep_hours": 6.92,
+     "spo2_pct": 96.6,
+     "steps_per_day": 6180.0,
+     "weight_kg": 80.48
+    },
+    {
+     "hrv_rmssd_ms": 36.2,
+     "recorded_date": "2026-01-10",
+     "resting_hr_bpm": 71.6,
+     "sleep_hours": 6.91,
+     "spo2_pct": 96.55,
+     "steps_per_day": 6140.0,
+     "weight_kg": 80.54
+    },
+    {
+     "hrv_rmssd_ms": 36.0,
+     "recorded_date": "2026-01-11",
+     "resting_hr_bpm": 72.0,
+     "sleep_hours": 6.9,
+     "spo2_pct": 96.5,
+     "steps_per_day": 6100.0,
+     "weight_kg": 80.6
+    },
+    {
+     "hrv_rmssd_ms": 35.8,
+     "recorded_date": "2026-01-12",
+     "resting_hr_bpm": 72.4,
+     "sleep_hours": 6.89,
+     "spo2_pct": 96.45,
+     "steps_per_day": 6060.0,
+     "weight_kg": 80.66
+    },
+    {
+     "hrv_rmssd_ms": 35.6,
+     "recorded_date": "2026-01-13",
+     "resting_hr_bpm": 72.8,
+     "sleep_hours": 6.88,
+     "spo2_pct": 96.4,
+     "steps_per_day": 6020.0,
+     "weight_kg": 80.72
+    },
+    {
+     "hrv_rmssd_ms": 35.4,
+     "recorded_date": "2026-01-14",
+     "resting_hr_bpm": 73.2,
+     "sleep_hours": 6.87,
+     "spo2_pct": 96.35,
+     "steps_per_day": 5980.0,
+     "weight_kg": 80.78
+    },
+    {
+     "hrv_rmssd_ms": 35.2,
+     "recorded_date": "2026-01-15",
+     "resting_hr_bpm": 73.6,
+     "sleep_hours": 6.86,
+     "spo2_pct": 96.3,
+     "steps_per_day": 5940.0,
+     "weight_kg": 80.84
+    },
+    {
+     "hrv_rmssd_ms": 35.0,
+     "recorded_date": "2026-01-16",
+     "resting_hr_bpm": 74.0,
+     "sleep_hours": 6.85,
+     "spo2_pct": 96.25,
+     "steps_per_day": 5900.0,
+     "weight_kg": 80.9
+    },
+    {
+     "hrv_rmssd_ms": 34.8,
+     "recorded_date": "2026-01-17",
+     "resting_hr_bpm": 74.4,
+     "sleep_hours": 6.84,
+     "spo2_pct": 96.2,
+     "steps_per_day": 5860.0,
+     "weight_kg": 80.96
+    },
+    {
+     "hrv_rmssd_ms": 34.6,
+     "recorded_date": "2026-01-18",
+     "resting_hr_bpm": 74.8,
+     "sleep_hours": 6.83,
+     "spo2_pct": 96.15,
+     "steps_per_day": 5820.0,
+     "weight_kg": 81.02
+    },
+    {
+     "hrv_rmssd_ms": 34.4,
+     "recorded_date": "2026-01-19",
+     "resting_hr_bpm": 75.2,
+     "sleep_hours": 6.82,
+     "spo2_pct": 96.1,
+     "steps_per_day": 5780.0,
+     "weight_kg": 81.08
+    },
+    {
+     "hrv_rmssd_ms": 34.2,
+     "recorded_date": "2026-01-20",
+     "resting_hr_bpm": 75.6,
+     "sleep_hours": 6.81,
+     "spo2_pct": 96.05,
+     "steps_per_day": 5740.0,
+     "weight_kg": 81.14
+    },
+    {
+     "hrv_rmssd_ms": 34.0,
+     "recorded_date": "2026-01-21",
+     "resting_hr_bpm": 76.0,
+     "sleep_hours": 6.8,
+     "spo2_pct": 96.0,
+     "steps_per_day": 5700.0,
+     "weight_kg": 81.2
+    },
+    {
+     "hrv_rmssd_ms": 33.8,
+     "recorded_date": "2026-01-22",
+     "resting_hr_bpm": 76.4,
+     "sleep_hours": 6.79,
+     "spo2_pct": 95.95,
+     "steps_per_day": 5660.0,
+     "weight_kg": 81.26
+    },
+    {
+     "hrv_rmssd_ms": 33.6,
+     "recorded_date": "2026-01-23",
+     "resting_hr_bpm": 76.8,
+     "sleep_hours": 6.78,
+     "spo2_pct": 95.9,
+     "steps_per_day": 5620.0,
+     "weight_kg": 81.32
+    },
+    {
+     "hrv_rmssd_ms": 33.4,
+     "recorded_date": "2026-01-24",
+     "resting_hr_bpm": 77.2,
+     "sleep_hours": 6.77,
+     "spo2_pct": 95.85,
+     "steps_per_day": 5580.0,
+     "weight_kg": 81.38
+    },
+    {
+     "hrv_rmssd_ms": 33.2,
+     "recorded_date": "2026-01-25",
+     "resting_hr_bpm": 77.6,
+     "sleep_hours": 6.76,
+     "spo2_pct": 95.8,
+     "steps_per_day": 5540.0,
+     "weight_kg": 81.44
+    },
+    {
+     "hrv_rmssd_ms": 33.0,
+     "recorded_date": "2026-01-26",
+     "resting_hr_bpm": 78.0,
+     "sleep_hours": 6.75,
+     "spo2_pct": 95.75,
+     "steps_per_day": 5500.0,
+     "weight_kg": 81.5
+    },
+    {
+     "hrv_rmssd_ms": 32.8,
+     "recorded_date": "2026-01-27",
+     "resting_hr_bpm": 78.4,
+     "sleep_hours": 6.74,
+     "spo2_pct": 95.7,
+     "steps_per_day": 5460.0,
+     "weight_kg": 81.56
+    },
+    {
+     "hrv_rmssd_ms": 32.6,
+     "recorded_date": "2026-01-28",
+     "resting_hr_bpm": 78.8,
+     "sleep_hours": 6.73,
+     "spo2_pct": 95.65,
+     "steps_per_day": 5420.0,
+     "weight_kg": 81.62
+    },
+    {
+     "hrv_rmssd_ms": 32.4,
+     "recorded_date": "2026-01-29",
+     "resting_hr_bpm": 79.2,
+     "sleep_hours": 6.72,
+     "spo2_pct": 95.6,
+     "steps_per_day": 5380.0,
+     "weight_kg": 81.68
+    },
+    {
+     "hrv_rmssd_ms": 32.2,
+     "recorded_date": "2026-01-30",
+     "resting_hr_bpm": 79.6,
+     "sleep_hours": 6.71,
+     "spo2_pct": 95.55,
+     "steps_per_day": 5340.0,
+     "weight_kg": 81.74
+    }
+   ]
+  }
+ ],
+ [
+  "create P2",
+  201,
+  {
+   "age": 58.0,
+   "created_at": "<timestamp>",
+   "height_cm": 162.0,
+   "id": "P2",
+   "label": null,
+   "sex": "Female",
+   "weight_kg": 70.0
+  }
+ ],
+ [
+  "sync P2 last",
+  202,
+  {
+   "message": "21-day window complete -- assessment running in the background.",
+   "reading_count": 21,
+   "status": "simulation_triggered"
+  }
+ ],
+ [
+  "status P2",
+  200,
+  {
+   "alert": {
+    "level": "NONE",
+    "source": "risk_scorer"
+   },
+   "current_alert": {
+    "alert": "alert",
+    "alert_basis": "classifier_and_simulation",
+    "classifier_severity": 0.6,
+    "confidence": 0.8,
+    "pulse_risk_score": 0.0,
+    "severity_band": "exceeds_stable_range",
+    "severity_score": 0.6,
+    "simulation_status": "valid",
+    "source": "not_fused",
+    "threshold_clinically_validated": false
+   },
+   "error_message": null,
+   "latest_assessment": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "baseline_deficit_score": 0.0,
+    "bnp_is_fallback": true,
+    "component_scores": {
+     "co_drop_pct": 0.0,
+     "compensation_flag": 0.0,
+     "hr_rise": 0.0,
+     "instability_flag": 0.0,
+     "map_drop": 0.0
+    },
+    "created_at": "<timestamp>",
+    "days_to_next_stage": 146,
+    "deterioration_direction": "stable",
+    "dominant_mechanism": "acute",
+    "ef_is_fallback": true,
+    "ejection_fraction_pct": 62.0,
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.6,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "nt_probnp_pg_ml": 100.0,
+    "nyha_class": "I",
+    "risk_bucket": "LOW",
+    "risk_caveats": "Detected scenario is fluid_overload, but risk_score is LOW for a different reason than the general fluid_overload caveat: ejection_fraction_pct was not measured for this patient and defaulted to the Tier 1 healthy-population-mean fallback (docs/data_provenance.md), so the Pulse-simulated patient has a structurally normal heart -- risk_score.py's baseline_deficit_score term (the fluid_overload fix, docs/methodology.md \u00a76.1) has no congested baseline to detect, regardless of the wearable-trend-derived severity. Do not rely on risk_score alone; a measured ejection fraction would materially change this assessment (docs/real_world_data_integration.md \u00a78.5). The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+    "risk_score": 0.0,
+    "scenario_type": "fluid_overload",
+    "score_provenance": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.6,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.6,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "severity": 0.6,
+    "severity_band": "exceeds_stable_range",
+    "signals_disagree": true,
+    "vital_slopes": {
+     "hrv_rmssd_ms": -0.19999999999999968,
+     "resting_hr_bpm": 0.4000000000000011,
+     "sleep_hours": -0.010000000000000136,
+     "spo2_pct": -0.04999999999999762,
+     "steps_per_day": -40.000000000000014,
+     "weight_kg": 0.06000000000000036
+    }
+   },
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 34.0,
+    "recorded_date": "2026-01-21",
+    "resting_hr_bpm": 76.0,
+    "sleep_hours": 6.8,
+    "spo2_pct": 96.0,
+    "steps_per_day": 5700.0,
+    "weight_kg": 81.2
+   },
+   "ml_severity_alert": {
+    "level": "ALERT",
+    "severity": 0.6,
+    "source": "ml_severity",
+    "threshold": 0.15
+   },
+   "patient_id": "P2",
+   "reading_count": 21,
+   "signals_disagree": true,
+   "simulation_status": "complete",
+   "waveform_data": {
+    "cycle_duration_s": 0.8333,
+    "ecg": [
+     {
+      "mv": 0.0,
+      "t_s": 0.0
+     }
+    ],
+    "pv_loop": [
+     {
+      "pressure_mmhg": 60.0,
+      "volume_ml": 100.0
+     }
+    ]
+   }
+  }
+ ],
+ [
+  "report P2",
+  200,
+  {
+   "patient_id": "P2",
+   "projection": {
+    "available": true,
+    "horizons": {
+     "14": {
+      "projected_severity": 0.6336388888888888,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     },
+     "30": {
+      "projected_severity": 0.6720833333333331,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     },
+     "7": {
+      "projected_severity": 0.6168194444444444,
+      "risk_bucket": "LOW",
+      "risk_score": 0.0,
+      "status": "ok"
+     }
+    },
+    "patient_id": "P2"
+   },
+   "status": {
+    "alert": {
+     "level": "NONE",
+     "source": "risk_scorer"
+    },
+    "current_alert": {
+     "alert": "alert",
+     "alert_basis": "classifier_and_simulation",
+     "classifier_severity": 0.6,
+     "confidence": 0.8,
+     "pulse_risk_score": 0.0,
+     "severity_band": "exceeds_stable_range",
+     "severity_score": 0.6,
+     "simulation_status": "valid",
+     "source": "not_fused",
+     "threshold_clinically_validated": false
+    },
+    "error_message": null,
+    "latest_assessment": {
+     "alert": {
+      "level": "NONE",
+      "source": "risk_scorer"
+     },
+     "baseline_deficit_score": 0.0,
+     "bnp_is_fallback": true,
+     "component_scores": {
+      "co_drop_pct": 0.0,
+      "compensation_flag": 0.0,
+      "hr_rise": 0.0,
+      "instability_flag": 0.0,
+      "map_drop": 0.0
+     },
+     "created_at": "<timestamp>",
+     "days_to_next_stage": 146,
+     "deterioration_direction": "stable",
+     "dominant_mechanism": "acute",
+     "ef_is_fallback": true,
+     "ejection_fraction_pct": 62.0,
+     "ml_severity_alert": {
+      "level": "ALERT",
+      "severity": 0.6,
+      "source": "ml_severity",
+      "threshold": 0.15
+     },
+     "nt_probnp_pg_ml": 100.0,
+     "nyha_class": "I",
+     "risk_bucket": "LOW",
+     "risk_caveats": "Detected scenario is fluid_overload, but risk_score is LOW for a different reason than the general fluid_overload caveat: ejection_fraction_pct was not measured for this patient and defaulted to the Tier 1 healthy-population-mean fallback (docs/data_provenance.md), so the Pulse-simulated patient has a structurally normal heart -- risk_score.py's baseline_deficit_score term (the fluid_overload fix, docs/methodology.md \u00a76.1) has no congested baseline to detect, regardless of the wearable-trend-derived severity. Do not rely on risk_score alone; a measured ejection fraction would materially change this assessment (docs/real_world_data_integration.md \u00a78.5). The Cardiac Waveform panel's ECG trace is a stored reference rhythm template scaled to this run's simulated heart rate, not a signal computed from cardiac electrophysiology (Pulse engine design -- docs/methodology.md \u00a74.2). It reflects heart rate only and is not an input to the scenario classifier or severity regressor. Do not read patient-specific meaning into its shape.",
+     "risk_score": 0.0,
+     "scenario_type": "fluid_overload",
+     "score_provenance": {
+      "alert": "alert",
+      "alert_basis": "classifier_and_simulation",
+      "classifier_severity": 0.6,
+      "confidence": 0.8,
+      "pulse_risk_score": 0.0,
+      "severity_band": "exceeds_stable_range",
+      "severity_score": 0.6,
+      "simulation_status": "valid",
+      "source": "not_fused",
+      "threshold_clinically_validated": false
+     },
+     "severity": 0.6,
+     "severity_band": "exceeds_stable_range",
+     "signals_disagree": true,
+     "vital_slopes": {
+      "hrv_rmssd_ms": -0.19999999999999968,
+      "resting_hr_bpm": 0.4000000000000011,
+      "sleep_hours": -0.010000000000000136,
+      "spo2_pct": -0.04999999999999762,
+      "steps_per_day": -40.000000000000014,
+      "weight_kg": 0.06000000000000036
+     }
+    },
+    "latest_assessment_stale": false,
+    "latest_wearable": {
+     "hrv_rmssd_ms": 34.0,
+     "recorded_date": "2026-01-21",
+     "resting_hr_bpm": 76.0,
+     "sleep_hours": 6.8,
+     "spo2_pct": 96.0,
+     "steps_per_day": 5700.0,
+     "weight_kg": 81.2
+    },
+    "ml_severity_alert": {
+     "level": "ALERT",
+     "severity": 0.6,
+     "source": "ml_severity",
+     "threshold": 0.15
+    },
+    "patient_id": "P2",
+    "reading_count": 21,
+    "signals_disagree": true,
+    "simulation_status": "complete",
+    "waveform_data": {
+     "cycle_duration_s": 0.8333,
+     "ecg": [
+      {
+       "mv": 0.0,
+       "t_s": 0.0
+      }
+     ],
+     "pv_loop": [
+      {
+       "pressure_mmhg": 60.0,
+       "volume_ml": 100.0
+      }
+     ]
+    }
+   }
+  }
+ ],
+ [
+  "create P3",
+  201,
+  {
+   "age": 45.0,
+   "created_at": "<timestamp>",
+   "height_cm": 168.0,
+   "id": "P3",
+   "label": null,
+   "sex": "Female",
+   "weight_kg": 64.0
+  }
+ ],
+ [
+  "clinical P3 EF only",
+  201,
+  {
+   "bnp_is_fallback": true,
+   "ef_is_fallback": false,
+   "ejection_fraction_pct": 52.0,
+   "id": 2,
+   "nt_probnp_pg_ml": 100.0,
+   "patient_id": "P3",
+   "reported_at": "<timestamp>"
+  }
+ ],
+ [
+  "sync P3 day 4",
+  202,
+  {
+   "message": "5/21 days collected; simulation triggers once the window is full.",
+   "reading_count": 5,
+   "status": "collecting"
+  }
+ ],
+ [
+  "status P3",
+  200,
+  {
+   "alert": null,
+   "current_alert": null,
+   "error_message": null,
+   "latest_assessment": null,
+   "latest_assessment_stale": false,
+   "latest_wearable": {
+    "hrv_rmssd_ms": 37.2,
+    "recorded_date": "2026-01-05",
+    "resting_hr_bpm": 69.6,
+    "sleep_hours": 6.96,
+    "spo2_pct": 96.8,
+    "steps_per_day": 6340.0,
+    "weight_kg": 80.24
+   },
+   "ml_severity_alert": null,
+   "patient_id": "P3",
+   "reading_count": 5,
+   "signals_disagree": null,
+   "simulation_status": "collecting",
+   "waveform_data": null
+  }
+ ],
+ [
+  "projection P3",
+  200,
+  {
+   "available": false,
+   "horizons": null,
+   "patient_id": "P3"
+  }
+ ],
+ [
+  "history P3",
+  200,
+  {
+   "assessments": [],
+   "patient_id": "P3"
+  }
+ ],
+ [
+  "status unknown",
+  404,
+  {
+   "detail": "patient 'does-not-exist' not found"
+  }
+ ],
+ [
+  "create invalid",
+  422,
+  {
+   "detail": [
+    {
+     "ctx": {
+      "ge": 0.0
+     },
+     "input": -1,
+     "loc": [
+      "body",
+      "age"
+     ],
+     "msg": "Input should be greater than or equal to 0",
+     "type": "greater_than_equal"
+    }
+   ]
+  }
+ ],
+ [
+  "clinical invalid",
+  422,
+  {
+   "detail": [
+    {
+     "ctx": {
+      "le": 100.0
+     },
+     "input": 150,
+     "loc": [
+      "body",
+      "ejection_fraction_pct"
+     ],
+     "msg": "Input should be less than or equal to 100",
+     "type": "less_than_equal"
+    }
+   ]
+  }
+ ],
+ [
+  "sync invalid",
+  422,
+  {
+   "detail": [
+    {
+     "ctx": {
+      "ge": 50.0
+     },
+     "input": 10,
+     "loc": [
+      "body",
+      "spo2_pct"
+     ],
+     "msg": "Input should be greater than or equal to 50",
+     "type": "greater_than_equal"
+    }
+   ]
+  }
+ ],
+ [
+  "list patients",
+  200,
+  [
+   {
+    "age": 66.0,
+    "created_at": "<timestamp>",
+    "height_cm": 175.0,
+    "id": "P1",
+    "label": "parity P1",
+    "sex": "Male",
+    "weight_kg": 82.0
+   },
+   {
+    "age": 58.0,
+    "created_at": "<timestamp>",
+    "height_cm": 162.0,
+    "id": "P2",
+    "label": null,
+    "sex": "Female",
+    "weight_kg": 70.0
+   },
+   {
+    "age": 45.0,
+    "created_at": "<timestamp>",
+    "height_cm": 168.0,
+    "id": "P3",
+    "label": null,
+    "sex": "Female",
+    "weight_kg": 64.0
+   }
+  ]
+ ]
+]

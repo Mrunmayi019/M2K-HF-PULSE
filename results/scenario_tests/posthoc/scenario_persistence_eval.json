@@ -1,0 +1,1071 @@
+{
+  "patients": {
+    "P01": {
+      "group": "should_stay_quiet",
+      "seeds": {
+        "42": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 4,
+            "legacy_alert_flag": 4,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 4,
+            "legacy_alert_flag": 4,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 3,
+            "legacy_alert_flag": 3,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 3,
+            "legacy_alert_flag": 3,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 5,
+            "legacy_alert_flag": 5,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 5,
+            "legacy_alert_flag": 5,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P02": {
+      "group": "edge_case",
+      "seeds": {
+        "42": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 9,
+            "legacy_alert_flag": 9,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 9,
+            "legacy_alert_flag": 9,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            7,
+            8,
+            9
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 9,
+            "legacy_alert_flag": 9,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 9,
+            "legacy_alert_flag": 9,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 10,
+            "WATCH": 4,
+            "ml_ALERT": 1,
+            "legacy_alert_flag": 1,
+            "HIGH_bucket": 10,
+            "MODERATE_bucket": 4,
+            "failed": 3,
+            "first_alert_day": 9
+          },
+          "on": {
+            "ALERT": 10,
+            "WATCH": 4,
+            "ml_ALERT": 1,
+            "legacy_alert_flag": 1,
+            "HIGH_bucket": 10,
+            "MODERATE_bucket": 4,
+            "failed": 3,
+            "first_alert_day": 9
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P03": {
+      "group": "edge_case",
+      "seeds": {
+        "42": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 1,
+            "legacy_alert_flag": 1,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 1,
+            "legacy_alert_flag": 1,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            17,
+            18,
+            20,
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 0,
+            "legacy_alert_flag": 0,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 0,
+            "legacy_alert_flag": 0,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "edge_case",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 2,
+            "legacy_alert_flag": 2,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 2,
+            "legacy_alert_flag": 2,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            19,
+            20,
+            21
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P04": {
+      "group": "should_catch",
+      "seeds": {
+        "42": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 16,
+            "legacy_alert_flag": 16,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 16,
+            "legacy_alert_flag": 16,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            9,
+            10
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 14,
+            "WATCH": 2,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 14,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 8
+          },
+          "on": {
+            "ALERT": 14,
+            "WATCH": 2,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 14,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 8
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 12,
+            "WATCH": 1,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 12,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 10
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            9,
+            10
+          ],
+          "days_where_outcome_differs": [
+            {
+              "day": 9,
+              "label_off": "cardiac_stress",
+              "label_on": "deconditioning",
+              "bucket_off": "MODERATE",
+              "bucket_on": "LOW",
+              "alert_off": "WATCH",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 10,
+              "label_off": "fluid_overload",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 11,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 12,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 13,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 14,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 15,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 16,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 17,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 18,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 19,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 20,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            },
+            {
+              "day": 21,
+              "label_off": "deconditioning",
+              "label_on": "deconditioning",
+              "bucket_off": "HIGH",
+              "bucket_on": "LOW",
+              "alert_off": "ALERT",
+              "alert_on": "NONE"
+            }
+          ]
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P05": {
+      "group": "should_catch",
+      "seeds": {
+        "42": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 17,
+            "legacy_alert_flag": 17,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P06": {
+      "group": "should_catch",
+      "seeds": {
+        "42": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 3,
+            "WATCH": 15,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "on": {
+            "ALERT": 3,
+            "WATCH": 15,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 3,
+            "WATCH": 15,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "on": {
+            "ALERT": 3,
+            "WATCH": 15,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "label_held_days": [
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 5,
+            "WATCH": 14,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 4
+          },
+          "on": {
+            "ALERT": 5,
+            "WATCH": 14,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 4
+          },
+          "label_held_days": [
+            15,
+            18,
+            20
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": true,
+      "alert_all_seeds_on": true
+    },
+    "P07": {
+      "group": "should_catch",
+      "seeds": {
+        "42": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 20,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 20,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 2
+          },
+          "on": {
+            "ALERT": 20,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 20,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 2
+          },
+          "label_held_days": [
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 17,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "on": {
+            "ALERT": 17,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 18,
+            "WATCH": 2,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 18,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 3
+          },
+          "on": {
+            "ALERT": 18,
+            "WATCH": 2,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 18,
+            "MODERATE_bucket": 2,
+            "failed": 0,
+            "first_alert_day": 3
+          },
+          "label_held_days": [
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": true,
+      "alert_all_seeds_on": true
+    },
+    "P08": {
+      "group": "should_stay_quiet",
+      "seeds": {
+        "42": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 3,
+            "WATCH": 8,
+            "ml_ALERT": 13,
+            "legacy_alert_flag": 13,
+            "HIGH_bucket": 10,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 12
+          },
+          "on": {
+            "ALERT": 3,
+            "WATCH": 8,
+            "ml_ALERT": 13,
+            "legacy_alert_flag": 13,
+            "HIGH_bucket": 10,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 12
+          },
+          "label_held_days": [
+            20,
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 3,
+            "WATCH": 10,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 12,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 10
+          },
+          "on": {
+            "ALERT": 3,
+            "WATCH": 10,
+            "ml_ALERT": 15,
+            "legacy_alert_flag": 15,
+            "HIGH_bucket": 12,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 10
+          },
+          "label_held_days": [
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 5,
+            "WATCH": 12,
+            "ml_ALERT": 12,
+            "legacy_alert_flag": 12,
+            "HIGH_bucket": 12,
+            "MODERATE_bucket": 5,
+            "failed": 0,
+            "first_alert_day": 9
+          },
+          "on": {
+            "ALERT": 5,
+            "WATCH": 12,
+            "ml_ALERT": 12,
+            "legacy_alert_flag": 12,
+            "HIGH_bucket": 12,
+            "MODERATE_bucket": 5,
+            "failed": 0,
+            "first_alert_day": 9
+          },
+          "label_held_days": [
+            19,
+            20,
+            21
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": true,
+      "alert_all_seeds_on": true
+    },
+    "P09": {
+      "group": "should_stay_quiet",
+      "seeds": {
+        "42": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 19,
+            "legacy_alert_flag": 19,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            21
+          ],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_stay_quiet",
+          "off": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "on": {
+            "ALERT": 0,
+            "WATCH": 0,
+            "ml_ALERT": 20,
+            "legacy_alert_flag": 20,
+            "HIGH_bucket": 0,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": null
+          },
+          "label_held_days": [
+            21
+          ],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": false,
+      "alert_all_seeds_on": false
+    },
+    "P10": {
+      "group": "should_catch",
+      "seeds": {
+        "42": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 17,
+            "WATCH": 1,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "on": {
+            "ALERT": 17,
+            "WATCH": 1,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 17,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 5
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "43": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 3,
+            "WATCH": 16,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 18,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 4
+          },
+          "on": {
+            "ALERT": 3,
+            "WATCH": 16,
+            "ml_ALERT": 18,
+            "legacy_alert_flag": 18,
+            "HIGH_bucket": 18,
+            "MODERATE_bucket": 1,
+            "failed": 0,
+            "first_alert_day": 4
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        },
+        "44": {
+          "group": "should_catch",
+          "off": {
+            "ALERT": 20,
+            "WATCH": 0,
+            "ml_ALERT": 21,
+            "legacy_alert_flag": 21,
+            "HIGH_bucket": 20,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 2
+          },
+          "on": {
+            "ALERT": 20,
+            "WATCH": 0,
+            "ml_ALERT": 21,
+            "legacy_alert_flag": 21,
+            "HIGH_bucket": 20,
+            "MODERATE_bucket": 0,
+            "failed": 0,
+            "first_alert_day": 2
+          },
+          "label_held_days": [],
+          "days_where_outcome_differs": []
+        }
+      },
+      "alert_all_seeds_off": true,
+      "alert_all_seeds_on": true
+    }
+  },
+  "groups": {
+    "should_catch": {
+      "off": {
+        "ALERT": 132,
+        "WATCH": 66,
+        "ml_ALERT": 270,
+        "legacy_alert_flag": 270,
+        "HIGH_bucket": 187,
+        "MODERATE_bucket": 11,
+        "failed": 0
+      },
+      "on": {
+        "ALERT": 120,
+        "WATCH": 65,
+        "ml_ALERT": 270,
+        "legacy_alert_flag": 270,
+        "HIGH_bucket": 175,
+        "MODERATE_bucket": 10,
+        "failed": 0
+      }
+    },
+    "should_stay_quiet": {
+      "off": {
+        "ALERT": 11,
+        "WATCH": 30,
+        "ml_ALERT": 111,
+        "legacy_alert_flag": 111,
+        "HIGH_bucket": 34,
+        "MODERATE_bucket": 7,
+        "failed": 0
+      },
+      "on": {
+        "ALERT": 11,
+        "WATCH": 30,
+        "ml_ALERT": 111,
+        "legacy_alert_flag": 111,
+        "HIGH_bucket": 34,
+        "MODERATE_bucket": 7,
+        "failed": 0
+      }
+    },
+    "edge_case": {
+      "off": {
+        "ALERT": 10,
+        "WATCH": 4,
+        "ml_ALERT": 22,
+        "legacy_alert_flag": 22,
+        "HIGH_bucket": 10,
+        "MODERATE_bucket": 4,
+        "failed": 3
+      },
+      "on": {
+        "ALERT": 10,
+        "WATCH": 4,
+        "ml_ALERT": 22,
+        "legacy_alert_flag": 22,
+        "HIGH_bucket": 10,
+        "MODERATE_bucket": 4,
+        "failed": 3
+      }
+    }
+  },
+  "checks": {
+    "raw_labels_equal_flags_off_labels": true
+  }
+}

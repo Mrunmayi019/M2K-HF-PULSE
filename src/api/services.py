@@ -20,11 +20,15 @@ from sqlalchemy.orm import Session
 from src.analytics.deterioration_rate import compute_deterioration_rate, days_to_next_stage
 from src.analytics.projection import DEFAULT_HORIZONS_DAYS, project_physiology
 from src.analytics.risk_score import compute_risk_score
-from src.analytics.score_reporting import compute_baseline_high_streak
+from src.analytics.score_reporting import (
+    compute_baseline_high_streak, effective_scenario_type, severity_hysteresis_state,
+)
 from src.analytics.simulation_features import analyze_simulation, extract_waveform_data
 from src.analytics.staging import classify_nyha
+from src import feature_flags
 from src.api import models
 from src.data_synthesis.generate_patients import load_reference_stats
+from src.patient_builder import personalisation
 from src.patient_builder.patient_file import build_patient_file
 from src.patient_builder.scenario_file import STABILIZATION_S, build_scenario_file
 from src.pulse_runner.runner import run_pulse_with_preflight
@@ -93,12 +97,18 @@ def mark_simulation_run_failed(db: Session, run: models.SimulationRun, error_mes
     db.commit()
 
 
-def build_risk_caveats(scenario_type: str, ef_is_fallback: bool, risk_bucket: str) -> str:
+def build_risk_caveats(
+    scenario_type: str, ef_is_fallback: bool, risk_bucket: str, personalisation_record: dict | None = None
+) -> str:
     """Shared by src/api/services.py and src/api/continuous_state_pipeline.py so both pipelines
     attach identical risk_caveats text for the same inputs -- previously duplicated inline here
     and in continuous_state_pipeline.py, which had drifted to omit ECG_REFERENCE_TEMPLATE_CAVEAT_
     MESSAGE entirely (found during the continuous-state-sync / real-outcome-validation merge,
-    2026-10-02). See the three *_CAVEAT_MESSAGE constants above for what each piece means."""
+    2026-10-02). See the three *_CAVEAT_MESSAGE constants above for what each piece means.
+
+    `personalisation_record` (feature/wire-research-features): a SimulationRun.personalisation_json
+    record; when it says BCG or HR-baseline personalisation reached Pulse, the experimental caveat
+    is appended last. None (every flag-off call) leaves the text exactly as before."""
     if scenario_type != "fluid_overload":
         fluid_overload_caveat = None
     elif ef_is_fallback and risk_bucket == "LOW":
@@ -107,8 +117,83 @@ def build_risk_caveats(scenario_type: str, ef_is_fallback: bool, risk_bucket: st
         fluid_overload_caveat = FLUID_OVERLOAD_CAVEAT_MESSAGE
 
     return " ".join(
-        c for c in (fluid_overload_caveat, ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE) if c
+        c for c in (
+            fluid_overload_caveat,
+            ECG_REFERENCE_TEMPLATE_CAVEAT_MESSAGE,
+            personalisation.personalisation_caveat(personalisation_record),
+        ) if c
     )
+
+
+# ---- Research-feature helpers shared by both pipelines (feature/wire-research-features) ----
+# Each returns its flag-off value (raw label / None) when its flag is off, so a flag-off run
+# stores and computes exactly what it did before.
+
+def resolve_scenario_type(db: Session, patient_id: str, raw_scenario_type: str) -> str:
+    """ENABLE_SCENARIO_PERSISTENCE: the label Pulse is given. History is every earlier run's raw
+    classifier label for this patient (falling back to scenario_type for runs from before
+    raw_scenario_type was stored), oldest first; see score_reporting.effective_scenario_type()."""
+    if not feature_flags.scenario_persistence_enabled():
+        return raw_scenario_type
+    earlier = (
+        db.query(models.SimulationRun.raw_scenario_type, models.SimulationRun.scenario_type)
+        .filter(models.SimulationRun.patient_id == patient_id)
+        .order_by(models.SimulationRun.id.asc())
+        .all()
+    )
+    history = [raw if raw is not None else stype for raw, stype in earlier]
+    effective, _confirmed = effective_scenario_type(history, raw_scenario_type)
+    return effective
+
+
+def resolve_hysteresis_state(db: Session, patient_id: str, severity: float) -> str | None:
+    """ENABLE_ALERT_HYSTERESIS: hysteresis state over every earlier run's classifier severity for
+    this patient plus today's. Computed before Pulse (it needs no Pulse output) and stored on the
+    SimulationRun, so a failed run gets it too."""
+    if not feature_flags.alert_hysteresis_enabled():
+        return None
+    earlier = (
+        db.query(models.SimulationRun.severity)
+        .filter(models.SimulationRun.patient_id == patient_id)
+        .order_by(models.SimulationRun.id.asc())
+        .all()
+    )
+    return severity_hysteresis_state([sev for (sev,) in earlier] + [severity])
+
+
+def latest_clinical_report(db: Session, patient_id: str) -> models.ClinicalReport | None:
+    return (
+        db.query(models.ClinicalReport)
+        .filter(models.ClinicalReport.patient_id == patient_id)
+        .order_by(models.ClinicalReport.reported_at.desc())
+        .first()
+    )
+
+
+def fresh_personalisation(report, scenario_type: str) -> tuple[dict | None, float | None, dict | None]:
+    """ENABLE_BCG_MODIFIERS / ENABLE_HR_BASELINE for the fresh pipeline. Returns
+    (extra_modifiers for build_scenario_file, hr_baseline_bpm for build_patient_file, record).
+
+    BCG modifiers ride on the scenario's CardiovascularMechanicsModification, and the fresh
+    `stable` scenario has none (_scenario_actions returns []), so on a stable day they are recorded
+    as not applied. Forward projection re-simulations are never personalised."""
+    record: dict = {}
+    extra = None
+    hr = None
+    if feature_flags.bcg_modifiers_enabled() and personalisation.report_has_bcg(report):
+        extra = personalisation.bcg_modifiers_for(report)
+        applied = scenario_type != "stable"
+        record["bcg"] = personalisation.bcg_record(
+            report, extra, applied,
+            None if applied else "stable scenario has no CardiovascularMechanicsModification in fresh mode",
+        )
+    if feature_flags.hr_baseline_enabled() and report is not None and report.hr_baseline_bpm is not None:
+        hr = report.hr_baseline_bpm
+        record["hr_baseline"] = personalisation.hr_baseline_record(hr, applied=True)
+    if not record:
+        return None, None, None
+    record["projection_personalised"] = False
+    return extra, hr, record
 
 
 _model_cache: dict[str, object] = {}
@@ -199,12 +284,7 @@ def run_assessment_pipeline(patient_id: str, session_factory) -> None:
 
 def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
     patient = db.get(models.Patient, patient_id)
-    latest_report = (
-        db.query(models.ClinicalReport)
-        .filter(models.ClinicalReport.patient_id == patient_id)
-        .order_by(models.ClinicalReport.reported_at.desc())
-        .first()
-    )
+    latest_report = latest_clinical_report(db, patient_id)
     if latest_report is not None:
         # create_clinical_report() (src/api/routes.py) already resolved and stored the fallback
         # at submission time -- ejection_fraction_pct is never NULL here even when it was a
@@ -246,8 +326,10 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
     clf, reg = _load_scenario_classifier_models()
     features_df = build_inference_features(ml_row, trends_df)
     cols = feature_columns(features_df)
-    scenario_type = clf.predict(features_df[cols])[0]
+    raw_scenario_type = clf.predict(features_df[cols])[0]
     severity = float(reg.predict(features_df[cols])[0])
+    scenario_type = resolve_scenario_type(db, patient_id, raw_scenario_type)
+    bcg_extra, hr_baseline_bpm, personalisation_record = fresh_personalisation(latest_report, scenario_type)
 
     run = models.SimulationRun(
         patient_id=patient_id,
@@ -255,6 +337,10 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         severity=severity,
         status="running",
         started_at=datetime.datetime.now(datetime.timezone.utc),
+        pipeline_mode="fresh",
+        raw_scenario_type=str(raw_scenario_type),
+        severity_hysteresis_state=resolve_hysteresis_state(db, patient_id, severity),
+        personalisation_json=personalisation_record,
     )
     db.add(run)
     db.commit()
@@ -266,12 +352,13 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
     scenario_path = output_dir / "scenario.json"
 
     try:
-        patient_path.write_text(json.dumps(build_patient_file(demo_row), indent=2))
+        patient_path.write_text(json.dumps(build_patient_file(demo_row, hr_baseline_bpm=hr_baseline_bpm), indent=2))
         scenario = build_scenario_file(
             patient_json_path=str(patient_path),
             scenario_type=scenario_type,
             severity=severity,
             ejection_fraction_pct=ejection_fraction_pct,
+            extra_modifiers=bcg_extra,
         )
         scenario_path.write_text(json.dumps(scenario, indent=2))
 
@@ -336,7 +423,7 @@ def _run_assessment_pipeline(patient_id: str, db: Session) -> None:
         for horizon, r in projection.items()
     }
 
-    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"])
+    risk_caveats = build_risk_caveats(scenario_type, ef_is_fallback, risk["risk_bucket"], personalisation_record)
 
     # decide_alert()'s C3 persistence state -- O(1), reads only this patient's most recent prior
     # RiskAssessment (see compute_baseline_high_streak()'s docstring).

@@ -8,6 +8,17 @@ taxonomy, dataset strategy, primary risk scorer choice) are stated where each is
 §6) and in `docs/data_provenance.md` — this document explains *why* those decisions were made and
 how each phase was executed, not just what the decisions are.
 
+**Feature flags and reported results (added with `feature/wire-research-features`).** The
+scenario-test results (`results/scenario_tests/`) were produced with results-v1. Every research
+feature added later is **off by default** (`PIPELINE_MODE=fresh`; `ENABLE_BCG_MODIFIERS`,
+`ENABLE_HR_BASELINE`, `ENABLE_ALERT_HYSTERESIS`, `ENABLE_SCENARIO_PERSISTENCE` off -- see the
+README's feature-flag table), and with all of them off the API's outputs are identical to the
+code those results were produced with (`tests/test_flags_off_parity.py`). The scenario-test
+harness (`src/evaluation/scenario_tests/run_patient_seed.py`) calls
+`run_daily_continuous_pipeline()` directly, independent of `PIPELINE_MODE`. The one flag-on
+rerun, under `results/scenario_tests/flag_runs/`, is reported separately in
+`docs/research_flags_evaluation.md` §5 and is not part of results-v1.
+
 ## 1. Problem Statement
 
 Heart failure (HF) affects an estimated 64 million people worldwide, and its defining clinical

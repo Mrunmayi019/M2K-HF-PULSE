@@ -6,11 +6,30 @@ with FastAPI's automatic 422 before it ever reaches Pulse (per the roadmap PDF Â
 from __future__ import annotations
 
 import datetime
-from typing import Literal, Optional
+from typing import Any, ClassVar, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
+
+from src.patient_builder.personalisation import (
+    BCG_FIELDS, HR_BASELINE_BPM_RANGE, IJ_AMPLITUDE_RANGE, JK_AMPLITUDE_RANGE, RJ_INTERVAL_MS_RANGE,
+)
 
 Sex = Literal["Male", "Female"]
+
+
+class _OmitNewFieldsWhenNone(BaseModel):
+    """feature/wire-research-features: fields added by this branch are left out of the JSON
+    entirely when they are None, so with every flag off a response is exactly what main returned
+    (tests/test_flags_off_parity.py). Fields that existed on main are untouched."""
+    _omit_when_none: ClassVar[tuple[str, ...]] = ()
+
+    @model_serializer(mode="wrap")
+    def _omit_new_none_fields(self, handler) -> dict[str, Any]:
+        data = handler(self)
+        for name in self._omit_when_none:
+            if data.get(name) is None:
+                data.pop(name, None)
+        return data
 
 
 # ---- Patients ----
@@ -38,13 +57,50 @@ class PatientResponse(BaseModel):
 
 # ---- Clinical reports ----
 
+_EXPERIMENTAL_NOTE = (
+    "Optional, experimental. Accepted range is what the 2 calibration subjects (Zhan et al. 2025 "
+    "BCG dataset, subjects 14 and 102) cover; values outside it are rejected. Stored always, used "
+    "only when the matching flag is on (src/patient_builder/personalisation.py)."
+)
+
+
 class ClinicalReportCreate(BaseModel):
     ejection_fraction_pct: Optional[float] = Field(default=None, ge=0, le=100)
     nt_probnp_pg_ml: Optional[float] = Field(default=None, ge=0, le=50000)
+    # feature/wire-research-features -- ENABLE_BCG_MODIFIERS. All three or none.
+    rj_interval_ms: Optional[float] = Field(
+        default=None, ge=RJ_INTERVAL_MS_RANGE[0], le=RJ_INTERVAL_MS_RANGE[1],
+        description="ECG R-peak to BCG J-peak interval, ms. " + _EXPERIMENTAL_NOTE,
+    )
+    ij_amplitude: Optional[float] = Field(
+        default=None, ge=IJ_AMPLITUDE_RANGE[0], le=IJ_AMPLITUDE_RANGE[1],
+        description="BCG I-J amplitude in that dataset's own units (not g-force). " + _EXPERIMENTAL_NOTE,
+    )
+    jk_amplitude: Optional[float] = Field(
+        default=None, ge=JK_AMPLITUDE_RANGE[0], le=JK_AMPLITUDE_RANGE[1],
+        description="BCG J-K amplitude in that dataset's own units (not g-force). " + _EXPERIMENTAL_NOTE,
+    )
+    # feature/wire-research-features -- ENABLE_HR_BASELINE. Clinician-entered measured resting HR.
+    hr_baseline_bpm: Optional[float] = Field(
+        default=None, ge=HR_BASELINE_BPM_RANGE[0], le=HR_BASELINE_BPM_RANGE[1],
+        description=(
+            "Measured resting heart rate from a clinical source (not derived from wearables). "
+            "Pulse clamps it to 110. " + _EXPERIMENTAL_NOTE
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _bcg_all_or_none(self):
+        given = [f for f in BCG_FIELDS if getattr(self, f) is not None]
+        if given and len(given) != len(BCG_FIELDS):
+            missing = [f for f in BCG_FIELDS if getattr(self, f) is None]
+            raise ValueError(f"BCG features must be given together; missing {missing}")
+        return self
 
 
-class ClinicalReportResponse(BaseModel):
+class ClinicalReportResponse(_OmitNewFieldsWhenNone):
     model_config = ConfigDict(from_attributes=True)
+    _omit_when_none: ClassVar[tuple[str, ...]] = (*BCG_FIELDS, "hr_baseline_bpm")
 
     id: int
     patient_id: str
@@ -53,6 +109,10 @@ class ClinicalReportResponse(BaseModel):
     ef_is_fallback: bool
     bnp_is_fallback: bool
     reported_at: datetime.datetime
+    rj_interval_ms: Optional[float] = None
+    ij_amplitude: Optional[float] = None
+    jk_amplitude: Optional[float] = None
+    hr_baseline_bpm: Optional[float] = None
 
 
 # ---- Wearable readings ----
@@ -68,7 +128,10 @@ class WearableReadingCreate(BaseModel):
 
 
 class WearableSyncResponse(BaseModel):
-    status: Literal["collecting", "simulation_triggered"]
+    # "stored_not_newest": PIPELINE_MODE=continuous only -- the reading is saved (it joins the
+    # 21-day window from the next run on) but its date is not after every earlier reading, so it
+    # does not advance the twin by a day. Never returned in fresh mode.
+    status: Literal["collecting", "simulation_triggered", "stored_not_newest"]
     reading_count: int
     message: str
 
@@ -120,7 +183,7 @@ class AlertReportPayload(BaseModel):
     source: Literal["risk_scorer", "c3_downgraded", "failed_fallback", "unstable_completed", "moderate"]
 
 
-class MlSeverityAlertPayload(BaseModel):
+class MlSeverityAlertPayload(_OmitNewFieldsWhenNone):
     """src.analytics.score_reporting.ml_severity_alert() (fix/alert-both-signals): ML Model 1's
     own signal, reported SEPARATELY from the twin-based `alert`. `level` is ALERT when `severity`
     exceeds `threshold` (STABLE_SEVERITY_CAP, 0.15 -- the existing, unvalidated engineering
@@ -129,6 +192,11 @@ class MlSeverityAlertPayload(BaseModel):
     severity: float
     threshold: float
     source: Literal["ml_severity"]
+    _omit_when_none: ClassVar[tuple[str, ...]] = ("hysteresis_applied",)
+    hysteresis_applied: Optional[bool] = Field(
+        default=None,
+        description="Present (true) only when ENABLE_ALERT_HYSTERESIS set `level` from the multi-day state.",
+    )
 
 
 SIGNALS_DISAGREE_DESCRIPTION = (
@@ -145,8 +213,9 @@ class ProjectionHorizon(BaseModel):
     status: str
 
 
-class RiskAssessmentPayload(BaseModel):
+class RiskAssessmentPayload(_OmitNewFieldsWhenNone):
     model_config = ConfigDict(from_attributes=True)
+    _omit_when_none: ClassVar[tuple[str, ...]] = ("personalisation",)
 
     risk_score: float
     risk_bucket: str
@@ -245,6 +314,15 @@ class RiskAssessmentPayload(BaseModel):
     )
     vital_slopes: Optional[dict] = None
     created_at: datetime.datetime
+    personalisation: Optional[dict] = Field(
+        default=None,
+        description=(
+            "Present only when an experimental personalisation flag was on for this run: "
+            "{'bcg': {...inputs, 'modifiers', 'applied', 'note'?}, 'hr_baseline': {'requested_bpm', "
+            "'simulated_bpm', 'applied', 'note'?}}. When anything was applied, risk_caveats also "
+            "carries the experimental caveat."
+        ),
+    )
 
 
 # ---- Status / History / Projection / Report ----
@@ -320,3 +398,48 @@ class ReportResponse(BaseModel):
     patient_id: str
     status: StatusResponse
     projection: ProjectionResponse
+
+
+# ---- Twin state (feature/wire-research-features) ----
+
+class TwinStateResponse(BaseModel):
+    """GET /patients/{id}/twin-state -- what the dashboard's twin-state panel shows."""
+    patient_id: str
+    flags: dict = Field(description="Current value of every research feature flag (src/feature_flags.py).")
+    pipeline_mode: Literal["fresh", "continuous"]
+    state_started_at: Optional[datetime.datetime] = Field(
+        default=None,
+        description="When the current continuous Pulse state began (its initial run). None before the "
+        "first continuous run, right after a reset, or for a patient only ever run in fresh mode.",
+    )
+    state_simulation_time_s: Optional[float] = None
+    state_days: int = Field(default=0, description="Successful daily runs in the current state.")
+    engine_lag_days: int = Field(
+        default=0,
+        description="Failed daily runs since the current state began. Each one leaves the simulated "
+        "clock one 600 s encounter behind the calendar; there is no catch-up.",
+    )
+    days_since_exercise_label: Optional[int] = Field(
+        default=None,
+        description="Successful daily runs since the last one that added an Exercise action "
+        "(cardiac_stress / acute_deterioration on a resumed day). 0 = the latest run. None if none in "
+        "the current state. Exercise stays active in the saved state after it is applied.",
+    )
+    last_exercise_scenario_type: Optional[str] = None
+    hfref_condition_mismatch: bool = Field(
+        default=False,
+        description="True when the latest EF is on the other side of the 40% HFrEF cutoff from the EF "
+        "the current state started with. The chronic-dysfunction condition can only be set when a state "
+        "starts, so the twin cannot follow this change until it is reset.",
+    )
+    last_reset_at: Optional[datetime.datetime] = None
+    reset_pending: bool = Field(
+        default=False, description="A reset was requested and no run has started a new state since."
+    )
+
+
+class ResetStateResponse(BaseModel):
+    patient_id: str
+    reset_requested_at: datetime.datetime
+    pipeline_mode: Literal["fresh", "continuous"]
+    message: str

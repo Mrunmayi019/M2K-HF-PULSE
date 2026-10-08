@@ -16,6 +16,7 @@ import TrendsHistoryPage from '../trends/TrendsHistoryPage.jsx'
 import SimulationLabPage from '../lab/SimulationLabPage.jsx'
 import ReportsPage from '../reports/ReportsPage.jsx'
 import SettingsPage from '../settings/SettingsPage.jsx'
+import TwinStatePanel from '../twin/TwinStatePanel.jsx'
 import { usePatients } from '../../hooks/usePatients.js'
 import { usePatientReport } from '../../hooks/usePatientReport.js'
 import { useTheme } from '../../hooks/useTheme.js'
@@ -72,6 +73,7 @@ function DashboardBody({ patientId, patient }) {
           mlAlert={status.ml_severity_alert}
           disagree={status.signals_disagree}
         />
+        <TwinStatePanel patientId={patientId} assessment={assessment} refreshKey={assessment?.created_at} onReset={refresh} />
       </>
     )
   }
@@ -81,6 +83,7 @@ function DashboardBody({ patientId, patient }) {
       <TopBar simTimeIso={assessment?.created_at} isRefreshing={refreshing} isCollecting={false} readingCount={status.reading_count} onRunSimulation={refresh} />
       {(simStatus === 'running' || simStatus === 'pending') && <SimulationRunningBanner />}
       <HeroStatusCard assessment={assessment} patientLabel={patientLabel} />
+      <TwinStatePanel patientId={patientId} assessment={assessment} refreshKey={assessment?.created_at} onReset={refresh} />
       <CurrentConditionPanel assessment={assessment} wearable={wearable} />
       <VitalsTable wearable={wearable} vitalSlopes={assessment?.vital_slopes} />
       <CardiacWaveformPanel waveformData={status.waveform_data} assessment={assessment} />
