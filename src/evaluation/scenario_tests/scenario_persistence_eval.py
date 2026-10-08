@@ -4,7 +4,8 @@ run_batch.py with SCENARIO_TEST_OUTPUT_DIR set) against the saved flags-off run,
 
 Inputs: results/scenario_tests/daily_results_<p>_seed<s>.csv (flags off) and
 results/scenario_tests/flag_runs/scenario_persistence/daily_results_<p>_seed<s>.csv plus its
-dbs/<p>_seed<s>.db (raw classifier label per run, simulation_runs.raw_scenario_type).
+raw_labels.csv (raw classifier label per day, exported once from dbs/<p>_seed<s>.db,
+simulation_runs.raw_scenario_type; the DBs themselves are gitignored).
 
 Twin ALERT/WATCH are the current decide_alert() levels, replayed from each run's saved Pulse
 outputs with signal_disagreement_eval.replay() (the same replay research_flags_eval.py uses; the
@@ -39,12 +40,26 @@ def _rows(path):
         return list(csv.DictReader(f))
 
 
+RAW_LABELS_CSV = ON_DIR / "raw_labels.csv"
+
+
 def _raw_labels(patient_id, seed):
-    con = sqlite3.connect(ON_DIR / "dbs" / f"{patient_id}_seed{seed}.db")
-    try:
-        return [r[0] for r in con.execute("SELECT raw_scenario_type FROM simulation_runs ORDER BY id")]
-    finally:
-        con.close()
+    """The per-run DBs (dbs/, ~1.4 GB, gitignored) are read once and their raw labels exported to
+    raw_labels.csv, which is committed; later runs read the CSV, so the DBs aren't needed."""
+    if not RAW_LABELS_CSV.exists():
+        with open(RAW_LABELS_CSV, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["patient_id", "seed", "day", "raw_scenario_type"])
+            for pid in PATIENTS:
+                for s in SEEDS:
+                    con = sqlite3.connect(ON_DIR / "dbs" / f"{pid}_seed{s}.db")
+                    try:
+                        rows = con.execute("SELECT raw_scenario_type FROM simulation_runs ORDER BY id").fetchall()
+                    finally:
+                        con.close()
+                    w.writerows([pid, s, day, label] for day, (label,) in enumerate(rows, start=1))
+    return [r["raw_scenario_type"] for r in _rows(RAW_LABELS_CSV)
+            if r["patient_id"] == patient_id and int(r["seed"]) == seed]
 
 
 def _replay(results_dir, patient_id, seed):

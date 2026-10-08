@@ -36,3 +36,6 @@ data/bcg_validation/**/scenarioResults.csv
 data/bcg_validation/**/full_results.csv
 data/synthetic_deterioration_stress_test/**/scenarioResults.csv
 data/synthetic_deterioration_stress_test/**/full_results.csv
+
+# Per-run SQLite DBs from flag-on scenario-test reruns (~1.4 GB); raw_labels.csv keeps what the eval needs
+results/scenario_tests/flag_runs/*/dbs/

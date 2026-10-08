@@ -157,11 +157,11 @@ docker run --rm -v "<repo>:/workspace" -w /workspace \
 - BCG and HR baseline: the scenario cohort has no BCG or HR-baseline inputs, so any run would need invented inputs.
 - Continuous mode: this is already what the scenario-test results exercise.
 
-### 5.1 Preliminary results: 8 of 10 patients (P01–P08), seeds 42–44
+### 5.1 Results: all 10 patients, seeds 42–44
 
-> **Partial.** Written while P09 and P10 were still running. The numbers below cover 24 of the 30 patient-seeds and will be replaced by the full table when the run ends.
+All 30 patient-seeds finished on 2026-10-08. Raw output: `results/scenario_tests/flag_runs/scenario_persistence/`; comparison: `results/scenario_tests/posthoc/scenario_persistence_eval.json`.
 
-The run was started on 2026-10-07 with `ENABLE_SCENARIO_PERSISTENCE=1` and every other flag off. It was stopped twice because the laptop overheated, and resumed with 4 jobs in parallel instead of 6. Each patient-seed starts from a fresh database, so interrupted jobs were simply rerun from day 1. All jobs that finished exited cleanly, with no failed days beyond those in the flags-off run.
+The run was started on 2026-10-07 with `ENABLE_SCENARIO_PERSISTENCE=1` and every other flag off. It was stopped twice because the laptop overheated, and resumed with 4 jobs in parallel instead of 6. Each patient-seed starts from a fresh database, so interrupted jobs were simply rerun from day 1. All 30 jobs exited cleanly. The flag-on run had the same 3 failed days as the flags-off run (all in edge_case), and no new ones.
 
 The comparison was made with `src/evaluation/scenario_tests/scenario_persistence_eval.py`.
 
@@ -169,13 +169,18 @@ The comparison was made with `src/evaluation/scenario_tests/scenario_persistence
 - **Legacy column:** the CSVs' own `alert_flag` column records the older, pre-fix alert, so it is reported only as `legacy_alert_flag`.
 - **Sanity check, passed:** with the flag on, the classifier's raw label matched the flags-off label on every day. Only the label sent to Pulse changed.
 
-| Group (P01–P08) | Twin ALERT days | Twin WATCH days | HIGH-risk days | ML ALERT days |
-|---|---|---|---|---|
-| should_catch (P04–P07) | 92 → **80** | 49 → 48 | 132 → 120 | 213 → 213 |
-| should_stay_quiet (P01, P08) | 11 → 11 | 30 → 30 | 34 → 34 | 52 → 52 |
-| edge_case (P02, P03) | 10 → 10 | 4 → 4 | 10 → 10 | 22 → 22 |
+Patient-days, flags off → persistence on (630 patient-days per column):
 
-Persistence held back a classifier label on 44 patient-days. Of the 24 patient-seeds, **only one changed its outcome: P04 seed 44**, a should_catch patient.
+| Group | Patient-days | Twin ALERT | Twin WATCH | HIGH-risk | ML ALERT |
+|---|---|---|---|---|---|
+| should_catch (P04–P07, P10) | 315 | 132 → **120** | 66 → 65 | 187 → 175 | 270 → 270 |
+| should_stay_quiet (P01, P08, P09) | 189 | 11 → 11 | 30 → 30 | 34 → 34 | 111 → 111 |
+| edge_case (P02, P03) | 126 | 10 → 10 | 4 → 4 | 10 → 10 | 22 → 22 |
+| **all** | 630 | **153 → 141** | **100 → 99** | 231 → 219 | 403 → 403 |
+
+The flags-off column reproduces the published development-set totals (§4).
+
+Persistence held back a classifier label on 47 patient-days. Of the 30 patient-seeds, **only one changed its outcome: P04 seed 44**, a should_catch patient.
 
 **P04 seed 44 in detail:**
 - **Flags off:**
@@ -190,7 +195,8 @@ Persistence held back a classifier label on 44 patient-days. Of the 24 patient-s
   - Persistence did what it was designed to do and suppressed the blip. On this seed, though, that removed the only signal that caught a should_catch patient.
   - Seed by seed, P04 (current `decide_alert()` replay) is caught on 2 of 3 seeds without the flag (43 and 44) and on 1 of 3 with it (43 only).
   - Whether that alert was a correct detection or a lucky artifact can't be settled from this cohort: the injected deterioration is real, but the twin reached it through a mislabel.
-- **The other should_catch patients (P05–P07)** and both should_stay_quiet patients (P01, P08) had identical twin and ML alerts with and without the flag. Persistence removed no false alerts there, because none of their alerts depended on a short label change.
+- **Bottom line for this cohort:** with N = 6, scenario persistence removed no false alerts and cost one should_catch patient-seed its only alert. It is left **off by default**. The evidence does not support turning it on.
+- **The other should_catch patients (P05–P07, P10)** and all should_stay_quiet patients (P01, P08, P09) had identical twin and ML alerts with and without the flag. Persistence removed no false alerts there, because none of their alerts depended on a short label change.
 
 ## 6. Live check: continuous mode with real Pulse
 
