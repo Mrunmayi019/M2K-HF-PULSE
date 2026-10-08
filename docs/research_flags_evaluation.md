@@ -128,7 +128,7 @@ Patient-days with twin ALERT, twin WATCH and ML ALERT, current → with hysteres
   - The net is fewer ML ALERT days, made up of a detection delay on true cases and more false-alert days on P01.
 - **What this means.** On this cohort, wiring hysteresis with its existing parameters does not change what the dashboard's main alert says. Its only visible effect is on the secondary ML signal, and that effect is mixed.
 
-## 5. Features that act before Pulse: proposed run (not started)
+## 5. Features that act before Pulse: the scenario-persistence run
 
 Continuous mode, BCG, HR baseline and scenario persistence all change what Pulse simulates, so they cannot be evaluated offline.
 
@@ -156,6 +156,41 @@ docker run --rm -v "<repo>:/workspace" -w /workspace \
 **Not proposed.**
 - BCG and HR baseline: the scenario cohort has no BCG or HR-baseline inputs, so any run would need invented inputs.
 - Continuous mode: this is already what the scenario-test results exercise.
+
+### 5.1 Preliminary results: 8 of 10 patients (P01–P08), seeds 42–44
+
+> **Partial.** Written while P09 and P10 were still running. The numbers below cover 24 of the 30 patient-seeds and will be replaced by the full table when the run ends.
+
+The run was started on 2026-10-07 with `ENABLE_SCENARIO_PERSISTENCE=1` and every other flag off. It was stopped twice because the laptop overheated, and resumed with 4 jobs in parallel instead of 6. Each patient-seed starts from a fresh database, so interrupted jobs were simply rerun from day 1. All jobs that finished exited cleanly, with no failed days beyond those in the flags-off run.
+
+The comparison was made with `src/evaluation/scenario_tests/scenario_persistence_eval.py`.
+
+- **Twin alert levels:** both runs are scored by replaying the current `decide_alert()` over each run's saved Pulse outputs, the same replay used in §4.
+- **Legacy column:** the CSVs' own `alert_flag` column records the older, pre-fix alert, so it is reported only as `legacy_alert_flag`.
+- **Sanity check, passed:** with the flag on, the classifier's raw label matched the flags-off label on every day. Only the label sent to Pulse changed.
+
+| Group (P01–P08) | Twin ALERT days | Twin WATCH days | HIGH-risk days | ML ALERT days |
+|---|---|---|---|---|
+| should_catch (P04–P07) | 92 → **80** | 49 → 48 | 132 → 120 | 213 → 213 |
+| should_stay_quiet (P01, P08) | 11 → 11 | 30 → 30 | 34 → 34 | 52 → 52 |
+| edge_case (P02, P03) | 10 → 10 | 4 → 4 | 10 → 10 | 22 → 22 |
+
+Persistence held back a classifier label on 44 patient-days. Of the 24 patient-seeds, **only one changed its outcome: P04 seed 44**, a should_catch patient.
+
+**P04 seed 44 in detail:**
+- **Flags off:**
+  - The classifier gave two one-day labels in a row: `cardiac_stress` on day 9, then `fluid_overload` on day 10. On every other day it said `deconditioning`.
+  - Pulse simulated both labels. `cardiac_stress` starts the Exercise action, and in continuous mode Exercise stays active in the saved engine state (§3).
+  - The risk score went to MODERATE on day 9 (WATCH) and HIGH from day 10 to day 21, giving 12 ALERT days, first on day 10.
+- **Persistence on:**
+  - Neither label held for 6 days, so Pulse was given `deconditioning` on days 9 and 10.
+  - Exercise was never started. Risk stayed LOW (score at most 0.008) for all 21 days, and the twin never alerted.
+- **Interpretation:**
+  - The flags-off alert on this seed came from a two-day label blip whose effect stayed in the carried-forward engine state. The classifier itself never labelled the following 11 days as anything but `deconditioning`.
+  - Persistence did what it was designed to do and suppressed the blip. On this seed, though, that removed the only signal that caught a should_catch patient.
+  - Seed by seed, P04 (current `decide_alert()` replay) is caught on 2 of 3 seeds without the flag (43 and 44) and on 1 of 3 with it (43 only).
+  - Whether that alert was a correct detection or a lucky artifact can't be settled from this cohort: the injected deterioration is real, but the twin reached it through a mislabel.
+- **The other should_catch patients (P05–P07)** and both should_stay_quiet patients (P01, P08) had identical twin and ML alerts with and without the flag. Persistence removed no false alerts there, because none of their alerts depended on a short label change.
 
 ## 6. Live check: continuous mode with real Pulse
 
