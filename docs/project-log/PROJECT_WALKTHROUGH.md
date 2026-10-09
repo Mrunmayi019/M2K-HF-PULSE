@@ -282,7 +282,7 @@ them (e.g. "this looks like fluid building up" vs. "this looks like general deco
 (29 columns): clinical snapshot (age, sex, BMI, ejection fraction, NT-proBNP) + per-vital wearable
 trend aggregates (first-7-day mean, last-7-day mean, delta, linear slope) for 6 vitals over the
 21-day window. **Training data**: `data/synthetic/patients.csv` + `wearable_trends.csv`, n=2000,
-patient-level stratified 70/15/15 split. **Performance (held-out test, n=300)**: 90.7% accuracy
+patient-level stratified 70/15/15 split. **Performance (held-out test, n=300)**: 91.3% accuracy (frozen results-v1 model)
 (macro F1 0.91), one-vs-rest ROC macro-AUC 0.990 [bootstrap 95% CI reported in
 `models/phase3_extended_eval_report.txt`]. File: `models/scenario_classifier.joblib`
 (gitignored, regenerate with `python -m src.scenario_classifier.train`).

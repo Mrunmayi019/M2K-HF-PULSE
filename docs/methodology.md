@@ -82,7 +82,7 @@ both confirmed by what actually shipped rather than a schedule guess:
    for echo/PPG was ever sourced or vetted.
 2. **Tier 1 alone already met the project's own accuracy targets.** The scenario classifier
    trained on Tier 1 features (clinical snapshot + wearable-trend aggregates, no vascular-
-   compliance term) reached 90.7% test accuracy and severity MAE 0.047 (§5, current baseline) —
+   compliance term) reached 91.3% test accuracy and severity MAE 0.047 (§5, current baseline) —
    comfortably past the informal >80% target the roadmap set for this model. Tier 2 was never
    load-bearing for a result the system actually needed to hit; adding it would have been
    complexity without a corresponding accuracy gap to close.
@@ -248,9 +248,12 @@ unstratified 15% slice risks near-empty classes for 5-way evaluation. Random For
 were left at defaults (`n_estimators=300`, no depth cap) — no tuning harness was built, since the
 task didn't call for one.
 
-**Results (held-out test set, 300 patients), current baseline:** 90.7% scenario accuracy (macro
-F1 0.91), severity MAE 0.047 / RMSE 0.061. Full classification report and confusion matrix are
-written to `models/phase3_eval_report.txt` on every training run (small text file, committed as
+**Results (held-out test set, 300 patients), current baseline:** 91.3% scenario accuracy (274/300,
+bootstrap 95% CI 88.0–94.3%; macro F1 0.91), severity MAE 0.047 / RMSE 0.061, for the frozen results-v1 model in `artifacts/results-v1/models/`, re-scored in `results/results_v1_offline/ml_metrics.json`.
+That model is the one every reported result used (hashes in `docs/results-v1-models.sha256`).
+`models/phase3_eval_report.txt` reads 90.7%: it is the report from a different, local training run
+of the same code (see the 2026-09-10 note below on run-to-run variation), not the frozen model.
+A full classification report and confusion matrix are written to `models/phase3_eval_report.txt` on every training run (small text file, committed as
 evidence; the `.joblib` model weights and `.png` plots alongside it are gitignored and regenerated
 with `python3 -m src.scenario_classifier.train`). Notably, `cardiac_stress` (HFpEF-profile,
 preserved EF) and `acute_deterioration` (HFrEF-profile, low EF) — the pair Phase 2's Pulse
@@ -282,6 +285,13 @@ test accuracy — with zero code or data changes between that commit and `064f74
 `RandomForestClassifier`/`RandomForestRegressor` with a fixed `random_state=42` is not perfectly
 reproducible across different scikit-learn/numpy environments; the spread observed so far is
 small and bounded (~1 point of test accuracy), known, and not investigated further.)*
+
+*(Note added 2026-10-09: the frozen results-v1 model (`artifacts/results-v1/models/`, hashes in
+`docs/results-v1-models.sha256`) scores 91.3% (274/300) on this test split, re-scored in
+`results/results_v1_offline/ml_metrics.json`. Its validation accuracy (90.7%) and per-class
+numbers also differ from `phase3_eval_report.txt`, confirming the two come from different training
+runs. Headline figures now cite the frozen model; the 92.3% → 90.7% comparisons in this file are
+kept as recorded, since each compared two models trained in the same environment.)*
 
 **Phase 4 (batch simulation dataset, done).** `src/pulse_runner/batch_runner.py` runs a stratified
 sample of synthetic patients through Pulse in parallel and `src/analytics/simulation_features.py` extracts a
@@ -724,7 +734,7 @@ resolved — it does not contradict Phase 4's finding, just doesn't reproduce it
 patient's true `scenario_type` on every patient, consistent with (and slightly better than) the
 92.3% offline test-set accuracy this model had at the time of this run (§5's headline number as of
 this Phase 8 validation, pre-dating the `nyha_ordinal` removal fix below and §5's current
-90.7% baseline).
+91.3% baseline for the frozen results-v1 model).
 
 **Severity MAE: 0.271 — a real, diagnosed discrepancy from the offline 0.048 MAE, not just
 expected live-vs-test noise.** Inspecting the per-patient predictions

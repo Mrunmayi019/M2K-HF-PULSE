@@ -55,8 +55,8 @@ branch (a snapshot of `main` at tag `v1.2`). Docs that cite a `scripts/...` file
      detection, validated against all 5 locked scenario types running inside the actual Pulse
      Docker container.
    - **Phase 3 (done):** ML scenario classifier (`src/scenario_classifier/`) — a RandomForest
-     classifier predicts the 5-way `scenario_type` from clinical + wearable-trend features (90.7%
-     held-out test accuracy), paired with a RandomForestRegressor for `severity` (MAE 0.047). See
+     classifier predicts the 5-way `scenario_type` from clinical + wearable-trend features (91.3%
+     held-out test accuracy, frozen results-v1 model), paired with a RandomForestRegressor for `severity` (MAE 0.047). See
      `docs/methodology.md` §5 for the train/val/test protocol and feature design.
    - **Phase 4 (done):** batch Pulse simulation dataset (`src/pulse_runner/batch_runner.py`,
      `src/analytics/simulation_features.py`) — a stratified sample of 150 synthetic patients run through
