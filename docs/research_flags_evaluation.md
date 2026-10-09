@@ -270,7 +270,7 @@ The +7/+14/+30-day projections run a separate Pulse scenario at the projected se
 - severity **0.340–0.402** (8 runs): all completed to 660 s;
 - severity **0.409, 0.418, 0.438**: all failed. The Pulse log reports a negative RightHeart volume (−2,712 to −27,936 mL), then `IrreversibleState` at about 155 s simulated time, about 95 s into the Exercise action.
 
-In the fresh-mode demo run (all flags off, 2026-10-08), DEMO 5 (severity 0.401) had all three projection horizons come back `failed`. The fresh-mode projection logs were not kept, so the exact severities there are not on record. They are consistent with the projected severity crossing about 0.41. This is a Pulse-side limit for this patient's configuration (EF 40, cardiac_stress + Exercise), not a general threshold. In the same check, a different patient (P_TEST) completed cardiac_stress projections at 0.49–0.54. The `acute_deterioration` crash zone (0.6–0.85) is documented separately (methodology §5/§7).
+In fresh mode (all flags off), DEMO 5 (severity 0.401) has all three projection horizons come back `failed`. The 2026-10-09 fresh-clone check (`docs/HANDOFF.md` §9) recorded the projected severities from `GET /patients/{id}/projection`: **0.409 (+7 d), 0.418 (+14 d) and 0.438 (+30 d), all `failed`**. These are the same three values that crashed in the continuous check. This is a Pulse-side limit for this patient's configuration (EF 40, cardiac_stress + Exercise), not a general threshold. In the same check, a different patient (P_TEST) completed cardiac_stress projections at 0.49–0.54. The `acute_deterioration` crash zone (0.6–0.85) is documented separately (methodology §5/§7).
 
 ### 7.4 Unverified claim: "0.495 constant severity"
 
