@@ -2226,3 +2226,27 @@ manually from real EF/diagnosis) or the R-J-to-compliance/amplitude-to-complianc
 mappings against outcomes (single-study citations, not independently validated here). See
 `docs/bcg_validation_note.md`'s Limitations section for the full list, including the M-mode-vs-
 Simpson's-biplane EF measurement-method inconsistency across this project's data sources.
+
+## 13. Continuous mode: known differences from fresh mode (v1.2 demo check, 2026-10-08/09)
+
+Full detail, tables and sources: `docs/research_flags_evaluation.md` §7. In summary:
+
+- **Day 1 is not the fresh-mode simulation.** Continuous day 1 (`run_initial()` →
+  `build_initial_scenario()`) applies only the base `CardiovascularMechanicsModification`. It has no
+  scenario-specific extras and no Exercise, which are applied only on resumed days. Day-1 risk
+  therefore differs from fresh mode for Exercise-triggering labels: DEMO 2 is 0.736 fresh vs 0.487
+  continuous day 1, and DEMO 5 is 0.770 vs 0.487. The scenario-test harness's monitored day 1 went
+  through the same `run_initial()` (`simulation_time_s = 660` on every day-1 row). The three series
+  with an Exercise label on day 1 (P04/47, P07/42, P10/44) had no exertion response until day 2.
+  "First Exercise day" in `docs/followup_analysis_2026-10-05.md` counts labels, not applied
+  Exercise.
+- **Risk drifts upward over resumed days with an unchanged label.** DEMO 3 went from 0.024 LOW to
+  0.639 MODERATE / NYHA IV and DEMO 4 from 0.508 MODERATE to 0.937 HIGH over days 21–24, with flat
+  or falling severity and no Exercise. DEMO 1 and the 14-day flat patient
+  (`docs/integration_pre_results.md` §14) did not drift. The cause within resume is not pinned down.
+- **DEMO 5's projections crash in Pulse from about severity 0.41 with Exercise.** 0.340–0.402
+  completed; 0.409/0.418/0.438 failed with a negative RightHeart volume and an irreversible state.
+- **"0.495 constant severity" is unverified.** No source run has been found (§7.4 of the flags doc).
+
+Continuous-mode risk is not calibrated (`risk_score` was calibrated on fresh-mode semantics) and is
+for demonstration only.
