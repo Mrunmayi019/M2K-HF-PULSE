@@ -1,0 +1,2 @@
+# sha256sum -c fails on CRLF lines; keep hash manifests LF on every platform.
+*.sha256 text eol=lf
