@@ -1,0 +1,25 @@
+Model hash check: OK (models/*.joblib matches artifacts/results-v1/models/)
+[P05 seed=52] DB: /workspace/results/scenario_tests/exp2/dbs/P05_seed52.db
+[P05 seed=52] warm-up day 1/1: complete (not scored)
+[P05 seed=52] day  1: complete wall=  74.8s scenario=stable severity=0.0589966666666667 risk=0.0013 alert=False(none) lag=0
+[P05 seed=52] day  2: complete wall=  72.8s scenario=stable severity=0.06269333333333335 risk=0.002 alert=False(none) lag=0
+[P05 seed=52] day  3: complete wall=  73.9s scenario=stable severity=0.06636666666666673 risk=0.0 alert=False(none) lag=0
+[P05 seed=52] day  4: complete wall=  67.2s scenario=stable severity=0.13135666666666665 risk=0.0051 alert=False(none) lag=0
+[P05 seed=52] day  5: complete wall=  77.7s scenario=cardiac_stress severity=0.1398633333333333 risk=0.5 alert=False(none) lag=0
+[P05 seed=52] day  6: complete wall=  88.2s scenario=deconditioning severity=0.16703000000000004 risk=0.8985 alert=True(scorer) lag=0
+[P05 seed=52] day  7: complete wall=  89.4s scenario=deconditioning severity=0.18522000000000022 risk=0.8135 alert=True(scorer) lag=0
+[P05 seed=52] day  8: complete wall=  89.3s scenario=deconditioning severity=0.265706666666667 risk=0.7648 alert=True(scorer) lag=0
+[P05 seed=52] day  9: complete wall=  84.6s scenario=deconditioning severity=0.3639566666666668 risk=0.7883 alert=True(scorer) lag=0
+[P05 seed=52] day 10: complete wall=  80.3s scenario=deconditioning severity=0.4147499999999997 risk=0.9223 alert=True(scorer) lag=0
+[P05 seed=52] day 11: complete wall=  80.1s scenario=deconditioning severity=0.4370666666666665 risk=0.9215 alert=True(scorer) lag=0
+[P05 seed=52] day 12: complete wall=  84.1s scenario=deconditioning severity=0.6119133333333339 risk=0.9366 alert=True(scorer) lag=0
+[P05 seed=52] day 13: complete wall=  76.1s scenario=deconditioning severity=0.7018766666666669 risk=0.9219 alert=True(scorer) lag=0
+[P05 seed=52] day 14: complete wall=  77.9s scenario=deconditioning severity=0.7862066666666665 risk=0.9294 alert=True(scorer) lag=0
+[P05 seed=52] day 15: complete wall=  74.1s scenario=deconditioning severity=0.7285333333333336 risk=0.9225 alert=True(scorer) lag=0
+[P05 seed=52] day 16: complete wall=  71.8s scenario=deconditioning severity=0.6021300000000003 risk=0.9218 alert=True(scorer) lag=0
+[P05 seed=52] day 17: complete wall=  71.7s scenario=deconditioning severity=0.5986700000000003 risk=0.9207 alert=True(scorer) lag=0
+[P05 seed=52] day 18: complete wall=  75.3s scenario=deconditioning severity=0.5841966666666671 risk=0.9128 alert=True(scorer) lag=0
+[P05 seed=52] day 19: complete wall=  80.0s scenario=deconditioning severity=0.5757000000000003 risk=0.918 alert=True(scorer) lag=0
+[P05 seed=52] day 20: complete wall=  68.4s scenario=deconditioning severity=0.5724000000000004 risk=0.9327 alert=True(scorer) lag=0
+[P05 seed=52] day 21: complete wall=  67.0s scenario=deconditioning severity=0.5718133333333336 risk=0.9079 alert=True(scorer) lag=0
+[P05 seed=52] wrote /workspace/results/scenario_tests/exp2/daily_results_P05_seed52.csv (21 rows, 0 failed days)
