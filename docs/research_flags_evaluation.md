@@ -221,3 +221,57 @@ What the checks confirm:
 - All 6 states, 6 runs and 6 assessments were kept.
 
 Wall times include the 3 forward-projection Pulse runs the API does every day. The scenario harness skips those, so it makes 1 Pulse call per day instead of 4.
+
+## 7. Continuous mode: what the v1.2 demo check found (2026-10-08/09)
+
+The five seeded demo patients were run through `PIPELINE_MODE=continuous` on real Pulse 4.3.1 (all other flags off): day 21 is the initial run and days 22–24 are resumed runs, with the 3 extra days holding the day-21 wearable trend values. The raw per-day API output is in `D:\pulse-release-work\results\run2_continuous.log` on the demo PC, together with the in-container Pulse files (`run2_container_files/`). Those files are **not in git**. Nothing here was rerun for this note.
+
+### 7.1 Day 1 (`run_initial`) is not the fresh-mode run
+
+`run_initial()` (`src/pulse_runner/cli_state_runner.py:123`) builds its scenario with `build_initial_scenario()` (`src/pulse_runner/cli_state_scenario.py:73`). That scenario contains:
+- stabilisation,
+- the base `CardiovascularMechanicsModification` from `ef_to_cardiovascular_modifiers(EF, severity)`, plus the BCG extras only when that flag is on,
+- the 600 s advance.
+
+It has **no scenario-specific extras** (fluid_overload's `VenousComplianceMultiplier`, cardiac_stress's `HeartRateMultiplier`, deconditioning's resistance/compliance cuts, acute_deterioration's combination) and **no Exercise**. Fresh mode builds the full set through `scenario_file._scenario_actions()`. So day 1 of continuous mode scores a different simulation than fresh mode does for the same inputs.
+
+| Patient | Label (day 21) | Fresh risk | Continuous day-1 risk | Why |
+|---|---|---|---|---|
+| DEMO 1 | stable | 0.006 LOW | 0.000 LOW | stable has no extras either |
+| DEMO 2 | acute_deterioration | **0.736 HIGH** | **0.487 MODERATE** | no Exercise; only the EF ≤ 40 baseline deficit is left |
+| DEMO 3 | deconditioning | 0.055 LOW | 0.024 LOW | no resistance/compliance extras |
+| DEMO 4 | fluid_overload | 0.508 MODERATE | 0.508 MODERATE | the venous-compliance extra did not change the score here |
+| DEMO 5 | cardiac_stress | **0.770 HIGH** | **0.487 MODERATE** | no Exercise |
+
+Fresh values are from `docs/demo_walkthrough.md` (all flags off); continuous values are from `run2_continuous.log` (DEMO 2/5's 0.487 is shown as 0.49 in the walkthrough). Exercise is applied only on resumed days (`build_resume_scenario()`), based on that day's label.
+
+**The scenario-test harness used the same day 1.** `src/evaluation/scenario_tests/run_patient_seed.py` calls `run_daily_continuous_pipeline()` on a fresh per-patient-seed database, so monitored day 1 has no saved state and goes through `run_initial()`. Every day-1 row in `results/scenario_tests/daily_results_P??_seed4?.csv` has `simulation_time_s = 660` (60 s stabilisation + 600 s). Three of the 60 series had an Exercise-triggering label on day 1:
+
+| Series | Day-1 label | Day-1 HR start → end | Day-1 MAP end | Day-1 bucket | Day 2 (label, HR end, bucket) |
+|---|---|---|---|---|---|
+| P04 seed 47 | cardiac_stress | 72.0 → 73.9 | 95.3 | LOW | cardiac_stress, 129.9, MODERATE |
+| P07 seed 42 | cardiac_stress | 72.0 → 73.1 | 95.2 | LOW | cardiac_stress, 154.7, HIGH |
+| P10 seed 44 | cardiac_stress | 72.0 → 72.4 | 95.3 | LOW | cardiac_stress, 162.5, HIGH |
+
+None of the three shows an exertion response on day 1; it appears on day 2. `src/evaluation/scenario_tests/followup_analysis.py` counts the "first Exercise day" from the label (`predicted_scenario in EXERCISE_SCENARIOS`), not from whether Exercise was applied. The one day-1 entry in `docs/followup_analysis_2026-10-05.md` §3 (P04 seed 47, "first Exercise day 1") therefore means the first Exercise-triggering **label**. Exercise was first **applied** on day 2. That doc's "0 violations" check still holds with "applied" in place of "labelled": in all three series, the first MODERATE/HIGH day is day 2 or later, on a day when Exercise was applied.
+
+### 7.2 Risk drifts upward over resumed days with the same label
+
+| Patient | Day 21 (initial) | Day 22 | Day 23 | Day 24 |
+|---|---|---|---|---|
+| DEMO 3 (deconditioning, EF defaulted to 62) | severity 0.665, risk 0.024 LOW, NYHA II | 0.660, 0.053 LOW, II | 0.712, 0.142 LOW, II | 0.660, **0.639 MODERATE / WATCH, NYHA IV** |
+| DEMO 4 (fluid_overload, EF 35) | severity 0.699, risk 0.508 MODERATE, NYHA III | 0.691, 0.639 MODERATE, III | 0.652, 0.686 **HIGH / ALERT**, IV | 0.639, 0.937 HIGH / ALERT, IV |
+
+The label stayed the same and neither label adds Exercise, while severity was flat or falling, yet risk rose every day. **No drift:** DEMO 1 (stable, EF 58; risk 0.000–0.005, LOW / NYHA I on all four days) and the 14-day flat patient in `docs/integration_pre_results.md` §14 (risk 0.0000–0.0070, LOW / NYHA I / no alert on all 14 days). During the check, `map_start` was seen falling on each resume, which raises `baseline_deficit_score`. The per-day `map_start` values were not saved in the log. **Where inside resume this comes from has not been pinned down.** The candidates are the daily `CardiovascularMechanicsModification` reissue (`docs/continuous_state_sync_status.md` §2.4 found real drift specific to that modification), the different meaning of day-2+ deltas (module docstring of `src/api/continuous_state_pipeline.py`) and Pulse's own state evolution. None has been isolated.
+
+### 7.3 DEMO 5's forward projections crash in Pulse from about severity 0.41 with Exercise
+
+The +7/+14/+30-day projections run a separate Pulse scenario at the projected severity with the patient's label (cardiac_stress, so Exercise is added). DEMO 5's projection files from the continuous check (`run2_container_files/continuous_state/d02088d8-…/projection/`):
+- severity **0.340–0.402** (8 runs): all completed to 660 s;
+- severity **0.409, 0.418, 0.438**: all failed. The Pulse log reports a negative RightHeart volume (−2,712 to −27,936 mL), then `IrreversibleState` at about 155 s simulated time, about 95 s into the Exercise action.
+
+In the fresh-mode demo run (all flags off, 2026-10-08), DEMO 5 (severity 0.401) had all three projection horizons come back `failed`. The fresh-mode projection logs were not kept, so the exact severities there are not on record. They are consistent with the projected severity crossing about 0.41. This is a Pulse-side limit for this patient's configuration (EF 40, cardiac_stress + Exercise), not a general threshold. In the same check, a different patient (P_TEST) completed cardiac_stress projections at 0.49–0.54. The `acute_deterioration` crash zone (0.6–0.85) is documented separately (methodology §5/§7).
+
+### 7.4 Unverified claim: "0.495 constant severity"
+
+A "0.495 constant severity" result has been mentioned in discussion of continuous-mode drift. **No source run for it has been found.** On 2026-10-09 a search of every committed `.md`/`.txt`/`.tex` file on `main` and all remote branches, the sibling worktrees and the demo-PC result folder found no occurrence of 0.495 as a severity. Treat it as **unverified** and do not cite it unless the run that produced it is found.

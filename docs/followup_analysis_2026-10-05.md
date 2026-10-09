@@ -144,6 +144,8 @@ unprompted large moves, not just a flat carry-forward.**
 | P08 | 46 | stable:5, cardiac_stress:13, deconditioning:3 | 5 | 5 | 6 |
 | P08 | 47 | stable:6, cardiac_stress:13, deconditioning:2 | 5 | 5 | 6 |
 
+**Note added 2026-10-09:** "first Exercise day" here is the first day with an Exercise-triggering **label**. Monitored day 1 goes through `run_initial()`, which never applies Exercise, so P04 seed 47's "1" means labelled on day 1 and Exercise first applied on day 2 (day-1 HR 72.0 → 73.9, MAP flat, LOW). See `docs/research_flags_evaluation.md` §7.1. The "0 violations" check above still holds with applied Exercise.
+
 (`acute_deterioration` never appears for any of these four patients in any seed -- only
 `cardiac_stress` actually fires Exercise for this group; both are counted in the global check.)
 
