@@ -135,7 +135,10 @@ Using the real `decide_alert()` output (not the raw `risk_bucket` shortcut
   P04 2/6, P05 1/6, P07 **0/6** (P07's early false ALERT, §1, disqualifies every one of its 6
   seeds from this strict count, even though all 6 also show a genuine post-day-10 ALERT).
 - **should_catch, any ALERT on/after perturbation start (weaker -- ignores earlier false
-  alerts): 21/30 patient-seed series.** P06, P07, P10: 6/6 each. P04: 3/6. P05: 0/6.
+  alerts): 21/30 patient-seed series.** P06, P07, P10: 6/6 each. P04: 2/6. P05: 1/6.
+  *(Corrected 2026-10-09: this line previously read P04 3/6, P05 0/6. Recomputed from the saved
+  per-seed CSVs, seeds 42-47: P04 first alerts on days 8 and 10 in 2 seeds; P05 on day 6 in 1
+  seed. The total, 21/30, was already right.)*
 - **should_stay_quiet, series with any ALERT (any day): 8/18 patient-seed series** (3 patients x
   6 seeds). P08: 6/6 (every seed). P01: 1/6 (seed 47 only). P09: 1/6 (seed 47 only).
 
