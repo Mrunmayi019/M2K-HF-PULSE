@@ -1,6 +1,20 @@
 # Demo walkthrough: the five seeded demo patients
 
-What each demo patient (seeded by `scripts/seed_demo_patients.py`) shows on the dashboard, and **why**. Values were read on 2026-10-06 from the demo stack (`docker compose`, merged `main` at `ed44979`, frozen `artifacts/results-v1` models, real Pulse runs).
+What each demo patient (seeded by `scripts/seed_demo_patients.py`) shows on the dashboard, and **why**. Values were first read on 2026-10-06 from the demo stack (`docker compose`, merged `main` at `ed44979`, frozen `artifacts/results-v1` models, real Pulse runs). They were re-checked for v1.2 on 2026-10-08 (`main` at `4e3f0ee`, all feature flags off): all five patients reproduced the same scenario, severity, risk score, bucket, NYHA class and alert.
+
+## Presenting each patient
+
+Start the stack (`docker compose up -d`), seed once (`python scripts/seed_demo_patients.py`, about 5–10 minutes per patient), and open http://localhost:3000. Every step below is on the **Patient Dashboard** tab: click the patient's name in the **PATIENTS** list in the left sidebar, then read the page from top to bottom.
+
+| Patient | What to click and point at | What appears (all flags off) | What it shows about the system, honestly |
+|---|---|---|---|
+| DEMO 1 - Stable (EF 58) | The hero card, then the **Forward Projection** cards. | Green **LOW RISK**, NYHA I, Twin: NONE, ML severity: NONE, "This patient is stable — no action needed beyond routine monitoring." Projections stay LOW at +7/+14/+30 days. | A normal heart with a flat trend stays quiet. That is the baseline, and it is not evidence that the system catches anything. |
+| DEMO 2 - EF 30, rising HR -> acute deterioration | Hero card (red), then **Cardiac Waveform** (PV loop), then **Clinical Summary Report**. | Red **HIGH RISK**, NYHA IV, Twin: ALERT, ML severity: ALERT, "Significant deterioration detected — clinical follow-up is recommended today." | HIGH comes from the classifier choosing an Exercise-triggering label; the simulated exertion pushes MAP below 65. EF 30 alone would only give MODERATE, so the alert depends on the label more than on the size of the trend. |
+| DEMO 3 - EF not measured | Hero card: both signal chips and the "Signals disagree" line, then the EF warning in **Current Condition**. | **LOW RISK**, Twin: NONE, ML severity: ALERT (0.66), "Signals disagree — review this patient.", plus the "EF not measured, healthy default used" warning. | Without a measured EF the twin simulates a healthy heart and sees nothing. The dashboard surfaces the disagreement instead of hiding it, but it cannot resolve which signal is right. |
+| DEMO 4 - Fluid-overload trend | Hero card (amber), then the **Vitals** table (weight trend). | Amber **MODERATE**, NYHA III, Twin: WATCH, ML severity: ALERT, "Some signs of strain detected — monitor closely and review symptoms." | The weight gain sets the fluid_overload label, but MODERATE comes from EF 35 alone. The run itself changes nothing, so WATCH is effectively always on for EF ≤ 40. |
+| DEMO 5 - Cardiac-stress trend | Hero card (red), then scroll to **Forward Projection**. | Red **HIGH RISK**, NYHA IV, Twin: ALERT, ML severity: ALERT. In the 2026-10-08 run all three projection horizons (+7/+14/+30 d) came back **failed**, so the cards have no risk bucket. | A modest cardiac_stress trend is enough for HIGH through the Exercise action. The failed projections are a reminder that Pulse runs can fail, and the dashboard shows them as failed rather than inventing a value. |
+
+If a projection or assessment shows **failed**, say so. It is the designed, visible outcome of a Pulse run that did not complete, not a frozen screen.
 
 How each column was obtained:
 - **EF / NT-proBNP entered**: the seed script's input. "blank" means omitted, so the API applied the Tier-1 fallback (EF 62%).
@@ -78,3 +92,37 @@ This matches `docs/gap_report.md` G3/G4 and `docs/unified_alert_evaluation.md` (
 - Same inputs can give a different label: noise in the 21-day trend matters. An earlier run with the same EF/BNP and "Mild Decline" preset but different noise was classified deconditioning at 0.587, which came out MODERATE, NYHA III. The seed script uses fixed seeds, so these five results are reproducible.
 - DEMO 2 was originally labelled "EF 30, mild decline", after the input preset. It was renamed because what the dashboard shows is an acute-deterioration ALERT, not a mild decline.
 - All five patients are synthetic and labelled DEMO. None represents a real person.
+
+## Demoing continuous mode and the reset button
+
+Continuous mode carries each patient's Pulse state forward from one day to the next, instead of rebuilding the twin on every run. It is experimental and off by default. To demo it:
+
+1. Start the backend with `PIPELINE_MODE=continuous` (every other flag off), for example by adding `PIPELINE_MODE: continuous` under `pulse-backend.environment` in a compose override file. Use a fresh database volume so the seed script doesn't skip patients that already exist.
+2. Seed the patients, then send one more daily wearable reading per patient (`POST /patients/{id}/wearable-sync`, dated after the newest one). Each new day starts one ~600 s Pulse encounter that resumes from the saved state, about 4–8 minutes per day.
+3. On the Patient Dashboard a **Twin State** panel appears (it is hidden when every flag is off). It shows the pipeline mode, when the current state started, days in this state, `engine_lag_days` and days since the last Exercise-triggering label.
+4. Click **Reset twin state**, then **Confirm reset**. The panel shows "Reset: fresh start on next run" and days in this state drops to 0. The next reading starts a new state, while all history, runs and assessments are kept.
+
+What the 2026-10-08/09 check showed: day 21 is the initial run, days 22–24 are resumed runs, and the 3 extra days held the day-21 trend values.
+
+| Patient | Day 21 (initial) | Day 22 | Day 23 | Day 24 |
+|---|---|---|---|---|
+| DEMO 1 | LOW / NONE | LOW / NONE | LOW / NONE | LOW / NONE |
+| DEMO 2 | MODERATE 0.49 / WATCH | HIGH 0.71 / ALERT | HIGH 1.00 / ALERT (label now deconditioning) | HIGH 1.00 / ALERT (deconditioning) |
+| DEMO 3 | LOW 0.02, signals disagree | LOW 0.05 | LOW 0.14 | **MODERATE 0.64 / WATCH, NYHA IV** |
+| DEMO 4 | MODERATE 0.51 / WATCH | MODERATE 0.64 | HIGH 0.69 / ALERT | HIGH 0.94 / ALERT |
+| DEMO 5 | MODERATE 0.49 / WATCH | MODERATE 0.56 / WATCH | HIGH 1.00 / ALERT | HIGH 1.00 / ALERT |
+
+All 20 runs completed, and `engine_lag_days` stayed 0. After **Reset twin state** on DEMO 1, the next day started a new state: `state_days` went 4 → 0 → 1, a new `state_started_at`, and simulated time went back from 2,460 s to 660 s.
+
+Be honest about these limits when you present it:
+- **The first continuous day differs from fresh mode.** The initial run applies no Exercise, so DEMO 2 and DEMO 5 start at MODERATE / WATCH. They only reach HIGH once Exercise is applied on a resumed day.
+- **Exercise persists.** Once applied, it stays in the saved state. DEMO 2 stays at risk 1.00 on days 23–24 even though the label changed to deconditioning, which never adds Exercise.
+- **Risk drifts upward without any new label.** DEMO 3 (deconditioning, defaulted EF) went from LOW to MODERATE / NYHA IV, and DEMO 4 (fluid_overload) from 0.51 to 0.94, over three days with the same label and no Exercise; DEMO 1 (EF 58) did not drift. The cause has not been investigated. Day-2+ deltas measure a different quantity than the from-scratch calibration (`src/api/continuous_state_pipeline.py` docstring), and `docs/gap_report.md` G1 flags compounding drift. Do not present continuous-mode risk as clinically calibrated.
+- There is no automatic reset rule: only the button resets the state.
+
+## Running the demo on Windows
+
+- **Docker storage on D:.** Docker Desktop's disk image is at `D:\dockerData\DockerDesktopWSL\disk\docker_data.vhdx` (about 21 GB with these images). Keep it off C: if C: is nearly full (Docker Desktop → Settings → Resources → Advanced → Disk image location).
+- **Temp and cache folders.** Point TEMP/TMP, `PIP_CACHE_DIR` and the npm cache (`npm config set cache D:\npm-cache`) at D:. Docker Desktop also downloads its own updates into `%LOCALAPPDATA%\Temp\DockerDesktopUpdates` on C: (about 600 MB); turn off automatic update checks if C: space matters.
+- **Avast.** Avast Web Shield's HTTPS scanning intercepts TLS, and `docker compose build` then fails in pip with `CERTIFICATE_VERIFY_FAILED` or corrupt downloads. Turn off "Enable HTTPS scanning" before building and turn it back on afterwards.
+- **Memory.** Docker had 8 GB; one Pulse run used about 0.3 GB of container memory at 100% of one CPU. Run the seed patients one at a time (the seed script already does), and keep the laptop plugged in and awake: if it sleeps, Pulse pauses and the wait can time out. Windows may grow the pagefile on C: during long runs.
