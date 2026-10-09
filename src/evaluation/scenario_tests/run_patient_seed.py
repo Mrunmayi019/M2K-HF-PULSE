@@ -57,6 +57,10 @@ OUTPUT_DIR = REPO_ROOT / "results" / "scenario_tests"
 if os.environ.get("SCENARIO_TEST_OUTPUT_DIR"):
     OUTPUT_DIR = pathlib.Path(os.environ["SCENARIO_TEST_OUTPUT_DIR"])
     DB_DIR = OUTPUT_DIR / "dbs"
+# Experiment 2 (results/scenario_tests/exp2/PREREGISTRATION.md) points this at
+# config/scenario_tests/cohort_exp2.yaml. Unset leaves the Experiment 1 cohort.
+if os.environ.get("SCENARIO_TEST_COHORT"):
+    COHORT_PATH = pathlib.Path(os.environ["SCENARIO_TEST_COHORT"])
 
 BASELINE_DAYS = 21
 MONITORED_DAYS = 21
@@ -108,6 +112,11 @@ def verify_model_hashes():
 def load_patient_cohort(patient_id):
     cohort = yaml.safe_load(COHORT_PATH.read_text())
     return cohort["patients"][patient_id]
+
+
+def load_warmup_days():
+    """meta.warmup_days from the cohort file; 0 (Experiment 1 behaviour) when absent."""
+    return int(yaml.safe_load(COHORT_PATH.read_text())["meta"].get("warmup_days", 0))
 
 
 def _population_noise_sds():
@@ -221,6 +230,20 @@ def run(patient_id, seed):
     base_date = datetime.date(2026, 1, 1)
     add_baseline_window(db, patient_id, cfg, rng, base_date)
 
+    # Experiment 2 harness-only warm-up: the continuous pipeline's first call is run_initial(),
+    # which applies only the base CardiovascularMechanicsModification -- no scenario extras, no
+    # Exercise (docs/research_flags_evaluation.md Sec 7.1). Running warm-up days at baseline
+    # wearable levels first means every scored monitored day is a resumed run. Warm-up days are
+    # never written to the CSV. System code (run_initial, the pipeline) is unchanged.
+    warmup_days = load_warmup_days()
+    base = cfg["baseline_wearable"]
+    for w in range(warmup_days):
+        warmup_row = {k: base[k] for k in ("resting_hr_bpm", "weight_kg", "steps_per_day", "sleep_hours", "hrv_rmssd_ms")}
+        add_monitored_reading(db, patient_id, cfg, warmup_row, base_date + datetime.timedelta(days=BASELINE_DAYS + w), rng)
+        warmup_state = run_daily_continuous_pipeline(patient_id, db, compute_projection=False)
+        print(f"[{patient_id} seed={seed}] warm-up day {w + 1}/{warmup_days}: "
+              f"{'complete' if warmup_state is not None else 'failed'} (not scored)", flush=True)
+
     rows = []
     engine_lag_days = 0
     captured = {}
@@ -232,7 +255,7 @@ def run(patient_id, seed):
 
     for i, day_row in enumerate(cfg["monitored_day_schedule"]):
         day = day_row["day"]
-        calendar_day = base_date + datetime.timedelta(days=BASELINE_DAYS + i)
+        calendar_day = base_date + datetime.timedelta(days=BASELINE_DAYS + warmup_days + i)
         wearable_values = add_monitored_reading(db, patient_id, cfg, day_row, calendar_day, rng)
 
         captured.clear()
