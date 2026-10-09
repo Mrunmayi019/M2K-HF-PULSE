@@ -1,0 +1,982 @@
+{
+ "exp1": {
+  "label_accuracy": 0.1762,
+  "label_accuracy_pre_onset_stable": 0.1976,
+  "patient_days": 1260,
+  "failed_pulse_days": 3,
+  "failed_as_no_alert": {
+   "deployed": {
+    "sensitivity": [
+     21,
+     30,
+     0.521,
+     0.833
+    ],
+    "pre_onset_alerts_per_100": 31.7,
+    "pre_onset_days": [
+     40,
+     126
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     14,
+     30
+    ],
+    "fa_per_100pd": [
+     8.7,
+     3.4,
+     16.1
+    ],
+    "quiet_silent": [
+     10,
+     18
+    ],
+    "per_patient": {
+     "P04": 2,
+     "P05": 1,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 5,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "pulse_high": {
+    "sensitivity": [
+     21,
+     30,
+     0.521,
+     0.833
+    ],
+    "pre_onset_alerts_per_100": 31.7,
+    "pre_onset_days": [
+     40,
+     126
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     14,
+     30
+    ],
+    "fa_per_100pd": [
+     24.1,
+     10.8,
+     38.1
+    ],
+    "quiet_silent": [
+     10,
+     18
+    ],
+    "per_patient": {
+     "P04": 2,
+     "P05": 1,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 5,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "rf_0.55": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     126
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     30,
+     30
+    ],
+    "fa_per_100pd": [
+     8.5,
+     3.7,
+     13.8
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 3
+    }
+   },
+   "rf_0.15": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 43.7,
+    "pre_onset_days": [
+     55,
+     126
+    ],
+    "pre_onset_series": [
+     14,
+     30
+    ],
+    "strict": [
+     16,
+     30
+    ],
+    "fa_per_100pd": [
+     60.1,
+     45.0,
+     74.3
+    ],
+    "quiet_silent": [
+     0,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 0,
+     "P08": 0,
+     "P09": 0
+    }
+   },
+   "label_rule": {
+    "sensitivity": [
+     19,
+     30,
+     0.455,
+     0.781
+    ],
+    "pre_onset_alerts_per_100": 38.9,
+    "pre_onset_days": [
+     49,
+     126
+    ],
+    "pre_onset_series": [
+     16,
+     30
+    ],
+    "strict": [
+     6,
+     30
+    ],
+    "fa_per_100pd": [
+     18.8,
+     8.2,
+     30.4
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 3,
+     "P05": 1,
+     "P06": 6,
+     "P07": 3,
+     "P10": 6,
+     "P01": 4,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "weight_rule": {
+    "sensitivity": [
+     2,
+     30,
+     0.018,
+     0.213
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     126
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     2,
+     30
+    ],
+    "fa_per_100pd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quiet_silent": [
+     18,
+     18
+    ],
+    "per_patient": {
+     "P04": 1,
+     "P05": 0,
+     "P06": 0,
+     "P07": 0,
+     "P10": 1,
+     "P01": 6,
+     "P08": 6,
+     "P09": 6
+    }
+   }
+  },
+  "failed_as_alert": {
+   "deployed": {
+    "sensitivity": [
+     21,
+     30,
+     0.521,
+     0.833
+    ],
+    "pre_onset_alerts_per_100": 31.7,
+    "pre_onset_days": [
+     40,
+     126
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     14,
+     30
+    ],
+    "fa_per_100pd": [
+     8.7,
+     3.4,
+     16.1
+    ],
+    "quiet_silent": [
+     10,
+     18
+    ],
+    "per_patient": {
+     "P04": 2,
+     "P05": 1,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 5,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "pulse_high": {
+    "sensitivity": [
+     21,
+     30,
+     0.521,
+     0.833
+    ],
+    "pre_onset_alerts_per_100": 31.7,
+    "pre_onset_days": [
+     40,
+     126
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     14,
+     30
+    ],
+    "fa_per_100pd": [
+     24.1,
+     10.8,
+     38.1
+    ],
+    "quiet_silent": [
+     10,
+     18
+    ],
+    "per_patient": {
+     "P04": 2,
+     "P05": 1,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 5,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "rf_0.55": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     126
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     30,
+     30
+    ],
+    "fa_per_100pd": [
+     8.5,
+     3.7,
+     13.8
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 3
+    }
+   },
+   "rf_0.15": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 43.7,
+    "pre_onset_days": [
+     55,
+     126
+    ],
+    "pre_onset_series": [
+     14,
+     30
+    ],
+    "strict": [
+     16,
+     30
+    ],
+    "fa_per_100pd": [
+     60.1,
+     45.0,
+     74.3
+    ],
+    "quiet_silent": [
+     0,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 0,
+     "P08": 0,
+     "P09": 0
+    }
+   },
+   "label_rule": {
+    "sensitivity": [
+     19,
+     30,
+     0.455,
+     0.781
+    ],
+    "pre_onset_alerts_per_100": 38.9,
+    "pre_onset_days": [
+     49,
+     126
+    ],
+    "pre_onset_series": [
+     16,
+     30
+    ],
+    "strict": [
+     6,
+     30
+    ],
+    "fa_per_100pd": [
+     18.8,
+     8.2,
+     30.4
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 3,
+     "P05": 1,
+     "P06": 6,
+     "P07": 3,
+     "P10": 6,
+     "P01": 4,
+     "P08": 0,
+     "P09": 5
+    }
+   },
+   "weight_rule": {
+    "sensitivity": [
+     2,
+     30,
+     0.018,
+     0.213
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     126
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     2,
+     30
+    ],
+    "fa_per_100pd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quiet_silent": [
+     18,
+     18
+    ],
+    "per_patient": {
+     "P04": 1,
+     "P05": 0,
+     "P06": 0,
+     "P07": 0,
+     "P10": 1,
+     "P01": 6,
+     "P08": 6,
+     "P09": 6
+    }
+   }
+  }
+ },
+ "exp2": {
+  "label_accuracy": 0.3714,
+  "label_accuracy_pre_onset_stable": 0.4151,
+  "patient_days": 1260,
+  "failed_pulse_days": 3,
+  "failed_as_no_alert": {
+   "deployed": {
+    "sensitivity": [
+     24,
+     30,
+     0.627,
+     0.905
+    ],
+    "pre_onset_alerts_per_100": 10.0,
+    "pre_onset_days": [
+     9,
+     90
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     17,
+     30
+    ],
+    "fa_per_100pd": [
+     4.8,
+     1.6,
+     7.9
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 2,
+     "P06": 6,
+     "P07": 5,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "pulse_high": {
+    "sensitivity": [
+     24,
+     30,
+     0.627,
+     0.905
+    ],
+    "pre_onset_alerts_per_100": 10.0,
+    "pre_onset_days": [
+     9,
+     90
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     17,
+     30
+    ],
+    "fa_per_100pd": [
+     18.8,
+     6.3,
+     31.5
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 2,
+     "P06": 6,
+     "P07": 5,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "rf_0.55": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     90
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     30,
+     30
+    ],
+    "fa_per_100pd": [
+     10.1,
+     4.8,
+     15.6
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 1,
+     "P09": 2
+    }
+   },
+   "rf_0.15": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 23.3,
+    "pre_onset_days": [
+     21,
+     90
+    ],
+    "pre_onset_series": [
+     14,
+     30
+    ],
+    "strict": [
+     16,
+     30
+    ],
+    "fa_per_100pd": [
+     61.1,
+     47.4,
+     73.8
+    ],
+    "quiet_silent": [
+     0,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 0,
+     "P08": 0,
+     "P09": 0
+    }
+   },
+   "label_rule": {
+    "sensitivity": [
+     23,
+     30,
+     0.591,
+     0.882
+    ],
+    "pre_onset_alerts_per_100": 24.4,
+    "pre_onset_days": [
+     22,
+     90
+    ],
+    "pre_onset_series": [
+     16,
+     30
+    ],
+    "strict": [
+     9,
+     30
+    ],
+    "fa_per_100pd": [
+     15.9,
+     5.6,
+     26.7
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 1,
+     "P06": 6,
+     "P07": 5,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "weight_rule": {
+    "sensitivity": [
+     0,
+     30,
+     0.0,
+     0.114
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     90
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     0,
+     30
+    ],
+    "fa_per_100pd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quiet_silent": [
+     18,
+     18
+    ],
+    "per_patient": {
+     "P04": 0,
+     "P05": 0,
+     "P06": 0,
+     "P07": 0,
+     "P10": 0,
+     "P01": 6,
+     "P08": 6,
+     "P09": 6
+    }
+   }
+  },
+  "failed_as_alert": {
+   "deployed": {
+    "sensitivity": [
+     25,
+     30,
+     0.664,
+     0.927
+    ],
+    "pre_onset_alerts_per_100": 10.0,
+    "pre_onset_days": [
+     9,
+     90
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     18,
+     30
+    ],
+    "fa_per_100pd": [
+     4.8,
+     1.6,
+     7.9
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 2,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "pulse_high": {
+    "sensitivity": [
+     25,
+     30,
+     0.664,
+     0.927
+    ],
+    "pre_onset_alerts_per_100": 10.0,
+    "pre_onset_days": [
+     9,
+     90
+    ],
+    "pre_onset_series": [
+     7,
+     30
+    ],
+    "strict": [
+     18,
+     30
+    ],
+    "fa_per_100pd": [
+     18.8,
+     6.3,
+     31.5
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 2,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "rf_0.55": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     90
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     30,
+     30
+    ],
+    "fa_per_100pd": [
+     10.1,
+     4.8,
+     15.6
+    ],
+    "quiet_silent": [
+     9,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 6,
+     "P08": 1,
+     "P09": 2
+    }
+   },
+   "rf_0.15": {
+    "sensitivity": [
+     30,
+     30,
+     0.886,
+     1.0
+    ],
+    "pre_onset_alerts_per_100": 23.3,
+    "pre_onset_days": [
+     21,
+     90
+    ],
+    "pre_onset_series": [
+     14,
+     30
+    ],
+    "strict": [
+     16,
+     30
+    ],
+    "fa_per_100pd": [
+     61.1,
+     47.4,
+     73.8
+    ],
+    "quiet_silent": [
+     0,
+     18
+    ],
+    "per_patient": {
+     "P04": 6,
+     "P05": 6,
+     "P06": 6,
+     "P07": 6,
+     "P10": 6,
+     "P01": 0,
+     "P08": 0,
+     "P09": 0
+    }
+   },
+   "label_rule": {
+    "sensitivity": [
+     23,
+     30,
+     0.591,
+     0.882
+    ],
+    "pre_onset_alerts_per_100": 24.4,
+    "pre_onset_days": [
+     22,
+     90
+    ],
+    "pre_onset_series": [
+     16,
+     30
+    ],
+    "strict": [
+     9,
+     30
+    ],
+    "fa_per_100pd": [
+     15.9,
+     5.6,
+     26.7
+    ],
+    "quiet_silent": [
+     12,
+     18
+    ],
+    "per_patient": {
+     "P04": 5,
+     "P05": 1,
+     "P06": 6,
+     "P07": 5,
+     "P10": 6,
+     "P01": 6,
+     "P08": 0,
+     "P09": 6
+    }
+   },
+   "weight_rule": {
+    "sensitivity": [
+     0,
+     30,
+     0.0,
+     0.114
+    ],
+    "pre_onset_alerts_per_100": 0.0,
+    "pre_onset_days": [
+     0,
+     90
+    ],
+    "pre_onset_series": [
+     0,
+     30
+    ],
+    "strict": [
+     0,
+     30
+    ],
+    "fa_per_100pd": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "quiet_silent": [
+     18,
+     18
+    ],
+    "per_patient": {
+     "P04": 0,
+     "P05": 0,
+     "P06": 0,
+     "P07": 0,
+     "P10": 0,
+     "P01": 6,
+     "P08": 6,
+     "P09": 6
+    }
+   }
+  }
+ }
+}

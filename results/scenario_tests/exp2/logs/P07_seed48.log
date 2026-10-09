@@ -1,0 +1,64 @@
+Model hash check: OK (models/*.joblib matches artifacts/results-v1/models/)
+[P07 seed=48] DB: /workspace/results/scenario_tests/exp2/dbs/P07_seed48.db
+[P07 seed=48] warm-up day 1/1: complete (not scored)
+[P07 seed=48] day  1: complete wall=  87.7s scenario=stable severity=0.12528666666666677 risk=0.0072 alert=False(none) lag=0
+[P07 seed=48] day  2: complete wall=  86.9s scenario=deconditioning severity=0.1847466666666667 risk=0.0016 alert=True(scorer) lag=0
+[P07 seed=48] day  3: complete wall=  90.9s scenario=deconditioning severity=0.22428333333333317 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day  4: complete wall=  89.4s scenario=deconditioning severity=0.2725133333333333 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day  5: complete wall=  88.0s scenario=deconditioning severity=0.3217866666666664 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day  6: complete wall=  87.7s scenario=deconditioning severity=0.601026666666667 risk=0.0011 alert=True(scorer) lag=0
+[P07 seed=48] day  7: complete wall=  89.2s scenario=deconditioning severity=0.7964033333333337 risk=0.0011 alert=True(scorer) lag=0
+[P07 seed=48] day  8: complete wall=  89.1s scenario=deconditioning severity=0.9027633333333331 risk=0.0008 alert=True(scorer) lag=0
+[P07 seed=48] day  9: complete wall=  92.1s scenario=deconditioning severity=0.90303 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day 10: complete wall=  89.3s scenario=deconditioning severity=0.9043166666666668 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day 11: complete wall=  89.6s scenario=deconditioning severity=0.90452 risk=0.0 alert=True(scorer) lag=0
+[P07 seed=48] day 12: complete wall=  88.8s scenario=deconditioning severity=0.9008166666666665 risk=0.0 alert=True(scorer) lag=0
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P07 (run_id=14)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmps6q2tro1/scenario.json
+stderr: 
+unfiltered fatal markers: ["[FATAL] [7954.76(s)] Can't transport with a negative volume included. Node = LeftHeart. Volume = -716.916 mL", '[INFO] [7954.76(s)] [Event IrreversibleState 1]  Patient has entered irreversible state']
+[P07 seed=48] day 13: failed   wall=  15.6s scenario=cardiac_stress severity=0.9010266666666666 risk=None alert=True(failed_fallback) lag=1
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P07 (run_id=15)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmpw66we1tc/scenario.json
+stderr: 
+unfiltered fatal markers: ["[FATAL] [7954.76(s)] Can't transport with a negative volume included. Node = LeftHeart. Volume = -716.916 mL", '[INFO] [7954.76(s)] [Event IrreversibleState 1]  Patient has entered irreversible state']
+[P07 seed=48] day 14: failed   wall=  16.0s scenario=cardiac_stress severity=0.9000699999999998 risk=None alert=True(failed_fallback) lag=2
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P07 (run_id=16)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 384, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmpjpx3toh6/scenario.json
+stderr: 
+unfiltered fatal markers: ["[FATAL] [7954.76(s)] Can't transport with a negative volume included. Node = LeftHeart. Volume = -716.916 mL", '[INFO] [7954.76(s)] [Event IrreversibleState 1]  Patient has entered irreversible state']
+[P07 seed=48] day 15: failed   wall=  16.1s scenario=cardiac_stress severity=0.9005499999999999 risk=None alert=True(failed_fallback) lag=3
+[P07 seed=48] day 16: complete wall=  90.1s scenario=deconditioning severity=0.9007666666666665 risk=0.0022 alert=True(scorer) lag=3
+[P07 seed=48] day 17: complete wall=  89.7s scenario=deconditioning severity=0.9013466666666666 risk=0.0 alert=True(scorer) lag=3
+[P07 seed=48] day 18: complete wall=  88.9s scenario=deconditioning severity=0.9018866666666667 risk=0.0001 alert=True(scorer) lag=3
+[P07 seed=48] day 19: complete wall=  89.3s scenario=deconditioning severity=0.9055833333333334 risk=0.0107 alert=True(scorer) lag=3
+[P07 seed=48] day 20: complete wall=  91.8s scenario=deconditioning severity=0.8766733333333334 risk=0.0016 alert=True(scorer) lag=3
+[P07 seed=48] day 21: complete wall=  91.6s scenario=deconditioning severity=0.6199466666666673 risk=0.0214 alert=True(scorer) lag=3
+[P07 seed=48] wrote /workspace/results/scenario_tests/exp2/daily_results_P07_seed48.csv (21 rows, 3 failed days)

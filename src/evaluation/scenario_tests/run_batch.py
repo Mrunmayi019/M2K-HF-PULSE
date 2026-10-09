@@ -26,6 +26,10 @@ LOG_DIR = REPO_ROOT / "results" / "scenario_tests" / "logs"
 # subprocess). Unset leaves everything where it was.
 if os.environ.get("SCENARIO_TEST_OUTPUT_DIR"):
     LOG_DIR = pathlib.Path(os.environ["SCENARIO_TEST_OUTPUT_DIR"]) / "logs"
+# Experiment 2: SCENARIO_TEST_COHORT=config/scenario_tests/cohort_exp2.yaml (inherited by every
+# subprocess, so run_patient_seed.py reads the same file and seeds 48-53 come from its meta).
+if os.environ.get("SCENARIO_TEST_COHORT"):
+    COHORT_PATH = pathlib.Path(os.environ["SCENARIO_TEST_COHORT"])
 MAX_PARALLEL = 6
 
 

@@ -1,0 +1,123 @@
+Batch: 10 patients x 6 seeds = 60 jobs, max 6 concurrent
+Launched P01 seed=48 (pid=7), 1/6 running, 59 queued
+Launched P01 seed=49 (pid=8), 2/6 running, 58 queued
+Launched P01 seed=50 (pid=9), 3/6 running, 57 queued
+Launched P01 seed=51 (pid=10), 4/6 running, 56 queued
+Launched P01 seed=52 (pid=11), 5/6 running, 55 queued
+Launched P01 seed=53 (pid=12), 6/6 running, 54 queued
+Finished P01 seed=48: OK in 1939s (5/6 running, 54 queued)
+Finished P01 seed=49: OK in 1939s (4/6 running, 54 queued)
+Finished P01 seed=50: OK in 1939s (3/6 running, 54 queued)
+Finished P01 seed=51: OK in 1939s (2/6 running, 54 queued)
+Launched P02 seed=48 (pid=3685), 3/6 running, 53 queued
+Launched P02 seed=49 (pid=3686), 4/6 running, 52 queued
+Launched P02 seed=50 (pid=3687), 5/6 running, 51 queued
+Launched P02 seed=51 (pid=3688), 6/6 running, 50 queued
+Finished P01 seed=52: OK in 1951s (5/6 running, 50 queued)
+Launched P02 seed=52 (pid=3869), 6/6 running, 49 queued
+Finished P01 seed=53: OK in 1963s (5/6 running, 49 queued)
+Launched P02 seed=53 (pid=3915), 6/6 running, 48 queued
+Finished P02 seed=51: OK in 1887s (5/6 running, 48 queued)
+Launched P03 seed=48 (pid=7363), 6/6 running, 47 queued
+Finished P02 seed=48: OK in 1889s (5/6 running, 47 queued)
+Finished P02 seed=50: OK in 1889s (4/6 running, 47 queued)
+Launched P03 seed=49 (pid=7373), 5/6 running, 46 queued
+Launched P03 seed=50 (pid=7374), 6/6 running, 45 queued
+Finished P02 seed=49: OK in 1895s (5/6 running, 45 queued)
+Launched P03 seed=51 (pid=7501), 6/6 running, 44 queued
+Finished P02 seed=52: OK in 1889s (5/6 running, 44 queued)
+Launched P03 seed=52 (pid=7547), 6/6 running, 43 queued
+Finished P02 seed=53: OK in 1893s (5/6 running, 43 queued)
+Launched P03 seed=53 (pid=7593), 6/6 running, 42 queued
+Finished P03 seed=48: OK in 1880s (5/6 running, 42 queued)
+Finished P03 seed=49: OK in 1878s (4/6 running, 42 queued)
+Launched P04 seed=48 (pid=11041), 5/6 running, 41 queued
+Launched P04 seed=49 (pid=11042), 6/6 running, 40 queued
+Finished P03 seed=50: OK in 1890s (5/6 running, 40 queued)
+Finished P03 seed=51: OK in 1884s (4/6 running, 40 queued)
+Launched P04 seed=50 (pid=11133), 5/6 running, 39 queued
+Launched P04 seed=51 (pid=11134), 6/6 running, 38 queued
+Finished P03 seed=52: OK in 1882s (5/6 running, 38 queued)
+Launched P04 seed=52 (pid=11171), 6/6 running, 37 queued
+Finished P03 seed=53: OK in 1896s (5/6 running, 37 queued)
+Launched P04 seed=53 (pid=11271), 6/6 running, 36 queued
+Finished P04 seed=50: OK in 1642s (5/6 running, 36 queued)
+Launched P05 seed=48 (pid=14719), 6/6 running, 35 queued
+Finished P04 seed=49: OK in 1670s (5/6 running, 35 queued)
+Launched P05 seed=49 (pid=14765), 6/6 running, 34 queued
+Finished P04 seed=48: OK in 1674s (5/6 running, 34 queued)
+Launched P05 seed=50 (pid=14784), 6/6 running, 33 queued
+Finished P04 seed=52: OK in 1664s (5/6 running, 33 queued)
+Launched P05 seed=51 (pid=14857), 6/6 running, 32 queued
+Finished P04 seed=51: OK in 1670s (5/6 running, 32 queued)
+Launched P05 seed=52 (pid=14867), 6/6 running, 31 queued
+Finished P04 seed=53: OK in 1662s (5/6 running, 31 queued)
+Launched P05 seed=53 (pid=14949), 6/6 running, 30 queued
+Finished P05 seed=48: OK in 1702s (5/6 running, 30 queued)
+Launched P06 seed=48 (pid=18397), 6/6 running, 29 queued
+Finished P05 seed=50: OK in 1700s (5/6 running, 29 queued)
+Launched P06 seed=49 (pid=18443), 6/6 running, 28 queued
+Finished P05 seed=51: OK in 1696s (5/6 running, 28 queued)
+Launched P06 seed=50 (pid=18453), 6/6 running, 27 queued
+Finished P05 seed=53: OK in 1702s (5/6 running, 27 queued)
+Launched P06 seed=51 (pid=18535), 6/6 running, 26 queued
+Finished P05 seed=49: OK in 1742s (5/6 running, 26 queued)
+Launched P06 seed=52 (pid=18545), 6/6 running, 25 queued
+Finished P05 seed=52: OK in 1738s (5/6 running, 25 queued)
+Launched P06 seed=53 (pid=18627), 6/6 running, 24 queued
+Finished P06 seed=48: OK in 1784s (5/6 running, 24 queued)
+Launched P07 seed=48 (pid=22075), 6/6 running, 23 queued
+Finished P06 seed=49: OK in 1790s (5/6 running, 23 queued)
+Launched P07 seed=49 (pid=22121), 6/6 running, 22 queued
+Finished P06 seed=50: OK in 1790s (5/6 running, 22 queued)
+Launched P07 seed=50 (pid=22131), 6/6 running, 21 queued
+Finished P06 seed=51: OK in 1792s (5/6 running, 21 queued)
+Finished P06 seed=52: OK in 1790s (4/6 running, 21 queued)
+Launched P07 seed=51 (pid=22213), 5/6 running, 20 queued
+Launched P07 seed=52 (pid=22214), 6/6 running, 19 queued
+Finished P06 seed=53: OK in 1800s (5/6 running, 19 queued)
+Launched P07 seed=53 (pid=22305), 6/6 running, 18 queued
+Finished P07 seed=48: OK in 1811s (5/6 running, 18 queued)
+Launched P08 seed=48 (pid=25348), 6/6 running, 17 queued
+Finished P07 seed=49: OK in 2067s (5/6 running, 17 queued)
+Finished P07 seed=50: OK in 2065s (4/6 running, 17 queued)
+Launched P08 seed=49 (pid=25853), 5/6 running, 16 queued
+Launched P08 seed=50 (pid=25854), 6/6 running, 15 queued
+Finished P07 seed=52: OK in 2059s (5/6 running, 15 queued)
+Launched P08 seed=51 (pid=25945), 6/6 running, 14 queued
+Finished P07 seed=51: OK in 2065s (5/6 running, 14 queued)
+Launched P08 seed=52 (pid=25991), 6/6 running, 13 queued
+Finished P07 seed=53: OK in 2055s (5/6 running, 13 queued)
+Launched P08 seed=53 (pid=26037), 6/6 running, 12 queued
+Finished P08 seed=48: OK in 2103s (5/6 running, 12 queued)
+Launched P09 seed=48 (pid=29080), 6/6 running, 11 queued
+Finished P08 seed=49: OK in 2067s (5/6 running, 11 queued)
+Launched P09 seed=49 (pid=29531), 6/6 running, 10 queued
+Finished P08 seed=50: OK in 2075s (5/6 running, 10 queued)
+Launched P09 seed=50 (pid=29577), 6/6 running, 9 queued
+Finished P08 seed=52: OK in 2067s (5/6 running, 9 queued)
+Launched P09 seed=51 (pid=29623), 6/6 running, 8 queued
+Finished P08 seed=51: OK in 2079s (5/6 running, 8 queued)
+Launched P09 seed=52 (pid=29669), 6/6 running, 7 queued
+Finished P08 seed=53: OK in 2071s (5/6 running, 7 queued)
+Launched P09 seed=53 (pid=29715), 6/6 running, 6 queued
+Finished P09 seed=48: OK in 2034s (5/6 running, 6 queued)
+Launched P10 seed=48 (pid=32758), 6/6 running, 5 queued
+Finished P09 seed=49: OK in 2028s (5/6 running, 5 queued)
+Launched P10 seed=49 (pid=33209), 6/6 running, 4 queued
+Finished P09 seed=50: OK in 2030s (5/6 running, 4 queued)
+Launched P10 seed=50 (pid=33255), 6/6 running, 3 queued
+Finished P09 seed=51: OK in 2026s (5/6 running, 3 queued)
+Launched P10 seed=51 (pid=33301), 6/6 running, 2 queued
+Finished P09 seed=52: OK in 2032s (5/6 running, 2 queued)
+Launched P10 seed=52 (pid=33347), 6/6 running, 1 queued
+Finished P09 seed=53: OK in 2032s (5/6 running, 1 queued)
+Launched P10 seed=53 (pid=33393), 6/6 running, 0 queued
+Finished P10 seed=48: OK in 2029s (5/6 running, 0 queued)
+Finished P10 seed=49: OK in 1976s (4/6 running, 0 queued)
+Finished P10 seed=50: OK in 2005s (3/6 running, 0 queued)
+Finished P10 seed=51: OK in 1991s (2/6 running, 0 queued)
+Finished P10 seed=52: OK in 1985s (1/6 running, 0 queued)
+Finished P10 seed=53: OK in 1985s (0/6 running, 0 queued)
+
+Batch complete: 60/60 jobs exited cleanly
