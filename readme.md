@@ -38,15 +38,15 @@ add `-v` to also drop the Postgres volume.
 
 ## Status
 
-This repo currently contains two things side by side:
+This repo contains the target architecture below. The original Streamlit/Flask prototype (`app.py`,
+`streamlit_app.py`, `src/rules.py`, `src/generator.py`, `src/run.py`, `src/legacy_analytics.py`)
+and the one-off research and validation scripts (`scripts/bcg_*`, `scripts/zigong_*`,
+`scripts/mimic_*`, `scripts/validate_phase*.py`, `scripts/perheart_real_data_replay.py`, ...) were moved
+off `main`. They are kept unchanged on the [`archive/full-research-snapshot`](https://github.com/Mrunmayi019/M2K-HF-PULSE/tree/archive/full-research-snapshot)
+branch (a snapshot of `main` at tag `v1.2`). Docs that cite a `scripts/...` file not present on
+`main` refer to that branch.
 
-1. **A working prototype** (`app.py`, `streamlit_app.py`, `src/rules.py`, `src/generator.py`,
-   `src/run.py`, `src/legacy_analytics.py`) — a Streamlit/Flask dashboard that takes live patient
-   vitals, runs one Pulse simulation, and prints a clinical risk summary. This is the original demo
-   and its logic is left untouched as the target architecture is built out alongside it (the
-   analytics module was renamed from `src/analytics.py` in Phase 5 purely to free up the
-   `src/analytics/` package name — no behavior change).
-2. **The target architecture**, built out in phases (see `docs/methodology.md` for full detail on
+**The target architecture**, built out in phases (see `docs/methodology.md` for full detail on
    each):
    - **Phase 0/1 (done):** repo scaffold + a correlated synthetic patient generator and wearable
      trend simulator, grounded in real reference data (see Data Sources below), not guessed values.
@@ -115,7 +115,7 @@ This repo currently contains two things side by side:
      published, ethics-approved dataset — the PerHeart Pilot Dataset (27 real heart-failure
      patients, ages 67-94, real pulse-oximeter/scale readings from one-month home trials, Kolakowski
      et al., *Data* 2026, Zenodo `10.5281/zenodo.17143199`) — through the real pipeline via
-     `scripts/perheart_real_data_replay.py`. 16 of 27 real patients have enough real daily coverage
+     `scripts/perheart_real_data_replay.py` (on the archive branch). 16 of 27 real patients have enough real daily coverage
      to fill a genuine 21-day window. Results, full methodology, and a documented real-world
      limitation of the `fluid_overload` fix (it doesn't transfer to a patient whose ejection
      fraction is unmeasured) all live in one place, not restated here since they change as the
@@ -146,19 +146,10 @@ Boolean flags accept `1/true/yes/on` and `0/false/no/off`; anything else stops t
 For running one piece at a time outside `docker compose` (developing a single component, or
 debugging in isolation) — see "Quick Start" above for the one-command full-stack path.
 
-### Run the existing prototype dashboard
+### The original prototype dashboard
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-
-```bash
-docker run -it -p 8501:8501 -p 5000:5000 -v "$(pwd)":/workspace kitware/pulse:4.3.1 /bin/bash
-
-# inside the container:
-pip3 install flask pandas streamlit plotly
-streamlit run /workspace/streamlit_app.py     # primary UI, port 8501
-# or:
-python3 /workspace/app.py                     # simpler Flask fallback, port 5000
-```
+Moved to the [`archive/full-research-snapshot`](https://github.com/Mrunmayi019/M2K-HF-PULSE/tree/archive/full-research-snapshot) branch, with its own run instructions in that
+branch's README.
 
 ### Run the data synthesis / patient builder code (no Docker needed)
 
@@ -296,11 +287,7 @@ multi-hour run — checkpointed per patient, so an interruption doesn't lose pro
 ## Repository Structure
 
 ```
-app.py, streamlit_app.py          # prototype frontends (untouched)
 src/
-  rules.py, generator.py,
-  run.py, legacy_analytics.py     # prototype pipeline (untouched, analytics.py renamed in Phase 5
-                                   #   to free up the src/analytics/ package name below)
   data_synthesis/                 # Phase 1: synthetic patients + wearable trends
   patient_builder/                # Phase 2: Pulse patient/scenario JSON construction
   pulse_runner/                   # Phase 2: Pulse execution + crash detection
@@ -341,11 +328,10 @@ docs/
   frontend_extension_validation.md  # Phase 7 extension: what was built + full verification evidence
   real_world_data_integration.md  # real (non-synthetic) patient data validated through the pipeline
 scripts/
-  validate_phase2.py              # runs all 5 scenario types through Pulse
-  validate_phase8.py              # Phase 8: batch-validates 20-30 synthetic patients through
-                                   #   the live API pipeline end to end (see docs/methodology.md §7)
-  perheart_real_data_replay.py    # replays a real, published HF-patient dataset (PerHeart, Zenodo)
-                                   #   through the live API (see docs/real_world_data_integration.md)
+  seed_demo_patients.py           # seeds the five DEMO patients (docs/demo_walkthrough.md)
+  verify_continuous_state_pipeline.py  # continuous-mode helpers, also used by tests/
+  docker_smoke_test.sh            # end-to-end smoke test of the compose stack
+                                   #   one-off research scripts: archive/full-research-snapshot
 tests/                            # 285 tests, no Docker required (Pulse is mocked)
 backend/Dockerfile                # Phase 9: FastAPI + Pulse engine image (linux/amd64, see file
                                    #   for why); build context is the repo root, not backend/
