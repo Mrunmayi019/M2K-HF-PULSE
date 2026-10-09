@@ -33,7 +33,7 @@ Wearable / clinical report input
          │
          ▼
   src/scenario_classifier/              — Phase 3, BUILT
-         │  ML Model 1: RandomForestClassifier (scenario_type, 90.7% test acc.) +
+         │  ML Model 1: RandomForestClassifier (scenario_type, 91.3% test acc.) +
          │  RandomForestRegressor (severity, MAE 0.047), on clinical + wearable-trend features
          │  (scenario_type, severity)
          ▼

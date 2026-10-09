@@ -21,17 +21,20 @@ wearable-trend aggregates (first/last-7-day mean, delta, slope per vital). See
 `docs/methodology.md` §5 for the full feature list and leakage guards. (NYHA class was removed
 from the feature set — see "Fixed" below.)
 
-**Performance (held-out test set, n=300):** 90.7% scenario accuracy (macro F1 0.91), severity MAE
-0.047 / RMSE 0.061. Per-class and confusion-matrix detail in `phase3_eval_report.txt`. (Previously
+**Performance (held-out test set, n=300):** 91.3% scenario accuracy (274/300, macro F1 0.91), severity
+MAE 0.047 / RMSE 0.061, for the frozen results-v1 model (`artifacts/results-v1/models/`, re-scored in
+`results/results_v1_offline/ml_metrics.json`). `phase3_eval_report.txt` reads 90.7% because it is
+from a different local training run of the same code; see `docs/methodology.md` §5. (Previously
 92.3%/0.048/0.063 with `nyha_ordinal` included — see "Fixed" below for why it was removed and the
 small, accepted offline accuracy cost.)
 
 **Statistical rigor (bootstrap CIs + ROC/AUC, added for publication):** percentile-bootstrap 95%
-CIs (2000 resamples) on the n=300 test fold: accuracy 0.907 [0.873, 0.940], severity MAE 0.047
-[0.043, 0.052]. One-vs-rest ROC/AUC per scenario class: macro-average 0.990, weighted-average
-0.990, per-class range 0.983–0.994 — consistent with the accuracy figure and confirming the
-classifier discriminates well across all 5 classes, not just the majority ones. Full numbers and
-ROC plot in `models/phase3_extended_eval_report.txt` / `models/roc_curves.png`
+CIs (2000 resamples, seed 42) on the n=300 test fold, frozen results-v1 model: accuracy 0.913
+[0.880, 0.943], severity MAE 0.047 [0.043, 0.052]. One-vs-rest ROC/AUC per scenario class:
+macro-average 0.990, weighted-average 0.990, per-class range 0.982–0.994 — consistent with the accuracy figure and confirming the
+classifier discriminates well across all 5 classes, not just the majority ones. The older
+`models/phase3_extended_eval_report.txt` / `models/roc_curves.png` hold the same analysis for the
+earlier 90.7% training run
 (`scripts/model1_extended_eval.py`).
 
 **Known limitation:** trained and evaluated entirely on synthetic data whose generative process
