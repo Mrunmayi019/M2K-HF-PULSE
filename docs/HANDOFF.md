@@ -114,4 +114,19 @@ The script submits each patient through the live API and waits for the real Puls
 
 ## 9. Fresh-clone check
 
-<!-- FRESH_CLONE_RESULT -->
+Run on 2026-10-09 on the demo PC (Windows 11, Docker Desktop, Compose v5.1.4), following this file from a fresh `git clone -b docs/handoff` into `D:\pulse-release-workresh-clone-test`. The test ran beside the live demo, so it used a separate compose project name and different ports (an override with `ports: !override`, backend 8100, frontend 3100, `VITE_API_URL=http://localhost:8100`).
+
+- §3: models copied from `artifacts/results-v1/models/`. `sha256sum -c docs/results-v1-models.sha256` gives 4 × OK, and the models baked into the built image have the same hashes. The first attempt found that a Windows CRLF checkout breaks `sha256sum -c`; `.gitattributes` now keeps `*.sha256` as LF.
+- §4: both generators, run inside the backend image, reproduce the committed `data/synthetic/*.csv` exactly (0 changed lines; only line endings differ on a Windows checkout).
+- §5: `docker compose up -d --build` completed; the frontend served HTTP 200 and the API answered.
+- §6: all five demo patients ran on real Pulse and reproduced `docs/demo_walkthrough.md` exactly:
+
+| Patient | Scenario | Severity | Risk | Bucket | NYHA | Alert |
+|---|---|---|---|---|---|---|
+| DEMO 1 | stable | 0.12 | 0.006 | LOW | I | NONE |
+| DEMO 2 | acute_deterioration | 0.59 | 0.736 | HIGH | IV | ALERT |
+| DEMO 3 | deconditioning (EF defaulted) | 0.66 | 0.055 | LOW | II | NONE |
+| DEMO 4 | fluid_overload | 0.70 | 0.508 | MODERATE | III | WATCH |
+| DEMO 5 | cardiac_stress | 0.40 | 0.770 | HIGH | IV | ALERT |
+
+DEMO 5's three projections (projected severity 0.409 / 0.418 / 0.438) came back `failed`, as documented. The seed script's own process was stopped by the host for low memory while it was waiting on DEMO 5. The backend still finished DEMO 5, and its values above were read from the API. Afterwards, only the test project's containers were removed (`docker compose -p m2k-freshclone-test down`, without `-v`).
