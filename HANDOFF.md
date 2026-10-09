@@ -1,5 +1,7 @@
 # Handoff — M2K HF-PULSE
 
+> **v1.2 and later: start with [`docs/HANDOFF.md`](docs/HANDOFF.md).** It is the current setup path. In particular, restore the frozen models from `artifacts/results-v1/models/` instead of retraining them as §1 below says. This file is kept as the historical session log.
+
 **Read this first if you are a new Claude Code session picking up this project from a fresh
 `git clone` / GitHub zip download, with no memory of prior sessions.** This file is committed to
 the repo specifically so it survives that transfer (unlike session-local planning docs, which are
