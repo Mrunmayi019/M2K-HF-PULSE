@@ -682,12 +682,12 @@ Zigong lab model (external), test set & 401 & 0.667 (0.611--0.721) \\
 \bottomrule
 \end{tabularx}
 \begin{tablenotes}\footnotesize
-\item Zigong outcome: death or readmission within 6 months (41.3\% event rate). Bootstrap: 2,000 resamples. $^{a}$Excludes current smoking and heart-failure duration, which the Zigong data do not record; point table checked against the published chart.
+\item Zigong outcome: death or readmission within 6 months (41.3\% event rate). Bootstrap: 2,000 resamples. $^{a}$Excludes current smoking and heart-failure duration, which the Zigong data do not record; age taken as the midpoint of 10-year bands; point table checked against the published chart.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-On the synthetic batch, the risk score agreed moderately with MAGGIC computed on the same patients (Spearman $r=0.479$; tier agreement 38.5\% against $\approx$33\% by chance), indicating directional consistency rather than validity. Here MAGGIC's unmeasured inputs were held at fixed values, which shifts every patient's score equally and leaves the rank correlation unchanged; for heart-failure duration, whose chart label (``first diagnosis in the past 18 months'') conflicts with the fitted model (``duration $>$18 months''), we followed the fitted model.
+On the synthetic batch, the risk score agreed moderately with MAGGIC computed on the same patients (Spearman $r=0.479$; tier agreement 38.5\% against $\approx$33\% by chance), indicating directional consistency rather than validity. Here MAGGIC's unmeasured inputs were held at fixed values, which shifts every patient's score equally and leaves the rank correlation unchanged; for heart-failure duration, whose chart label (``first diagnosis in the past 18 months'') conflicts with the fitted model (``duration $>$18 months''), we followed the fitted model, on which the 38.5\% tier agreement depends.
 
 %=====================================================================
 \section{Discussion}\label{sec:discussion}
