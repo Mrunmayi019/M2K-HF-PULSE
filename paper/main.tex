@@ -15,6 +15,15 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit,shapes.geometric}
 
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{loa}
+\floatname{algorithm}{Algorithm}
+\newcounter{algline}
+\newenvironment{algsteps}{\begin{list}{\scriptsize\arabic{algline}:}{\usecounter{algline}\setlength{\leftmargin}{1.7em}\setlength{\labelwidth}{1.3em}\setlength{\labelsep}{0.4em}\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}\setlength{\partopsep}{0pt}}}{\end{list}}
+\newcommand{\kw}[1]{\textbf{#1}}
+\newcommand{\Ind}{\hspace*{1em}}
+\newcommand{\screenshotslot}[2]{\fbox{\parbox[c][4cm][c]{0.92\columnwidth}{\centering\textbf{Screenshot placeholder: #1}\\[3pt]\footnotesize Save the image as \texttt{figures/#2}}}}
 \graphicspath{{figures/}}
 \renewcommand{\ttdefault}{cmtt}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
@@ -121,13 +130,45 @@ Our contributions are:
 %=====================================================================
 \section{Literature Survey}\label{sec:related}
 %=====================================================================
-\textbf{Cardiac digital twins.} Corral-Acero \textit{et al.}\ \cite{corral2020twin} framed the digital twin as the route to precision cardiology, Coorey \textit{et al.}\ \cite{coorey2022twin} reviewed the emerging health-twin field for cardiovascular disease, and Niederer \textit{et al.}\ \cite{niederer2021scaling} argued that twins must move from artisanal, single-patient builds to scalable, industrial pipelines. Recent HF-specific twins fit mechanistic cardiovascular models to measured data: Gu \textit{et al.}\ \cite{gu2025hftwin} fitted twins to 343 HF patients and used the fitted parameters for interpretable phenotyping and prognosis, and Geddes \textit{et al.}\ \cite{geddes2025rhftwin} built CFD-based twins that non-invasively estimate markers of right HF. Balasubramanyam \textit{et al.}\ \cite{balasubramanyam2025twin} proposed a cardiovascular twin combining time-varying compliance, Fourier-based ECG reconstruction and 3D anatomical modeling.
+We group prior work into five themes: digital twins in healthcare and cardiology, physiology engines and lumped cardiovascular models, wearable and implanted HF monitoring, HF risk scores and machine learning, and the validation of digital twins. We then position HF-PULSE against them and state the gaps we address.
 
-\textbf{Wearable HF prediction.} The LINK-HF study \cite{stehlik2020linkhf} combined a wearable patch with machine learning to predict HF hospitalization with a median lead time of several days, and Gautam \textit{et al.}\ \cite{gautam2022wearables} surveyed AI, wearables and remote monitoring in HF. Invasive hemodynamic monitoring reduced HF hospitalization in the CHAMPION trial \cite{abraham2011champion}.
+\subsection{Digital twins in healthcare and cardiology}\label{sec:rel-twins}
+Venkatesh \textit{et al.}\ \cite{venkatesh2022hdt} define a health digital twin as a virtual representation of a patient generated from multimodal patient data, population data and real-time updates, and name computation, clinical implementation, data governance and product oversight as the main considerations for translation. Balasubramanyam \textit{et al.}\ \cite{balasubramanyam2024review} surveyed the 2020--2023 literature on digital twins in healthcare: their roles and benefits, the layers needed to implement a twin-based smart healthcare system, and its limitations and challenges. Katsoulakis \textit{et al.}\ \cite{katsoulakis2024dt4h} concluded in a scoping review that digital twins for health are still at an early stage.
 
-\textbf{Risk scores.} The MAGGIC score \cite{pocock2013maggic} is a widely used, externally validated HF survival score, and the LACE index \cite{vanwalraven2010lace} is a general readmission score; we use both as external benchmarks.
+In cardiology, Corral-Acero \textit{et al.}\ \cite{corral2020twin} framed the digital twin as the route to precision cardiology, Coorey \textit{et al.}\ \cite{coorey2022twin} reviewed the emerging health-twin field for cardiovascular disease, and Niederer \textit{et al.}\ \cite{niederer2021scaling} argued that twins must move from artisanal, single-patient builds to scalable, industrial pipelines.
 
-\textbf{Positioning.} Table~\ref{tab:related} contrasts these approaches. Mechanistic twins personalize deeply but require hospital measurements; wearable predictors scale but are opaque. Our twin trades per-patient parameter fitting for deployability from home data, and adds a mechanistic layer that wearable-only predictors lack. We claim novelty for the integrated pipeline and its evaluation, not for any single component.
+Recent HF-specific twins fit mechanistic cardiovascular models to measured data. Gu \textit{et al.}\ \cite{gu2025hftwin} fitted twins to 343 HF patients and used the fitted parameters for interpretable phenotyping and prognosis. Geddes \textit{et al.}\ \cite{geddes2025rhftwin} built CFD-based twins that non-invasively estimate markers of right HF. Balasubramanyam \textit{et al.}\ \cite{balasubramanyam2025twin} proposed a cardiovascular twin combining time-varying compliance, Fourier-based ECG reconstruction and 3D anatomical modeling.
+
+\subsection{Physiology engines and lumped cardiovascular models}\label{sec:rel-engines}
+Zero-dimensional (lumped-parameter) models represent the components of the cardiovascular system in simplified, lumped form. Shi \textit{et al.}\ \cite{shi2011review} reviewed them as a concise way to evaluate hemodynamic interactions among cardiovascular organs, with one-dimensional models adding pulse-wave transmission at far lower cost than three-dimensional CFD. The arterial Windkessel is the classic lumped element: Frank's two-element form, a resistance and a compliance, explains diastolic pressure decay, and a third element, the characteristic impedance, improves its behavior in systole; as a lumped model it cannot represent spatially distributed phenomena, but it approximates ventricular afterload simply and fairly accurately \cite{westerhof2009windkessel}. For the heart itself, Suga and Sagawa \cite{suga1974elastance} showed in the excised canine left ventricle that the instantaneous pressure--volume relationship is approximated by a time-varying elastance, $P(t)=E(t)\,[V(t)-V_d]$, the concept on which the elastance models in Section~\ref{sec:engine} build.
+
+Three open-source engines package such models at whole-body or whole-circulation scale. Pulse \cite{bray2019pulse,pulse_circuit_methodology} and BioGears \cite{baird2020biogears} both model physiology with electric-circuit analogues; BioGears targets medical education, research and training and supports in-silico trials \cite{baird2020biogears}. CircAdapt \cite{arts2005circadapt} simulates the beat-to-beat dynamics of the four-chamber heart with systemic and pulmonary circulations, and lets cardiac and vascular tissue adapt to mechanical load through local rules. We build on Pulse, whose open-source engine accepts actions and conditions during a run and can serialize and resume its full state (Section~\ref{sec:engineering}).
+
+\subsection{Wearable and implanted HF monitoring}\label{sec:rel-monitoring}
+Non-invasive telemonitoring trials have mixed results. Tele-HF \cite{chaudhry2010telehf} randomized 1,653 recently hospitalized patients to daily telephone-reported symptoms and weight or usual care and found no significant difference in readmission or death within 180 days (52.3\% vs.\ 51.5\%). BEAT-HF \cite{ong2016beathf} combined health-coaching calls with telemonitoring of blood pressure, heart rate, symptoms and weight in 1,437 patients and did not reduce 180-day readmissions (50.8\% vs.\ 49.2\%; adjusted HR 1.03). TIM-HF2 \cite{koehler2018timhf2}, a structured remote patient management program in 1,571 patients, reduced the percentage of days lost to unplanned cardiovascular admission or all-cause death (4.88\% vs.\ 6.64\%; ratio 0.80, 95\% CI 0.65--1.00) and all-cause mortality (HR 0.70). Earlier structured telephone support and telemonitoring programs were reviewed by Inglis \textit{et al.}\ \cite{inglis2008telemonitoring}.
+
+Implanted sensors measure physiology more directly. In CHAMPION \cite{abraham2011champion}, management guided by a wireless pulmonary-artery pressure sensor lowered the 6-month rate of HF hospitalization (0.31 vs.\ 0.44; HR 0.70). GUIDE-HF \cite{lindenfeld2021guidehf} extended this approach to NYHA class II--IV patients, and its primary endpoint, a composite of mortality and total HF events at 12 months, was not significantly reduced (HR 0.88, 95\% CI 0.74--1.05). The HeartLogic index from the MultiSENSE study \cite{boehmer2017multisense} combines heart sounds, respiration, thoracic impedance, heart rate and activity from implanted CRT defibrillators; in its sequestered test cohort it detected 70\% of HF events with 1.47 unexplained alerts per patient-year and a median lead time of 34 days. MultiSENSE reported unexplained alerts per patient-year, the device-study analogue of our false alerts per 100 patient-days.
+
+Wearable predictors aim for similar performance without an implant. The LINK-HF study \cite{stehlik2020linkhf} used a disposable multisensor chest patch and a machine-learned personalized baseline: deviations from the baseline detected precursors of HF rehospitalization with 76--88\% sensitivity and 85\% specificity, and the median time from first alert to readmission was 6.5 days. Gautam \textit{et al.}\ \cite{gautam2022wearables} surveyed AI, wearables and remote monitoring in HF.
+
+\subsection{HF risk scores and machine learning}\label{sec:rel-risk}
+The Seattle Heart Failure Model \cite{levy2006shfm} was derived in 1,125 patients with a Cox model and validated in five cohorts totalling 9,942 patients, with an overall AUC of 0.729 for survival. The MAGGIC score \cite{pocock2013maggic} is a widely used, externally validated HF survival score derived from 39,372 patients in 30 studies, and the LACE index \cite{vanwalraven2010lace} is a general, not HF-specific, score for early death or unplanned readmission after discharge; we use both as external benchmarks (Section~\ref{sec:outcomes}). Across 117 HF prediction models in 55 papers, Ouwerkerk \textit{et al.}\ \cite{ouwerkerk2014models} found a mean C-statistic of 0.66 (0.71 for mortality, 0.68 for HF hospitalization) and judged prediction, especially of HF hospitalization, only moderately successful.
+
+Machine learning has improved these figures modestly. On the Tele-HF trial data, Mortazavi \textit{et al.}\ \cite{mortazavi2016ml} found that random forests raised the C-statistic for 30-day all-cause readmission from 0.533 (logistic regression) to 0.628, and boosting raised it for HF readmission from 0.543 to 0.678. Chicco and Jurman \cite{chicco2020hf} predicted survival from serum creatinine and ejection fraction alone. None of these models simulates the physiology that produces the risk.
+
+\subsection{Validating digital twins}\label{sec:rel-validation}
+A twin's predictions need evidence of credibility before they inform care. Viceconti \textit{et al.}\ \cite{viceconti2021insilico} describe a framework for assessing the credibility of mechanistic (``biophysical'') models used in the regulatory evaluation of medical products, built on verification, validation and uncertainty quantification and beginning with the definition of the model's context of use. Pathmanathan and Gray \cite{pathmanathan2018validation} note that credibility is established primarily by validation against experimental or clinical data, but that for complex multiscale models it often rests on many distinct kinds of evidence, so the extent to which such a model can be trusted is often unclear.
+
+Pre-specification guards the evaluation itself. Nosek \textit{et al.}\ \cite{nosek2018prereg} argue that defining the research questions and analysis plan before observing outcomes separates predictions from postdictions, and describe strategies for cases that fall short of the ideal, such as preexisting data. Our scenario tests follow this logic with outcomes committed to version control before any run, which is weaker than registration in a public registry (Section~\ref{sec:exp1}).
+
+\subsection{Positioning and gaps addressed}\label{sec:rel-gaps}
+Table~\ref{tab:related} contrasts these approaches. Mechanistic twins personalize deeply but require hospital measurements; wearable predictors scale but are opaque. Our twin trades per-patient parameter fitting for deployability from home data, and adds a mechanistic layer that wearable-only predictors lack. We claim novelty for the integrated pipeline and its evaluation, not for any single component. Specifically, we address four gaps:
+\begin{enumerate}
+\item \emph{Input data.} The HF twins in Section~\ref{sec:rel-twins} are built from imaging, echocardiography or invasive measurements; we drive a mechanistic engine from daily wearable trends and routine clinical values.
+\item \emph{Explanation.} Wearable and implanted predictors (Section~\ref{sec:rel-monitoring}) output an index or an alert; we attach a hemodynamic breakdown to each alert, whose clinical usefulness remains untested.
+\item \emph{State.} We carry the engine's physiological state from day to day instead of rebuilding the patient for each assessment (Section~\ref{sec:engineering}).
+\item \emph{Evaluation.} We evaluate over 21-day trajectories against outcomes committed before the runs, on development and held-out seeds and a replication, and report false-alert burden per patient-day as device studies do.
+\end{enumerate}
 
 \begin{table*}[!t]
 \centering
@@ -138,10 +179,11 @@ Our contributions are:
 \toprule
 \textbf{Work} & \textbf{Input data} & \textbf{Model} & \textbf{Personalization} & \textbf{Gap addressed here} \\
 \midrule
-Corral-Acero 2020 \cite{corral2020twin}, Coorey 2022 \cite{coorey2022twin} & Multimodal (vision/review) & Mechanistic + statistical & Conceptual & No deployed system or longitudinal test \\
+Corral-Acero 2020 \cite{corral2020twin}, Coorey 2022 \cite{coorey2022twin}, Balasubramanyam 2024 \cite{balasubramanyam2024review} & Multimodal (vision/review) & Mechanistic + statistical & Conceptual & No deployed system or longitudinal test \\
 Gu 2025 \cite{gu2025hftwin} & Clinical, echo, invasive & Lumped cardiovascular model + unsupervised ML & Fitted per patient (343 HF) & Requires hospital measurements; no home monitoring \\
 Geddes 2025 \cite{geddes2025rhftwin} & Imaging, invasive validation & 3D CFD & Fitted per patient & Right HF only; not wearable-driven \\
 Balasubramanyam 2025 \cite{balasubramanyam2025twin} & ECG datasets, echo & Compliance model, Fourier ECG, 3D mesh & Signal-level & Visualization and ECG fidelity, not deterioration tracking \\
+Boehmer 2017 (HeartLogic) \cite{boehmer2017multisense} & Implanted CRT-D sensors & Multisensor composite index & Device-level & Requires an implanted device; no physiological simulation \\
 Stehlik 2020 (LINK-HF) \cite{stehlik2020linkhf} & Wearable patch & ML (similarity-based) & Patient baseline & No mechanistic explanation of alerts \\
 \textbf{This work} & Wearable trends + routine clinical & RF + Pulse engine + interpretable score & Scenario/severity-driven, EF-scaled & Mechanistic, wearable-driven, stateful; evaluated over 21 days with pre-specified outcomes \\
 \bottomrule
@@ -154,11 +196,60 @@ Stehlik 2020 (LINK-HF) \cite{stehlik2020linkhf} & Wearable patch & ML (similarit
 \subsection{Reference data and synthetic training population}\label{sec:data}
 We used no real patient data for training. Instead, we traced every distribution parameter of the synthetic generator to an aggregate statistic from a real source (Table~\ref{tab:datasets}): 11,837 MIMIC-IV HF admissions \cite{johnson2023mimiciv} for age, sex and laboratory values; the Chicco--Jurman HF clinical records \cite{chicco2020hf} as the only source with ejection fraction; and NHANES for height, weight and BMI by sex. The repository stores only aggregate statistics from the real sources; raw files remain outside version control.
 
-We generated $n=2{,}000$ synthetic patients across five scenarios. Each patient receives a scenario and a severity $\sigma\sim U(0,1)$ (capped at 0.15 for stable patients). The generator draws ejection fraction from the scenario's EF profile and lowers it by $12\sigma$ points; a mix of EF deficit and severity, scaled to age-specific diagnostic cut-offs, drives NT-proBNP, so BNP falls with EF and rises with severity. Each wearable signal $v$ on day $t$ then follows
+We generated $n=2{,}000$ synthetic patients across five scenarios. Each patient receives a scenario $c$ and a severity
+\begin{equation}
+\sigma=\begin{cases}0.15\,\xi, & c=\text{stable},\\ \xi, & \text{otherwise},\end{cases}\qquad \xi\sim U(0,1),
+\label{eq:severity}
+\end{equation}
+so severity is capped at 0.15 for stable patients.
+
+\subsubsection{Clinical state}
+The generator draws ejection fraction from the scenario's EF profile $p(c)$ (healthy for stable; HFpEF for deconditioning and cardiac stress; HFrEF for fluid overload and acute deterioration) and lowers it by $12\sigma$ points:
+\begin{equation}
+\text{EF}=\operatorname{clip}\!\big(\mathcal{N}(\mu_p,\,(w_p/4)^2)-12\sigma,\;15,\;75\big),
+\label{eq:ef}
+\end{equation}
+where $\mu_p$ and $w_p$ are the profile's mean and range width (HFrEF: 32.3\%, range 14--40\%; HFpEF: 56.9\%, range 50--80\%; healthy: 62\%, range 55--70\%). A mix of EF deficit and severity, scaled to age-specific diagnostic cut-offs, drives NT-proBNP, so BNP falls with EF and rises with severity:
+\begin{align}
+d_{\text{EF}}&=\operatorname{clip}\!\big((70-\text{EF})/55,\;0,\;1\big),\label{eq:efdeficit}\\
+b&=\operatorname{clip}\!\big(0.6\,d_{\text{EF}}+0.4\,\sigma,\;0,\;1\big),\\
+\text{NT-proBNP}&=k(a)\,(0.25+2b)\,\eta,\qquad \ln\eta\sim\mathcal{N}(0,0.25^2),
+\end{align}
+where $k(a)$ is the age-specific NT-proBNP cut-off for acute HF: 450, 900 and 1,800\,pg/mL for ages below 50, 50--75 and above 75 years \cite{januzzi2006icon}. The lognormal factor $\eta$ keeps BNP positive and right-skewed.
+
+\subsubsection{Wearable trends}
+Each wearable signal $v$ on day $t$ then follows
 \begin{equation}
 v(t)=b_v+\Delta_{v,c}\,\sigma\,g_m(t/20)+\epsilon_{v,t},
+\label{eq:wearable}
 \end{equation}
-where $b_v$ is a patient baseline (drawn from population statistics, or the patient's own weight), $\Delta_{v,c}$ is the maximum change for scenario $c$ (e.g., fluid overload: $+4.5$\,kg weight, $+12$\,bpm resting HR, $-2.5$ points SpO$_2$), $g_m$ is a progression curve for mode $m$ (deteriorating: linear, quadratic for acute deterioration; recovering: $\max(0,1-1.15u)$; stable: 0), and $\epsilon_{v,t}$ is independent Gaussian noise with SD equal to 15\% of the population SD (0.4\,kg for weight). Signals are therefore correlated only through the shared $\sigma$ and $g_m$, not through any physiological coupling. The generator chooses the deteriorating mode with probability $0.4+0.5\sigma$.
+where $b_v$ is a patient baseline (drawn from population statistics, or the patient's own weight), $\Delta_{v,c}$ is the maximum change for scenario $c$ (Table~\ref{tab:deltas}; e.g., fluid overload: $+4.5$\,kg weight, $+12$\,bpm resting HR, $-2.5$ points SpO$_2$), $g_m$ is a progression curve for mode $m$,
+\begin{equation}
+g_m(u)=\begin{cases}u, & \text{deteriorating},\ c\neq\text{AD},\\ u^2, & \text{deteriorating},\ c=\text{AD},\\ \max(0,\,1-1.15u), & \text{recovering},\\ 0, & \text{stable},\end{cases}
+\label{eq:progression}
+\end{equation}
+with AD denoting acute deterioration, and $\epsilon_{v,t}$ is independent Gaussian noise with SD equal to 15\% of the population SD (0.4\,kg for weight). Over the 21-day window $u=t/20$ runs from 0 to 1, so a deteriorating patient reaches the full change $\Delta_{v,c}\sigma$ on the last day. Signals are therefore correlated only through the shared $\sigma$ and $g_m$, not through any physiological coupling. Stable patients are always in the stable mode; for the other scenarios the generator chooses the deteriorating mode with probability $0.4+0.5\sigma$ (capped at 0.95) and the recovering mode otherwise. Finally, it clips SpO$_2$ at 100\%, steps and sleep at zero and HRV at 1\,ms.
+
+\begin{table}[!t]
+\centering
+\setlength{\tabcolsep}{3pt}\caption{Wearable Baselines and Maximum Scenario Changes $\Delta_{v,c}$ in~(\ref{eq:wearable})}
+\label{tab:deltas}
+\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Signal $v$} & \textbf{Baseline} & \textbf{FO} & \textbf{CS} & \textbf{DC} & \textbf{AD} \\
+\midrule
+Weight (kg) & own weight & $+4.5$ & $+0.5$ & $+1.0$ & $+3.0$ \\
+Resting HR (bpm) & $70\pm8$ & $+12$ & $+20$ & $+8$ & $+25$ \\
+SpO$_2$ (\%) & $97\pm1.2$ & $-2.5$ & $-1.5$ & $-0.5$ & $-5.0$ \\
+Steps/day & $6000\pm2000$ & $-1200$ & $-1000$ & $-2500$ & $-2000$ \\
+Sleep (h) & $7.0\pm1.0$ & $-0.8$ & $-0.5$ & $-0.3$ & $-1.2$ \\
+HRV RMSSD (ms) & $35\pm12$ & $-6$ & $-12$ & $-5$ & $-15$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\parbox{\columnwidth}{\scriptsize FO: fluid overload; CS: cardiac stress; DC: deconditioning; AD: acute deterioration. Baselines are population mean $\pm$ SD. Stable patients have $\Delta_{v,c}=0$. Source: \code{generate\_wearable\_trends.py} and \code{reference\_stats.yaml}.}
+\end{table}
 
 This construction matters for interpreting results: a classifier trained on it learns to invert these deltas, so held-out accuracy measures recovery of the generator's own labels, not clinical validity.
 
@@ -208,30 +299,121 @@ acute\_\allowbreak deterioration & Rapid multi-signal decline; reduced EF & Modi
 \subsection{Scenario model: classifier and severity regressor}
 Two Random Forests \cite{breiman2001rf} (300 trees, default depth) share one 29-column feature matrix: five clinical features (age, sex, BMI, EF, NT-proBNP) and, for each of six wearable signals, the first-7-day mean, last-7-day mean, their difference and the 21-day linear slope (24 features). We drop the trend-mode column used during synthesis to prevent label leakage, and split patients 70/15/15 (stratified by scenario) into training, validation and test sets.
 
-\subsection{Physiology engine and personalization}
+\subsection{Physiology engine and personalization}\label{sec:engine}
+\subsubsection{Circuit model}
 Pulse models the circulation as a lumped-parameter network, the hydraulic analogue of an electric circuit: nodes carry pressures, paths carry flows, vessel segments are resistors and elastic segments are capacitors, so that for each segment
 \begin{equation}
 Q=\frac{\Delta P}{R},\qquad C=\frac{dV}{dP},
+\label{eq:circuit}
 \end{equation}
-with arterial segments represented as Windkessel elements (a compliance in parallel with a resistance) \cite{pulse_cv_methodology}. Each heart chamber is a time-varying compliance whose inverse, the elastance, follows a model adapted from Stergiopulos \textit{et al.}\ \cite{stergiopulos1996}:
+with arterial segments represented as Windkessel elements (a compliance in parallel with a resistance) \cite{pulse_cv_methodology}. Pulse assembles these branch equations with Kirchhoff's laws and solves the network by modified nodal analysis at every time step \cite{pulse_circuit_methodology}. At a compliant node, conservation of volume and~(\ref{eq:circuit}) with constant $C$ give
+\begin{equation}
+C\,\frac{dP}{dt}=\frac{dV}{dt}=\sum Q_{\text{in}}-\sum Q_{\text{out}}.
+\label{eq:node}
+\end{equation}
+For a single two-element Windkessel fed by an inflow $Q(t)$ and draining through $R$ to a downstream pressure taken as zero, (\ref{eq:node}) becomes
+\begin{equation}
+C\,\frac{dP}{dt}=Q(t)-\frac{P}{R},
+\label{eq:windkessel}
+\end{equation}
+so that when inflow stops in diastole the pressure decays as $P(t)=P_0\,e^{-t/RC}$, the behavior Frank's model was introduced to explain \cite{westerhof2009windkessel}.
+
+\subsubsection{Heart model}
+Each heart chamber is a time-varying compliance whose inverse, the elastance, follows a model adapted from Stergiopulos \textit{et al.}\ \cite{stergiopulos1996}:
 \begin{equation}
 E_v(t)=\left(E_{\max,v}-E_{\min,v}\right)\frac{f(t)}{f_{\max}}+E_{\min,v},
+\label{eq:elastance}
 \end{equation}
 \begin{equation}
 f(t)=\frac{\left(t/\alpha_1T\right)^{n_1}}{1+\left(t/\alpha_1T\right)^{n_1}}\cdot\frac{1}{1+\left(t/\alpha_2T\right)^{n_2}},
+\label{eq:hill}
 \end{equation}
-where $E_{\max,v}$ and $E_{\min,v}$ are the maximum and minimum ventricular elastances, $T$ is the cardiac-cycle duration and $\alpha_1,\alpha_2,n_1,n_2$ are shape parameters; chamber compliance is $1/E_v(t)$. The cyclic change in compliance produces the pressure and volume changes that drive flow through the network, and Pulse computes stroke volume, cardiac output and arterial pressures from the circuit quantities at each time step. Ejection fraction is therefore an \emph{output} of this model, not an input.
+where $E_{\max,v}$ and $E_{\min,v}$ are the maximum and minimum ventricular elastances, $T$ is the cardiac-cycle duration and $\alpha_1,\alpha_2,n_1,n_2$ are shape parameters; chamber compliance is $1/E_v(t)$. This is the time-varying-elastance description of the ventricle \cite{suga1974elastance} in circuit form. The cyclic change in compliance produces the pressure and volume changes that drive flow through the network, and Pulse computes stroke volume, cardiac output and arterial pressures from the circuit quantities at each time step. Ejection fraction is therefore an \emph{output} of this model, not an input.
 
-We therefore map EF and severity onto Pulse's \code{CardiovascularMechanicsModification} multipliers (stroke volume, systemic resistance and compliance, venous compliance, heart rate) and, for reduced EF, the binary \code{ChronicVentricularSystolicDysfunction} condition (a fixed elastance reduction). When we apply the condition, the continuous multiplier represents only the \emph{additional} acute severity, because stacking both produced cardiovascular collapse in validation.
+\subsubsection{How the engine applies modifiers}
+We therefore act on the parameters of~(\ref{eq:circuit})--(\ref{eq:hill}). In Pulse 4.3.1 the \code{CardiovascularMechanicsModification} multipliers and the \code{ChronicVentricularSystolicDysfunction} condition enter at the start of every cardiac cycle as \cite{pulse_source431}
+\begin{align}
+E_{\max,L}&\leftarrow \beta_E\,k_{\text{HF}}\,m_{\text{SV}}\,E^{0}_{\max,L},\label{eq:emax}\\
+E_{\max,R}&\leftarrow \beta_E\,m_{\text{SV}}\,E^{0}_{\max,R},\\
+f_{\text{HR}}&\leftarrow m_{\text{HR}}\,f_{\text{HR}},\qquad R_{i}\leftarrow m_{R}\,R_{i},\label{eq:hrmod}\\
+C_{i}&\leftarrow m_{C}\,C_{i},\qquad\ \ C_{j}\leftarrow m_{V}\,C_{j},\label{eq:cmod}
+\end{align}
+where $E^{0}_{\max}$ are the configured maximum elastances, $\beta_E$ is the baroreflex elastance scale (1 with the reflex off), $k_{\text{HF}}=0.27$ when the condition is present and 1 otherwise, $f_{\text{HR}}$ is the heart-rate driver frequency (after baroreflex, chemoreflex and drug effects, and bounded by the patient's minimum and maximum heart rate), $i$ runs over systemic resistance and compliance paths and $j$ over venous compliance paths. The engine squares $m_{\text{SV}}$ when it exceeds 1, which our mapping never does. The stroke-volume multiplier therefore acts on contractility (maximum elastance), not on stroke volume directly, and the condition is a fixed 73\% cut in left-ventricular maximum elastance with no severity parameter.
 
-Pulse rejects patients outside age 18--65 and BMI 16--30. We clamp demographics only at the engine boundary, so the patient's true EF and severity still drive the simulation while the simulated body is a proxy.
+\subsubsection{EF-to-engine mapping}
+We map EF and severity onto these multipliers and, for reduced EF, the binary \code{ChronicVentricularSystolicDysfunction} condition (the fixed elastance reduction $k_{\text{HF}}$). With $d_{\text{EF}}$ from~(\ref{eq:efdeficit}), the combined deficit is
+\begin{equation}
+x=\begin{cases}0.5\,\sigma, & \text{EF}\le40\%,\\ \max\big(d_{\text{EF}},\,0.8\,\sigma\big), & \text{EF}>40\%,\end{cases}
+\label{eq:deficit}
+\end{equation}
+where the condition is applied ($k_{\text{HF}}=0.27$) in the first case and not ($k_{\text{HF}}=1$) in the second. The base multipliers are
+\begin{equation}
+\begin{gathered}
+m_{\text{SV}}=\max(0.5,\,1-0.5x),\\
+m_{R}=m_{C}=\max(0.6,\,1-0.3x).
+\end{gathered}
+\label{eq:basemods}
+\end{equation}
+When we apply the condition, the continuous multiplier represents only the \emph{additional} acute severity (the first case of~(\ref{eq:deficit})), because stacking both produced cardiovascular collapse in validation. Since $x\le1$, $m_{\text{SV}}\ge0.5$ and $m_R=m_C\ge0.7$; with the condition, $x\le0.5$, so the left maximum elastance stays at or above $0.27\times0.75\approx0.20$ of its configured value before baroreflex scaling.
+
+\subsubsection{Scenario actions}
+In the default fresh mode, the four non-stable scenarios add their own multipliers to the same action; a multiplier named by both the scenario and~(\ref{eq:basemods}) takes the scenario's value:
+\begin{equation}
+\begin{aligned}
+\text{FO:}\quad & m_V=\max(0.5,\,1-0.4\sigma),\\
+\text{CS:}\quad & m_{\text{HR}}=1+0.3\sigma,\quad e=\sigma,\\
+\text{DC:}\quad & m_R=m_C=\max(0.85,\,1-0.1\sigma),\\
+\text{AD:}\quad & m_V=\max(0.4,\,1-0.5\sigma),\\
+& m_{\text{HR}}=1+0.4\sigma,\quad e=0.6\sigma,
+\end{aligned}
+\label{eq:scenarioacts}
+\end{equation}
+with the scenario abbreviations of Table~\ref{tab:deltas}, where $e$ is the intensity of an \code{Exercise} action, clipped to $[0.1,\,0.5]$; Section~\ref{sec:engineering} shows that the intensity the engine tolerates under disease modifiers is patient-specific and can be lower. A fresh run starts from the patient file and condition, stabilizes for 60\,s, applies the actions and advances 10\,min.
+
+\subsubsection{Engine boundary}
+Pulse rejects patients outside age 18--65 and BMI 16--30. We clamp demographics only at the engine boundary, so the patient's true EF and severity still drive the simulation while the simulated body is a proxy:
+\begin{equation}
+a'=\operatorname{clip}(a,\,18,\,65),\qquad w'=\operatorname{clip}\big(w,\;16.5\,h^2,\;29.5\,h^2\big),
+\label{eq:clamp}
+\end{equation}
+with height $h$ (m) held fixed; the half-unit BMI margins avoid rejections from floating-point rounding.
 
 \subsection{Hemodynamic features and risk score}
-From each run we extract HR rise, MAP drop, cardiac-output (CO) drop, a compensation flag (stroke volume held $\geq95\%$) and an instability flag (MAP$_{\text{end}}<65$\,mmHg). The primary risk score (Table~\ref{tab:riskscore}) normalizes each to $[0,1]$ against a clinically anchored full scale and forms a weighted sum. During validation the score was structurally blind to fluid overload, whose danger appears as an already-congested baseline rather than an acute change, so we added a sixth input:
+From the first and last samples of each run we extract HR rise, MAP drop, cardiac-output (CO) drop, a compensation flag (stroke volume held $\geq95\%$) and an instability flag (MAP$_{\text{end}}<65$\,mmHg):
 \begin{equation}
-r=\max\big(\textstyle\sum_{i} w_i\, s_i,\; s_{\text{baseline}}(\text{MAP}_{\text{start}})\big),
+\begin{gathered}
+\Delta\text{HR}=\text{HR}_{\text{end}}-\text{HR}_{\text{start}},\qquad \Delta\text{MAP}=\text{MAP}_{\text{start}}-\text{MAP}_{\text{end}},\\
+\Delta\text{CO}=100\,\frac{\text{CO}_{\text{start}}-\text{CO}_{\text{end}}}{\text{CO}_{\text{start}}},\\
+F_{\text{comp}}=\mathbf{1}\!\left[\frac{\text{SV}_{\text{end}}}{\text{SV}_{\text{start}}}\ge0.95\right],\qquad F_{\text{inst}}=\mathbf{1}\!\left[\text{MAP}_{\text{end}}<65\right].
+\end{gathered}
+\label{eq:features}
 \end{equation}
-where $s_i$ are the five acute sub-scores and $s_{\text{baseline}}$ scores how far the simulated starting MAP lies below a healthy 92.5\,mmHg anchor. Buckets are LOW ($r<0.35$), MODERATE ($r<0.65$) and HIGH; these cut-points are an engineering choice, not a clinical citation.
+In fresh mode and on a patient's first continuous day, the run includes stabilization, so these deltas span the healthy baseline to the end of the encounter; on later continuous days they span only that day's encounter, from the re-issued modifiers to its end.
+
+The primary risk score (Table~\ref{tab:riskscore}) normalizes each to $[0,1]$ against a clinically anchored full scale and forms a weighted sum:
+\begin{equation}
+\begin{gathered}
+s_{\text{HR}}=\tfrac{1}{3}N_2(70+\Delta\text{HR}),\qquad s_{\text{MAP}}=\operatorname{clip}\!\left(\frac{\Delta\text{MAP}}{27.5},0,1\right),\\
+s_{\text{CO}}=\operatorname{clip}\!\left(\frac{\Delta\text{CO}}{30},0,1\right),\\
+s_{\text{comp}}=1-F_{\text{comp}},\qquad s_{\text{inst}}=F_{\text{inst}},\\
+A=0.15\,s_{\text{HR}}+0.20\,s_{\text{MAP}}+0.20\,s_{\text{CO}}\\
++0.15\,s_{\text{comp}}+0.30\,s_{\text{inst}},
+\end{gathered}
+\label{eq:acute}
+\end{equation}
+where $A=\sum_i w_i s_i$ is the acute score, $N_2(h)$ is the NEWS2 heart-rate score \cite{rcp2017news2} (3 for $h\le40$, 1 for $40<h\le50$, 0 for $50<h\le90$, 1 for $90<h\le110$, 2 for $110<h\le130$ and 3 above 130\,bpm), applied to an assumed resting HR of 70\,bpm plus the rise, and $27.5=92.5-65$\,mmHg spans the healthy anchor to the instability threshold.
+
+During validation the score was structurally blind to fluid overload, whose danger appears as an already-congested baseline rather than an acute change, so we added a sixth input:
+\begin{equation}
+\begin{gathered}
+r=\max\big(\textstyle\sum_{i} w_i\, s_i,\; s_{\text{baseline}}(\text{MAP}_{\text{start}})\big),\\
+s_{\text{baseline}}=\operatorname{clip}\!\left(\frac{92.5-\text{MAP}_{\text{start}}}{27.5},0,1\right),
+\end{gathered}
+\label{eq:risk}
+\end{equation}
+where $s_i$ are the five acute sub-scores and $s_{\text{baseline}}$ scores how far the simulated starting MAP lies below a healthy 92.5\,mmHg anchor. We call a day's dominant mechanism \emph{baseline} when $s_{\text{baseline}}>A$ and \emph{acute} otherwise; the C3 guard uses this label (Algorithm~\ref{alg:alert}). Buckets are LOW ($r<0.35$), MODERATE ($r<0.65$) and HIGH; these cut-points are an engineering choice, not a clinical citation.
+
+Two consequences follow from~(\ref{eq:acute}) and~(\ref{eq:risk}). First, no two acute components can reach HIGH: the two largest weights sum to 0.50, so $A\ge0.65$ requires at least three non-zero components. Second, the baseline term alone gives MODERATE when MAP$_{\text{start}}\le82.9$\,mmHg and HIGH when MAP$_{\text{start}}\le74.6$\,mmHg.
 
 We later found that the fluid-overload scenario itself is mis-specified (Section~\ref{sec:limits}): it lowers venous compliance without adding circulating volume. The baseline-deficit term therefore compensates for a flawed scenario rather than reflecting correctly simulated congestion, and its improvement on the batch (30/30 LOW to 29/30 MODERATE) should be read in that light.
 
@@ -291,6 +473,56 @@ Missing EF or NT-proBNP defaults to a documented healthy value (EF 62\%, NT-proB
 
 A continuous-state mode serializes the Pulse engine state after each day and resumes from it the next day, instead of rebuilding the patient from scratch (Section~\ref{sec:engineering}). Its first day applies only the EF- and severity-derived modifiers; each later day re-issues them and, for the two exertion labels (cardiac stress and acute deterioration), adds Pulse's \code{Exercise} action, which stays active in the saved state. The system applies the scenario-specific extras in Table~\ref{tab:scenarios} (venous compliance, heart-rate multiplier, systemic resistance and compliance) only in the default fresh mode. Both scenario-test experiments (Section~\ref{sec:results}) used the continuous mode.
 
+Algorithm~\ref{alg:alert} gives the alert logic and Algorithm~\ref{alg:continuous} one day of the continuous-state twin. An engine run counts as \emph{unstable} if it failed, or if it was an acute-deterioration run with severity in the documented crash zone $[0.6,\,0.85]$, even when it completed; for unstable runs the alert falls back to the classifier's severity. On resume the engine cannot add or remove the \code{ChronicVentricularSystolicDysfunction} condition, so a new EF that crosses 40\% is reported as a mismatch until the twin is reset.
+
+\begin{algorithm}[!t]
+\caption{Daily alert decision with the C3 guard (\code{decide\_alert})}
+\label{alg:alert}
+\footnotesize
+\textbf{Input:} classifier severity $\hat\sigma$; engine status $s$; today's risk bucket $b_t$, dominant mechanism $d_t$ and instability flag $F_{\text{inst},t}$; yesterday's streak $k_{t-1}$ and flag $\iota_{t-1}$.\\
+\textbf{Output:} level $\in\{\text{ALERT},\text{WATCH},\text{NONE}\}$.
+\begin{algsteps}
+\item \textit{C3 bookkeeping, whenever a risk assessment is written:}
+\item \kw{if} $b_t=\text{HIGH}$ \kw{and} $d_t=\text{baseline}$ \kw{then} $k_t\leftarrow k_{t-1}+1$; $\iota_t\leftarrow\iota_{t-1}$
+\item \kw{else} $k_t\leftarrow0$; $\iota_t\leftarrow\text{false}$
+\item \kw{if} $F_{\text{inst},t}=1$ \kw{then} $\iota_t\leftarrow\text{true}$
+\item \kw{if} $s=\text{unstable}$ \kw{then} \kw{return} ALERT \kw{if} $\hat\sigma>0.15$ \kw{else} NONE \hfill\textit{classifier fallback}
+\item \kw{if} $s=\text{valid}$ \kw{then}
+\item \Ind\kw{if} $b_t=\text{HIGH}$ \kw{then}
+\item \Ind\Ind\kw{if} $k_t>3$ \kw{and not} $\iota_t$ \kw{then} \kw{return} WATCH \hfill\textit{C3: downgrade}
+\item \Ind\Ind\kw{return} ALERT
+\item \Ind\kw{if} $b_t=\text{MODERATE}$ \kw{then} \kw{return} WATCH
+\item \Ind\kw{return} NONE
+\item \kw{return} NONE \hfill\textit{engine not yet run}
+\end{algsteps}
+\end{algorithm}
+
+\begin{algorithm}[!t]
+\caption{One day of the continuous-state twin (\code{run\_daily\_continuous\_pipeline})}
+\label{alg:continuous}
+\footnotesize
+\textbf{Input:} patient's wearable readings and clinical reports; saved state $S_{t-1}$ (none on the first day or after a reset), with the EF used for it.\\
+\textbf{Output:} saved state $S_t$; risk assessment and alert for day $t$.
+\begin{algsteps}
+\item $W\leftarrow$ last 21 days of wearable readings; \kw{if} fewer than 21 \kw{then} stop
+\item \kw{if} a clinical report arrived after $S_{t-1}$ \kw{then} take EF and NT-proBNP from it
+\item \kw{else} carry forward the EF stored with $S_{t-1}$ \hfill\textit{EF changes only with a new report}
+\item \Ind missing EF/NT-proBNP $\rightarrow$ 62\%, 100\,pg/mL, flagged
+\item $(\hat c,\hat\sigma)\leftarrow$ classifier and regressor on features of $W$ and clinical values
+\item $M\leftarrow$ \code{CardiovascularMechanicsModification}$(m_{\text{SV}},m_R,m_C)$ from~(\ref{eq:deficit})--(\ref{eq:basemods})
+\item \kw{if} $S_{t-1}$ is none \kw{then}
+\item \Ind build the clamped patient file~(\ref{eq:clamp}); add the condition \kw{if} EF $\le40\%$
+\item \Ind stabilize 60\,s; apply $M$; advance 600\,s
+\item \kw{else}
+\item \Ind load $S_{t-1}$ (\code{EngineStateFile}); re-issue $M$ \hfill\textit{state does not carry it}
+\item \Ind \kw{if} $\hat c\in\{$cardiac stress, acute deterioration$\}$ \kw{then} apply \code{Exercise} at $\operatorname{clip}(f_{\hat c}\,\hat\sigma,0.1,0.5)$, $f=1.0$ or $0.6$
+\item \Ind advance 600\,s
+\item \kw{if} the engine failed \kw{then} record a failed run; keep $S_{t-1}$; alert by line~5 of Algorithm~\ref{alg:alert}; stop
+\item $S_t\leftarrow$ \code{SerializeState}; store EF, $\hat\sigma$, simulation time and report id with $S_t$
+\item compute~(\ref{eq:features})--(\ref{eq:risk}) on today's output; run Algorithm~\ref{alg:alert}
+\end{algsteps}
+\end{algorithm}
+
 Five research features (continuous mode, BCG-derived compliance, a measured heart-rate baseline, alert hysteresis and scenario-label persistence) sit behind flags that are off by default; with all flags off, a golden-file test checks that every API response is identical to the version without them.
 
 \begin{table}[!t]
@@ -311,6 +543,29 @@ Testing & pytest (353 test cases from 334 test functions, run on every pull requ
 \bottomrule
 \end{tabularx}
 \end{table}
+
+The React dashboard shows, for each patient, the simulated pressure--volume loop (Fig.~\ref{fig:dash-pv}), the alert level beside the classifier's own signal (Fig.~\ref{fig:dash-alert}) and the risk-score history (Fig.~\ref{fig:dash-timeline}).
+
+\begin{figure}[!t]
+\centering
+\IfFileExists{figures/fig_dash_pvloop.png}{\includegraphics[width=\columnwidth]{fig_dash_pvloop.png}}{\screenshotslot{PV-loop panel}{fig\_dash\_pvloop.png}}
+\caption{Dashboard pressure--volume loop: left-heart pressure against volume over one steady-state cardiac cycle at the end of the day's run.}
+\label{fig:dash-pv}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\IfFileExists{figures/fig_dash_alert.png}{\includegraphics[width=\columnwidth]{fig_dash_alert.png}}{\screenshotslot{Alert view}{fig\_dash\_alert.png}}
+\caption{Dashboard alert view: the twin's \code{decide\_alert()} level (ALERT, WATCH or NONE) and its source, shown beside the classifier-severity signal; when exactly one of the two fires, a note says which.}
+\label{fig:dash-alert}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\IfFileExists{figures/fig_dash_timeline.png}{\includegraphics[width=\columnwidth]{fig_dash_timeline.png}}{\screenshotslot{Risk timeline}{fig\_dash\_timeline.png}}
+\caption{Dashboard risk timeline: the patient's risk score $r$ over successive daily assessments, with each day's risk bucket.}
+\label{fig:dash-timeline}
+\end{figure}
 
 %=====================================================================
 \section{Engineering Challenges and Solutions}\label{sec:engineering}
@@ -919,25 +1174,47 @@ Model drift across machines & Unpinned scikit-learn/numpy versions & Exact depen
 \bibitem{niederer2021scaling} S. A. Niederer \textit{et al.}, ``Scaling digital twins from the artisanal to the industrial,'' \textit{Nat. Comput. Sci.}, vol.~1, pp.~313--320, 2021, doi: 10.1038/s43588-021-00072-5.
 \bibitem{gu2025hftwin} F. Gu \textit{et al.}, ``Identification of digital twins to guide interpretable AI for diagnosis and prognosis in heart failure,'' \textit{npj Digit. Med.}, vol.~8, Art.~no.~110, 2025, doi: 10.1038/s41746-025-01501-9.
 \bibitem{geddes2025rhftwin} J. Geddes \textit{et al.}, ``Digital twins for noninvasively measuring predictive markers of right heart failure,'' \textit{npj Digit. Med.}, vol.~8, Art.~no.~545, 2025, doi: 10.1038/s41746-025-01920-8.
-\bibitem{balasubramanyam2025twin} A. Balasubramanyam \textit{et al.}, ``A cardiovascular modeling framework for enabling personalized healthcare: A digital twin approach,'' in \textit{Proc. IEEE 13th Int. Conf. Healthcare Informatics (ICHI)}, 2025, pp.~478--489, doi: 10.1109/ICHI64645.2025.00062.
 \bibitem{bray2019pulse} A. Bray \textit{et al.}, ``Pulse Physiology Engine: An open-source software platform for computational modeling of human medical simulation,'' \textit{SN Compr. Clin. Med.}, vol.~1, pp.~362--377, 2019, doi: 10.1007/s42399-019-00053-w.
-\bibitem{stergiopulos1996} N. Stergiopulos, J.-J. Meister, and N. Westerhof, ``Determinants of stroke volume and systolic and diastolic aortic pressure,'' \textit{Am. J. Physiol. Heart Circ. Physiol.}, vol.~270, no.~6, pp.~H2050--H2059, 1996, doi: 10.1152/ajpheart.1996.270.6.H2050.
-\bibitem{pulse_cv_methodology} Kitware, Inc., ``Pulse Physiology Engine: Cardiovascular methodology.'' [Online]. Available: \url{https://pulse.kitware.com/_cardiovascular_methodology.html} (accessed Oct. 6, 2026).
+\bibitem{venkatesh2022hdt} K. P. Venkatesh, M. M. Raza, and J. C. Kvedar, ``Health digital twins as tools for precision medicine: Considerations for computation, implementation, and regulation,'' \textit{npj Digit. Med.}, vol.~5, Art.~no.~150, 2022, doi: 10.1038/s41746-022-00694-7.
+\bibitem{balasubramanyam2024review} A. Balasubramanyam, R. Ramesh, R. Sudheer, and P. B. Honnavalli, ``Revolutionizing healthcare: A review unveiling the transformative power of digital twins,'' \textit{IEEE Access}, vol.~12, pp.~69652--69676, 2024, doi: 10.1109/ACCESS.2024.3399744.
+\bibitem{katsoulakis2024dt4h} E. Katsoulakis \textit{et al.}, ``Digital twins for health: A scoping review,'' \textit{npj Digit. Med.}, vol.~7, Art.~no.~77, 2024, doi: 10.1038/s41746-024-01073-0.
+\bibitem{balasubramanyam2025twin} A. Balasubramanyam \textit{et al.}, ``A cardiovascular modeling framework for enabling personalized healthcare: A digital twin approach,'' in \textit{Proc. IEEE 13th Int. Conf. Healthcare Informatics (ICHI)}, 2025, pp.~478--489, doi: 10.1109/ICHI64645.2025.00062.
+\bibitem{shi2011review} Y. Shi, P. Lawford, and R. Hose, ``Review of zero-D and 1-D models of blood flow in the cardiovascular system,'' \textit{Biomed. Eng. Online}, vol.~10, Art.~no.~33, 2011, doi: 10.1186/1475-925X-10-33.
+\bibitem{westerhof2009windkessel} N. Westerhof, J.-W. Lankhaar, and B. E. Westerhof, ``The arterial Windkessel,'' \textit{Med. Biol. Eng. Comput.}, vol.~47, no.~2, pp.~131--141, 2009, doi: 10.1007/s11517-008-0359-2.
+\bibitem{suga1974elastance} H. Suga and K. Sagawa, ``Instantaneous pressure-volume relationships and their ratio in the excised, supported canine left ventricle,'' \textit{Circ. Res.}, vol.~35, no.~1, pp.~117--126, 1974, doi: 10.1161/01.RES.35.1.117.
+\bibitem{pulse_circuit_methodology} Kitware, Inc., ``Pulse Physiology Engine: Circuit methodology.'' [Online]. Available: \url{https://pulse.kitware.com/_circuit_methodology.html} (accessed Oct. 12, 2026).
+\bibitem{baird2020biogears} A. Baird, M. McDaniel, S. A. White, N. Tatum, and L. Marin, ``BioGears: A C++ library for whole body physiology simulations,'' \textit{J. Open Source Softw.}, vol.~5, no.~56, Art.~no.~2645, 2020, doi: 10.21105/joss.02645.
+\bibitem{arts2005circadapt} T. Arts, T. Delhaas, P. Bovendeerd, X. Verbeek, and F. W. Prinzen, ``Adaptation to mechanical load determines shape and properties of heart and circulation: The CircAdapt model,'' \textit{Am. J. Physiol. Heart Circ. Physiol.}, vol.~288, no.~4, pp.~H1943--H1954, 2005, doi: 10.1152/ajpheart.00444.2004.
+\bibitem{chaudhry2010telehf} S. I. Chaudhry \textit{et al.}, ``Telemonitoring in patients with heart failure,'' \textit{N. Engl. J. Med.}, vol.~363, no.~24, pp.~2301--2309, 2010, doi: 10.1056/NEJMoa1010029.
+\bibitem{ong2016beathf} M. K. Ong \textit{et al.}, ``Effectiveness of remote patient monitoring after discharge of hospitalized patients with heart failure: The Better Effectiveness After Transition--Heart Failure (BEAT-HF) randomized clinical trial,'' \textit{JAMA Intern. Med.}, vol.~176, no.~3, pp.~310--318, 2016, doi: 10.1001/jamainternmed.2015.7712.
+\bibitem{koehler2018timhf2} F. Koehler \textit{et al.}, ``Efficacy of telemedical interventional management in patients with heart failure (TIM-HF2): A randomised, controlled, parallel-group, unmasked trial,'' \textit{Lancet}, vol.~392, no.~10152, pp.~1047--1057, 2018, doi: 10.1016/S0140-6736(18)31880-4.
+\bibitem{lindenfeld2021guidehf} J. Lindenfeld \textit{et al.}, ``Haemodynamic-guided management of heart failure (GUIDE-HF): A randomised controlled trial,'' \textit{Lancet}, vol.~398, no.~10304, pp.~991--1001, 2021, doi: 10.1016/S0140-6736(21)01754-2.
+\bibitem{boehmer2017multisense} J. P. Boehmer \textit{et al.}, ``A multisensor algorithm predicts heart failure events in patients with implanted devices: Results from the MultiSENSE study,'' \textit{JACC Heart Fail.}, vol.~5, no.~3, pp.~216--225, 2017, doi: 10.1016/j.jchf.2016.12.011.
+\bibitem{levy2006shfm} W. C. Levy \textit{et al.}, ``The Seattle Heart Failure Model: Prediction of survival in heart failure,'' \textit{Circulation}, vol.~113, no.~11, pp.~1424--1433, 2006, doi: 10.1161/CIRCULATIONAHA.105.584102.
 \bibitem{pocock2013maggic} S. J. Pocock \textit{et al.}, ``Predicting survival in heart failure: A risk score based on 39\,372 patients from 30 studies,'' \textit{Eur. Heart J.}, vol.~34, pp.~1404--1413, 2013, doi: 10.1093/eurheartj/ehs337.
 \bibitem{vanwalraven2010lace} C. van Walraven \textit{et al.}, ``Derivation and validation of an index to predict early death or unplanned readmission after discharge from hospital to the community,'' \textit{CMAJ}, vol.~182, no.~6, pp.~551--557, 2010, doi: 10.1503/cmaj.091117.
-\bibitem{breiman2001rf} L. Breiman, ``Random forests,'' \textit{Mach. Learn.}, vol.~45, no.~1, pp.~5--32, 2001, doi: 10.1023/A:1010933404324.
-\bibitem{pedregosa2011sklearn} F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine learning in Python,'' \textit{J. Mach. Learn. Res.}, vol.~12, pp.~2825--2830, 2011.
-\bibitem{chen2016xgboost} T. Chen and C. Guestrin, ``XGBoost: A scalable tree boosting system,'' in \textit{Proc. 22nd ACM SIGKDD Int. Conf. Knowl. Discov. Data Min.}, 2016, pp.~785--794, doi: 10.1145/2939672.2939785.
-\bibitem{johnson2023mimiciv} A. E. W. Johnson \textit{et al.}, ``MIMIC-IV, a freely accessible electronic health record dataset,'' \textit{Sci. Data}, vol.~10, Art.~no.~1, 2023, doi: 10.1038/s41597-022-01899-x.
-\bibitem{goldberger2000physionet} A. L. Goldberger \textit{et al.}, ``PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals,'' \textit{Circulation}, vol.~101, no.~23, pp.~e215--e220, 2000, doi: 10.1161/01.CIR.101.23.e215.
+\bibitem{ouwerkerk2014models} W. Ouwerkerk, A. A. Voors, and A. H. Zwinderman, ``Factors influencing the predictive power of models for predicting mortality and/or heart failure hospitalization in patients with heart failure,'' \textit{JACC Heart Fail.}, vol.~2, no.~5, pp.~429--436, 2014, doi: 10.1016/j.jchf.2014.04.006.
+\bibitem{mortazavi2016ml} B. J. Mortazavi \textit{et al.}, ``Analysis of machine learning techniques for heart failure readmissions,'' \textit{Circ. Cardiovasc. Qual. Outcomes}, vol.~9, no.~6, pp.~629--640, 2016, doi: 10.1161/CIRCOUTCOMES.116.003039.
 \bibitem{chicco2020hf} D. Chicco and G. Jurman, ``Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone,'' \textit{BMC Med. Inform. Decis. Mak.}, vol.~20, Art.~no.~16, 2020, doi: 10.1186/s12911-020-1023-5.
+\bibitem{viceconti2021insilico} M. Viceconti, F. Pappalardo, B. Rodriguez, M. Horner, J. Bischoff, and F. Musuamba Tshinanu, ``In silico trials: Verification, validation and uncertainty quantification of predictive models used in the regulatory evaluation of biomedical products,'' \textit{Methods}, vol.~185, pp.~120--127, 2021, doi: 10.1016/j.ymeth.2020.01.011.
+\bibitem{pathmanathan2018validation} P. Pathmanathan and R. A. Gray, ``Validation and trustworthiness of multiscale models of cardiac electrophysiology,'' \textit{Front. Physiol.}, vol.~9, Art.~no.~106, 2018, doi: 10.3389/fphys.2018.00106.
+\bibitem{nosek2018prereg} B. A. Nosek, C. R. Ebersole, A. C. DeHaven, and D. T. Mellor, ``The preregistration revolution,'' \textit{Proc. Natl. Acad. Sci. USA}, vol.~115, no.~11, pp.~2600--2606, 2018, doi: 10.1073/pnas.1708274114.
+\bibitem{johnson2023mimiciv} A. E. W. Johnson \textit{et al.}, ``MIMIC-IV, a freely accessible electronic health record dataset,'' \textit{Sci. Data}, vol.~10, Art.~no.~1, 2023, doi: 10.1038/s41597-022-01899-x.
+\bibitem{januzzi2006icon} J. L. Januzzi \textit{et al.}, ``NT-proBNP testing for diagnosis and short-term prognosis in acute destabilized heart failure: An international pooled analysis of 1256 patients: The International Collaborative of NT-proBNP Study,'' \textit{Eur. Heart J.}, vol.~27, no.~3, pp.~330--337, 2006, doi: 10.1093/eurheartj/ehi631.
+\bibitem{goldberger2000physionet} A. L. Goldberger \textit{et al.}, ``PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals,'' \textit{Circulation}, vol.~101, no.~23, pp.~e215--e220, 2000, doi: 10.1161/01.CIR.101.23.e215.
 \bibitem{kolakowski2026perheart} M. Kolakowski \textit{et al.}, ``Multimodal dataset of in-home physiological and inertial measurements from older heart failure patients,'' \textit{Data}, vol.~11, Art.~no.~106, 2026, doi: 10.3390/data11050106.
 \bibitem{zhang2021zigong} Z. Zhang \textit{et al.}, ``Electronic healthcare records and external outcome data for hospitalized patients with heart failure,'' \textit{Sci. Data}, vol.~8, Art.~no.~46, 2021, doi: 10.1038/s41597-021-00835-9.
 \bibitem{zhan2025bcg} J. Zhan \textit{et al.}, ``A multi-pathology ballistocardiogram dataset for cardiac function monitoring and arrhythmia assessment,'' figshare, 2025, doi: 10.6084/m9.figshare.28416896.
+\bibitem{breiman2001rf} L. Breiman, ``Random forests,'' \textit{Mach. Learn.}, vol.~45, no.~1, pp.~5--32, 2001, doi: 10.1023/A:1010933404324.
+\bibitem{pulse_cv_methodology} Kitware, Inc., ``Pulse Physiology Engine: Cardiovascular methodology.'' [Online]. Available: \url{https://pulse.kitware.com/_cardiovascular_methodology.html} (accessed Oct. 6, 2026).
+\bibitem{stergiopulos1996} N. Stergiopulos, J.-J. Meister, and N. Westerhof, ``Determinants of stroke volume and systolic and diastolic aortic pressure,'' \textit{Am. J. Physiol. Heart Circ. Physiol.}, vol.~270, no.~6, pp.~H2050--H2059, 1996, doi: 10.1152/ajpheart.1996.270.6.H2050.
+\bibitem{pulse_source431} Kitware, Inc., ``Pulse Physiology Engine, release 4.3.1, source file \texttt{CardiovascularModel.cpp} (functions \texttt{BeginDriverCycle} and \texttt{ChronicHeartFailure}).'' [Online]. Available: \url{https://gitlab.kitware.com/physiology/engine/-/blob/REL_4_3_1/src/cpp/engine/common/system/physiology/CardiovascularModel.cpp} (accessed Oct. 12, 2026).
 \bibitem{rcp2017news2} Royal College of Physicians, ``National Early Warning Score (NEWS) 2: Standardising the assessment of acute-illness severity in the NHS,'' London, U.K., 2017.
+\bibitem{chen2016xgboost} T. Chen and C. Guestrin, ``XGBoost: A scalable tree boosting system,'' in \textit{Proc. 22nd ACM SIGKDD Int. Conf. Knowl. Discov. Data Min.}, 2016, pp.~785--794, doi: 10.1145/2939672.2939785.
 \bibitem{vincent2013shock} J.-L. Vincent and D. De Backer, ``Circulatory shock,'' \textit{N. Engl. J. Med.}, vol.~369, no.~18, pp.~1726--1734, 2013, doi: 10.1056/NEJMra1208943.
 \bibitem{nohria2002management} A. Nohria, E. Lewis, and L. W. Stevenson, ``Medical management of advanced heart failure,'' \textit{JAMA}, vol.~287, no.~5, pp.~628--640, 2002, doi: 10.1001/jama.287.5.628.
 \bibitem{baran2019scai} D. A. Baran \textit{et al.}, ``SCAI clinical expert consensus statement on the classification of cardiogenic shock,'' \textit{Catheter. Cardiovasc. Interv.}, vol.~94, pp.~29--37, 2019, doi: 10.1002/ccd.28329.
+\bibitem{pedregosa2011sklearn} F. Pedregosa \textit{et al.}, ``Scikit-learn: Machine learning in Python,'' \textit{J. Mach. Learn. Res.}, vol.~12, pp.~2825--2830, 2011.
 \end{thebibliography}
 
 \end{document}
