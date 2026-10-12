@@ -194,14 +194,14 @@ Stehlik 2020 (LINK-HF) \cite{stehlik2020linkhf} & Wearable patch & ML (similarit
 \section{Methods}\label{sec:methods}
 %=====================================================================
 \subsection{Reference data and synthetic training population}\label{sec:data}
-We used no real patient data for training. Instead, we traced every distribution parameter of the synthetic generator to an aggregate statistic from a real source (Table~\ref{tab:datasets}): 11,837 MIMIC-IV HF admissions \cite{johnson2023mimiciv} for age, sex and laboratory values; the Chicco--Jurman HF clinical records \cite{chicco2020hf} as the only source with ejection fraction; and NHANES for height, weight and BMI by sex. The repository stores only aggregate statistics from the real sources; raw files remain outside version control.
+We used no real patient data for training. Instead, we took the generator's population statistics from aggregate statistics of real sources (Table~\ref{tab:datasets}): 11,837 MIMIC-IV HF admissions \cite{johnson2023mimiciv} for age and sex (the extract also gives laboratory reference values, which the generator does not yet use); the Chicco--Jurman HF clinical records \cite{chicco2020hf}, the only source with ejection fraction, for the HFrEF and HFpEF profiles; NHANES for height, weight and BMI by sex; and published age-specific NT-proBNP cut-offs \cite{januzzi2006icon}. The remaining parameters are documented assumptions: the healthy EF profile, the wearable baselines, the scenario changes $\Delta_{v,c}$ (Table~\ref{tab:deltas}) and the coefficients that link EF, severity and NT-proBNP. The repository stores only aggregate statistics from the real sources; raw files remain outside version control.
 
 We generated $n=2{,}000$ synthetic patients across five scenarios. Each patient receives a scenario $c$ and a severity
 \begin{equation}
 \sigma=\begin{cases}0.15\,\xi, & c=\text{stable},\\ \xi, & \text{otherwise},\end{cases}\qquad \xi\sim U(0,1),
 \label{eq:severity}
 \end{equation}
-so severity is capped at 0.15 for stable patients.
+so stable patients' severity is scaled into $[0,\,0.15]$.
 
 \subsubsection{Clinical state}
 The generator draws ejection fraction from the scenario's EF profile $p(c)$ (healthy for stable; HFpEF for deconditioning and cardiac stress; HFrEF for fluid overload and acute deterioration) and lowers it by $12\sigma$ points:
@@ -286,7 +286,7 @@ We fixed five deterioration scenarios before modeling (Table~\ref{tab:scenarios}
 \toprule
 \textbf{Scenario} & \textbf{Wearable signature} & \textbf{Pulse actions} \\
 \midrule
-stable & Flat trends & EF-derived modifiers only \\
+stable & Flat trends & EF-derived modifiers (continuous mode); none beyond the EF $\le40\%$ condition (fresh mode) \\
 fluid\_\allowbreak overload & Rising weight, rising HR & Venous compliance reduced with severity \\
 cardiac\_stress & HR, HRV changes under exertion; preserved EF & Modifiers + \code{Exercise} \\
 deconditioning & Falling steps, mild HR drift & Resistance/compliance modifiers; no exertion \\
@@ -388,7 +388,7 @@ F_{\text{comp}}=\mathbf{1}\!\left[\frac{\text{SV}_{\text{end}}}{\text{SV}_{\text
 \end{gathered}
 \label{eq:features}
 \end{equation}
-In fresh mode and on a patient's first continuous day, the run includes stabilization, so these deltas span the healthy baseline to the end of the encounter; on later continuous days they span only that day's encounter, from the re-issued modifiers to its end.
+In fresh mode and on a patient's first continuous day, the run includes stabilization, so these deltas span the healthy baseline to the end of the encounter; on later continuous days they span only that day's encounter, from the re-issued modifiers to its end (Section~\ref{sec:limits}).
 
 The primary risk score (Table~\ref{tab:riskscore}) normalizes each to $[0,1]$ against a clinically anchored full scale and forms a weighted sum:
 \begin{equation}
@@ -1102,7 +1102,7 @@ We found every major fault in Table~\ref{tab:problems} by running the real syste
 
 \subsection{Limitations}\label{sec:limits}
 \begin{itemize}
-\item Training data are synthetic, although we traced every parameter to a real aggregate statistic, and the pre-specified cohort is small (ten stories, six seeds).
+\item Training data are synthetic. Only the population statistics trace to real aggregate data; the healthy EF profile, wearable baselines and scenario changes are assumptions. The pre-specified cohort is small (ten stories, six seeds).
 \item The fluid-overload scenario contains a modeling error rather than a mere limitation: it lowers venous compliance without adding circulating volume, which mobilizes pooled blood and moves the simulated hemodynamics in the improving direction as severity rises. Correcting it requires a volume-loading action, re-verification of engine stability, re-running the scenario validation, retraining the severity model and repeating the 21-day test; we have not yet done so.
 \item We tuned several scoring elements post hoc (Table~\ref{tab:posthoc}).
 \item The continuous mode simplifies each resumed day to the EF- and severity-derived modifiers plus exertion, without the scenario-specific extras; from its second day the risk features measure that day's change, whereas we designed the score on fresh runs; and in a demonstration check, two of five patients' risk rose over three resumed days with an unchanged label, a drift whose source we have not isolated.
