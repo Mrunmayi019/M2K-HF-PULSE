@@ -3,10 +3,12 @@ hand-verified against the published point system (Pocock SJ, et al. "Predicting 
 failure: a risk score based on 39 372 patients from 30 studies worldwide." Eur Heart J.
 2013;34(19):1404-1413).
 
-Every band value asserted below was independently cross-checked (2026-09-24, this session) against
-external sources synthesizing the original paper's Table 3 (MDApp.co, AppCardio, Johnson Francis's
-clinical review), not just the single secondary source src/analytics/benchmark_scores.py's own
-docstring originally flagged as unverified:
+Every band value asserted below was first cross-checked (2026-09-24) against secondary sources
+(MDApp.co, AppCardio, Johnson Francis's clinical review), then re-checked (2026-10-12) against the
+primary source itself: the integer-score chart in Pocock et al. 2013, Figure 2 (p. 1409). All match.
+(Earlier notes called this chart "Table 3"; the paper's Table 3 is its missing-data table.) See
+benchmark_scores.py's docstring for the two places the chart is ambiguous (HF-duration direction,
+age 55):
   - SBP<110 (reduced-EF band) = 5 pts; SBP>=150 = 0 pts -- confirmed
   - Creatinine band edges 90/110/130/150/170/210/250 umol/L, >250 = 8 pts -- confirmed
   - Age max points = 15 (EF>=40 category, oldest band) -- confirmed
