@@ -362,3 +362,16 @@ kept short on purpose so it doesn't drift out of sync with that index.
 ## Contributors
 
 Kaveri Sharma, Mrunmayi Mohite, Meghan Singhal
+
+## License
+
+Code: [MIT](LICENSE), copyright 2026 Kaveri Sharma, Mrunmayi Mohite, Meghan Singhal.
+
+The MIT license covers the code only. Data keep their own terms:
+
+- Outputs derived from the PerHeart Pilot Dataset (`data/real_world_validation/`) are
+  distributed under CC BY-NC-SA 4.0; see the `LICENSE_NOTE.md` in each run directory.
+- Raw MIMIC-IV, Zigong and PerHeart files are not in this repository and are not covered by any
+  license here; access them under their own data-use agreements (`docs/data_provenance.md`).
+- Bundled third-party software, such as the Kitware Pulse engine in the backend image, keeps its
+  own license.
