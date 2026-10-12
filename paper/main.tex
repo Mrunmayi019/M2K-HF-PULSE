@@ -338,7 +338,14 @@ E_{\max,R}&\leftarrow \beta_E\,m_{\text{SV}}\,E^{0}_{\max,R},\\
 f_{\text{HR}}&\leftarrow m_{\text{HR}}\,f_{\text{HR}},\qquad R_{i}\leftarrow m_{R}\,R_{i},\label{eq:hrmod}\\
 C_{i}&\leftarrow m_{C}\,C_{i},\qquad\ \ C_{j}\leftarrow m_{V}\,C_{j},\label{eq:cmod}
 \end{align}
-where $E^{0}_{\max}$ are the configured maximum elastances, $\beta_E$ is the baroreflex elastance scale (1 with the reflex off), $k_{\text{HF}}=0.27$ when the condition is present and 1 otherwise, $f_{\text{HR}}$ is the heart-rate driver frequency (after baroreflex, chemoreflex and drug effects, and bounded by the patient's minimum and maximum heart rate), $i$ runs over systemic resistance and compliance paths and $j$ over venous compliance paths. The engine squares $m_{\text{SV}}$ when it exceeds 1, which our mapping never does. The stroke-volume multiplier therefore acts on contractility (maximum elastance), not on stroke volume directly, and the condition is a fixed 73\% cut in left-ventricular maximum elastance with no severity parameter.
+where $E^{0}_{\max}$ are the configured maximum elastances, $\beta_E$ is the baroreflex elastance scale (1 with the reflex off), $k_{\text{HF}}=0.27$ when the condition is present and 1 otherwise, $f_{\text{HR}}$ is the heart-rate driver frequency (after baroreflex, chemoreflex and drug effects, and bounded by the patient's minimum and maximum heart rate), $i$ runs over systemic resistance and compliance paths and $j$ over venous compliance paths. The engine squares $m_{\text{SV}}$ when it exceeds 1, which our mapping never does. The stroke-volume multiplier therefore acts on contractility (maximum elastance), not on stroke volume directly, and the condition is a fixed 73\% cut in left-ventricular maximum elastance with no severity parameter. Fig.~\ref{fig:circuit} shows where each lever acts on the circulation.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_engine_circuit.pdf}
+\caption{Simplified Pulse circulation, showing where the pipeline acts (orange, dashed) and what it reads back (green, dotted). Scenario mappings are for fresh mode; the note at the bottom gives the continuous mode, which both scenario-test experiments used. Names and mappings are from \code{scenario\_file.py} and \code{patient\_file.py}.}
+\label{fig:circuit}
+\end{figure*}
 
 \subsubsection{EF-to-engine mapping}
 We map EF and severity onto these multipliers and, for reduced EF, the binary \code{ChronicVentricularSystolicDysfunction} condition (the fixed elastance reduction $k_{\text{HF}}$). With $d_{\text{EF}}$ from~(\ref{eq:efdeficit}), the combined deficit is
@@ -549,21 +556,21 @@ The React dashboard shows, for each patient, the simulated pressure--volume loop
 \begin{figure}[!t]
 \centering
 \IfFileExists{figures/fig_dash_pvloop.png}{\includegraphics[width=\columnwidth]{fig_dash_pvloop.png}}{\screenshotslot{PV-loop panel}{fig\_dash\_pvloop.png}}
-\caption{Dashboard pressure--volume loop: left-heart pressure against volume over one steady-state cardiac cycle at the end of the day's run.}
+\caption{Dashboard pressure--volume loop for the patient in Fig.~\ref{fig:dash-alert} (EF 30\%): left-heart pressure against volume over one steady-state cardiac cycle at the end of the day's run. Synthetic demonstration patient; not a real person.}
 \label{fig:dash-pv}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \IfFileExists{figures/fig_dash_alert.png}{\includegraphics[width=\columnwidth]{fig_dash_alert.png}}{\screenshotslot{Alert view}{fig\_dash\_alert.png}}
-\caption{Dashboard alert view: the twin's \code{decide\_alert()} level (ALERT, WATCH or NONE) and its source, shown beside the classifier-severity signal; when exactly one of the two fires, a note says which.}
+\caption{Dashboard alert view: risk bucket, NYHA class and the twin's \code{decide\_alert()} level (ALERT, WATCH or NONE) beside the classifier-severity signal, with the ECG-template caveat. Here both signals fire; when exactly one fires, a note says which. Synthetic demonstration patient; not a real person.}
 \label{fig:dash-alert}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \IfFileExists{figures/fig_dash_timeline.png}{\includegraphics[width=\columnwidth]{fig_dash_timeline.png}}{\screenshotslot{Risk timeline}{fig\_dash\_timeline.png}}
-\caption{Dashboard risk timeline: the patient's risk score $r$ over successive daily assessments, with each day's risk bucket.}
+\caption{Dashboard risk timeline for a patient in continuous mode over six daily runs, recorded on 3 September 2026 with earlier code: MODERATE on days 1--2 and HIGH on days 3--6, with the predicted scenario acute deterioration on every day. The dashboard chart has no y-axis values. Synthetic demonstration patient; not a real person.}
 \label{fig:dash-timeline}
 \end{figure}
 
@@ -638,7 +645,14 @@ Failures were not a single phenomenon. Mechanism 1 (engine crash) depends on the
 \subsection{Continuous state: carrying a patient forward}
 Rebuilding a patient every day discards the physiological state the twin is meant to track. Pulse can serialize its full state (about 2.33\,MB, saved in 0.31--0.44\,s and loaded in 0.43\,s) and resume it, and with an \code{Exercise} action the resumed run's final heart rate, MAP, cardiac output and stroke volume matched an uninterrupted run to every printed digit.
 
-With our pipeline's disease modifier, they did not match (Table~\ref{tab:resume}): the serialized state does not carry the modifier. Re-issuing it on every resume restored the match, to 15 significant figures in all four outputs (we did not compare the serialized states themselves), which also requires storing the last-used EF and severity alongside the state.
+With our pipeline's disease modifier, they did not match (Table~\ref{tab:resume}): the serialized state does not carry the modifier. Re-issuing it on every resume restored the match, to 15 significant figures in all four outputs (we did not compare the serialized states themselves), which also requires storing the last-used EF and severity alongside the state. A rerun through the command-line driver used in production shows the same pattern over time (Fig.~\ref{fig:resume}).
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{fig_resume_fidelity.png}
+\caption{State resume, rerun on 12 October 2026 through the production command-line path (\code{cli\_state\_runner.resume\_and\_advance}; EF 56.4, severity 0.46). The state was saved at 150\,s and reloaded. Without re-issuing the disease modifier, HR, CO and SV drift away from the uninterrupted run; with it re-issued, the resumed run lies on the reference. Final values differ slightly from Table~\ref{tab:resume} (e.g., continuous CO 6.205 vs.\ 6.145\,L/min), which came from an earlier run.}
+\label{fig:resume}
+\end{figure}
 
 A later end-to-end test crashed inside the Pulse Python SDK; isolating it showed a native crash in the SDK's engine initialization even with no machine-learning code loaded, disproving an earlier thread-conflict diagnosis, so we rebuilt the feature on the command-line driver.
 
@@ -673,7 +687,14 @@ Three further corrections followed from running the real system rather than offl
 %=====================================================================
 \section{Results}\label{sec:results}
 %=====================================================================
-We evaluate in layers of increasing realism. This section reports the layers that use synthetic patients; Section~\ref{sec:validation} reports the tests against real data. Table~\ref{tab:evalsummary} summarizes what each layer tests and what it does not. We report the following scenarios, in this order:
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_eval_design.pdf}
+\caption{Evaluation design. (A) Model and pipeline checks on synthetic patients. (B) The pre-specified 21-day scenario test: outcomes committed before any run, a pilot on P10, rule selection on development seeds 42--44, the frozen rules on held-out seeds 45--47, and Experiment~2 on seeds 48--53. (C) Tests against real data.}
+\label{fig:evaldesign}
+\end{figure*}
+
+We evaluate in layers of increasing realism. This section reports the layers that use synthetic patients; Section~\ref{sec:validation} reports the tests against real data. Fig.~\ref{fig:evaldesign} shows the design, and Table~\ref{tab:evalsummary} summarizes what each layer tests and what it does not. We report the following scenarios, in this order:
 \begin{itemize}
 \item \emph{Offline model test} (Section~\ref{sec:offline}): 300 held-out synthetic patients.
 \item \emph{Engine scenario check} (Section~\ref{sec:enginecheck}): one simulated patient per scenario at severity $\approx$0.5, and the 117 completed batch runs.
@@ -778,7 +799,14 @@ After we removed the feature and retrained, live re-validation reached severity 
 \subsection{Pre-specified 21-day scenario test (Experiment 1)}\label{sec:exp1}
 We wrote ten patient stories and committed their expected outcomes to the project's git repository before any simulation (commit \code{38c3520}, 3 October 2026, 02:04 IST; the first pilot run followed about 50 minutes later). This is pre-specification under version control, not registration in a public registry.
 
-The cohort (Table~\ref{tab:cohort}) has five stories that should be caught, three that should stay quiet and two edge cases. We ran each story for 21 days in continuous-state mode on development seeds 42--44 and, after selecting a rule, on held-out seeds 45--47.
+The cohort (Table~\ref{tab:cohort}) has five stories that should be caught, three that should stay quiet and two edge cases. We ran each story for 21 days in continuous-state mode on development seeds 42--44 and, after selecting a rule, on held-out seeds 45--47. Fig.~\ref{fig:wearables} shows the wearable inputs for five of the stories.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_wearable_inputs.png}
+\caption{Wearable inputs the classifier receives for five of the ten stories (weight, steps, HRV and resting HR; mean and range over seeds 42--47). Dashed line: the story's designed onset.}
+\label{fig:wearables}
+\end{figure*}
 
 A pilot run exposed a design confound (EF matched to story severity) and two harness bugs (day-to-day noise scaled to the current value instead of the population SD, and per-process salting of Python's \code{hash()} making seeds non-reproducible); we fixed all three and froze the harness before the main runs, recording every amendment.
 
@@ -987,7 +1015,21 @@ Classifier $>0.55$, FA / 100 pd & 8.5 & 10.1 (4.8--15.6) & $\leq$10$^{*}$ \\
 \subsection{How the twin's high-risk days arise}\label{sec:mechanism}
 The saved runs of both experiments show one mechanism, replicated on new seeds and a new EF band; we found it in a descriptive analysis after both experiments. No HIGH-risk day preceded a series' first exertion label (0 of 462 HIGH days in Experiment~1, 0 of 475 in Experiment~2). Series with an exertion label reached HIGH in 30 of 32 and 30 of 31 cases, series without one in 0 of 28 and 0 of 29, and the first HIGH day came 0--1 days after the first exertion label in 23 of 30 series in each experiment.
 
-The exertion label starts Pulse's \code{Exercise} action, which stays active in the carried state: later days without an exertion label started at a median MAP of 66\,mmHg, against 95\,mmHg before any exertion label, and the baseline-deficit term, which scores starting MAP, decided 452 of 462 and 471 of 475 HIGH days. In the continuous mode, HIGH risk therefore reports an exertion state that the label switches on and that then persists, rather than a gradual change in the simulated circulation.
+The exertion label starts Pulse's \code{Exercise} action, which stays active in the carried state: later days without an exertion label started at a median MAP of 66\,mmHg, against 95\,mmHg before any exertion label (Fig.~\ref{fig:engineoutput}), and the baseline-deficit term, which scores starting MAP, decided 452 of 462 and 471 of 475 HIGH days (Fig.~\ref{fig:riskbreakdown}). In the continuous mode, HIGH risk therefore reports an exertion state that the label switches on and that then persists, rather than a gradual change in the simulated circulation.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_engine_output.png}
+\caption{Pulse output per day for five stories in Experiment~1 (mean and range over seeds 42--47): heart rate, MAP and cardiac output at the start and end of each day's run, and the Pulse risk score against classifier severity. Dotted lines: MAP 92.5 and 65\,mmHg; HIGH cut-point 0.65. Dashed line: designed onset. In P06, P07 and P08 the start-of-run MAP falls to about 58--68\,mmHg after the exertion days and stays there, which drives the baseline-deficit term.}
+\label{fig:engineoutput}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{fig_risk_breakdown.png}
+\caption{(a) Risk bucket by story in Experiment~1 (seeds 42--47; 126 patient-days per story): the baseline-deficit term decided 452 of the 462 HIGH days. (b) Score components on single days (seed 45), where $r=\max(A,\,s_{\text{baseline}})$; dotted lines mark the 0.35 and 0.65 cut-points. P07 day 4 is one of the 10 HIGH days decided by the acute score; P08 day 13 (a healthy heart) is HIGH from the baseline deficit alone, the pattern the C3 guard targets.}
+\label{fig:riskbreakdown}
+\end{figure*}
 
 This accounts for the label-only rule's resemblance to the Pulse risk bucket and for the ablation result, and it points to specific changes: ending simulated exertion when the label no longer calls for it, and adding physiological inputs that do not pass through the label.
 
