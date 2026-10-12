@@ -15,11 +15,19 @@ patients. Provenance of the point table used below:
     matters here given this project's real PerHeart validation cohort skews to ages 67-94
     (docs/real_world_data_integration.md).
   - Every other band (EF points, BMI, creatinine, SBP-by-EF, NYHA, and the binary risk factors)
-    is reproduced from a secondary source (an MDApp.co MAGGIC-calculator writeup) that was NOT
-    independently re-verified against the original paper's own supplementary table -- flagged
-    here, not hidden, consistent with this project's citation discipline
-    (docs/data_provenance.md). **Re-verify these against Pocock et al. 2013's supplementary table
-    before citing this comparison in the paper.**
+    was first reproduced from a secondary source (an MDApp.co MAGGIC-calculator writeup), then
+    checked on 2026-10-12 against the original paper's integer-score chart (Pocock et al. 2013,
+    Figure 2, p. 1409). Every point value below matches that chart; no constant changed.
+  - Two places where the chart itself is ambiguous, and the reading used here:
+      * Heart-failure duration: Figure 2 labels the +2 item "First diagnosis of heart failure in
+        the past 18 months", but the fitted model (Table 2, "HF duration >18 months", rate ratio
+        1.188) and the paper's Discussion put the higher risk on a diagnosis MORE than 18 months
+        ago. This module follows the fitted model: +2 when hf_duration_18mo_plus is True.
+        Because ASSUMED_HF_DURATION_18MO_PLUS is a fixed constant, this choice shifts every
+        synthetic patient's score by the same 2 points -- rank correlation is unaffected, absolute
+        tier assignment is not. scripts/zigong_maggic11_validation.py excludes this item entirely.
+      * Age 55: the chart's age bands read "<55" then "56-59", leaving 55 unassigned. Here age 55
+        falls in the 56-59 band (bands are "value < upper bound").
 
 Inputs this project doesn't measure (systolic BP, serum creatinine, diabetes, COPD, smoking
 status, HF-diagnosis duration, beta-blocker/ACEI-ARB use) are filled with fixed, documented
