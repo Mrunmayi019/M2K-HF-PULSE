@@ -65,7 +65,7 @@ adithyakoundinya@gmail.com}
 \maketitle
 
 \begin{abstract}
-Home monitoring gives heart-failure (HF) patients daily measurements but no physiological interpretation. We present HF-PULSE, an open-source, population-parameterized physiological model (a ``digital twin'' in a limited sense) that interprets daily wearable trends through a mechanistic physiology engine. A Random Forest reads a 21-day window of six daily signals and routine clinical values and estimates a deterioration scenario and its severity; these drive the Kitware Pulse engine, whose simulated hemodynamics feed a clinically anchored, interpretable risk score and a three-level alert. In a continuous mode the twin carries the engine's state from day to day, and a resumed run's outputs match an uninterrupted run's to 15 significant figures, provided the twin re-issues disease modifiers on resume. We evaluated the twin with outcomes committed to version control before any run: ten scripted 21-day patient stories, development and held-out seeds, and a replication on new seeds. An alert guard built on the risk score's hemodynamic components, selected on development seeds, cut false alerts by 68\% there and by 61\% on held-out seeds without losing a detection. Re-running with the cohort's ejection fraction inside the training range (with two minor protocol changes) doubled day-by-day label accuracy (17.6\% to 37.1\%), raised detection from 21 to 24 of 30 deteriorating series and lowered false alerts from 8.7 to 4.8 per 100 patient-days; the results met six of the eight outcome predictions we committed before the runs. In both experiments, high risk arose only after the classifier's first exertion label, and on held-out seeds a classifier threshold selected on development seeds detected more series (15 vs.\ 10 of 15) at the same false-alert rate. The engine did not improve detection; it adds a hemodynamic breakdown of each alert, whose clinical usefulness remains untested, and we identify the changes needed to go further. The pipeline ran end to end on real home data from 13 of 16 HF patients; on 17,129 MIMIC-IV admissions, the only component computable without wearables, a monotone function of admission MAP, reached AUC 0.596, similar to age alone.
+Home monitoring gives heart-failure (HF) patients daily measurements but no physiological interpretation. We present HF-PULSE, an open-source, population-parameterized physiological model (a ``digital twin'' in a limited sense) that interprets daily wearable trends through a mechanistic physiology engine. A Random Forest reads a 21-day window of six daily signals and routine clinical values and estimates a deterioration scenario and its severity; these drive the Kitware Pulse engine, whose simulated hemodynamics feed a clinically anchored, interpretable risk score and a three-level alert. In a continuous mode the twin carries the engine's state from day to day, and a resumed run's outputs match an uninterrupted run's to 15 significant figures, provided the twin re-issues disease modifiers on resume. We evaluated the twin with outcomes committed to version control before any run: ten scripted 21-day patient stories, development and held-out seeds, and a replication on new seeds. An alert guard built on the risk score's hemodynamic components, selected on development seeds, cut false alerts by 68\% there and by 61\% on held-out seeds without losing a detection. Re-running with the cohort's ejection fraction inside the training range (with two minor protocol changes) doubled day-by-day label accuracy (17.6\% to 37.1\%), raised detection from 21 to 24 of 30 deteriorating series and lowered false alerts from 8.7 to 4.8 per 100 patient-days; the results met seven of the ten outcome predictions we committed before the runs. In both experiments, high risk arose only after the classifier's first exertion label, and on held-out seeds a classifier threshold selected on development seeds detected more series (15 vs.\ 10 of 15) at the same false-alert rate. The engine did not improve detection; it adds a hemodynamic breakdown of each alert, whose clinical usefulness remains untested, and we identify the changes needed to go further. The pipeline ran end to end on real home data from 13 of 16 HF patients; on 17,129 MIMIC-IV admissions, the only component computable without wearables, a monotone function of admission MAP, reached AUC 0.596, similar to age alone.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -152,7 +152,7 @@ Implanted sensors measure physiology more directly. In CHAMPION \cite{abraham201
 Wearable predictors aim for similar performance without an implant. The LINK-HF study \cite{stehlik2020linkhf} used a disposable multisensor chest patch and a machine-learned personalized baseline: deviations from the baseline detected precursors of HF rehospitalization with 76--88\% sensitivity and 85\% specificity, and the median time from first alert to readmission was 6.5 days. Gautam \textit{et al.}\ \cite{gautam2022wearables} surveyed AI, wearables and remote monitoring in HF.
 
 \subsection{HF risk scores and machine learning}\label{sec:rel-risk}
-The Seattle Heart Failure Model \cite{levy2006shfm} was derived in 1,125 patients with a Cox model and validated in five cohorts totalling 9,942 patients, with an overall AUC of 0.729 for survival. The MAGGIC score \cite{pocock2013maggic} is a widely used, externally validated HF survival score derived from 39,372 patients in 30 studies, and the LACE index \cite{vanwalraven2010lace} is a general, not HF-specific, score for early death or unplanned readmission after discharge; we use both as external benchmarks (Section~\ref{sec:outcomes}). Across 117 HF prediction models in 55 papers, Ouwerkerk \textit{et al.}\ \cite{ouwerkerk2014models} found a mean C-statistic of 0.66 (0.71 for mortality, 0.68 for HF hospitalization) and judged prediction, especially of HF hospitalization, only moderately successful.
+The Seattle Heart Failure Model \cite{levy2006shfm} was derived in 1,125 patients with a Cox model and validated in five cohorts totalling 9,942 patients, with an overall AUC of 0.729 for survival. The MAGGIC score \cite{pocock2013maggic} is a widely used, externally validated HF survival score derived from 39,372 patients in 30 studies, and the LACE index \cite{vanwalraven2010lace} is a general, not HF-specific, score for early death or unplanned readmission after discharge. We use MAGGIC as an external benchmark (Section~\ref{sec:outcomes}). Across 117 HF prediction models in 55 papers, Ouwerkerk \textit{et al.}\ \cite{ouwerkerk2014models} found a mean C-statistic of 0.66 (0.71 for mortality, 0.68 for HF hospitalization) and judged prediction, especially of HF hospitalization, only moderately successful.
 
 Machine learning has improved these figures modestly. On the Tele-HF trial data, Mortazavi \textit{et al.}\ \cite{mortazavi2016ml} found that random forests raised the C-statistic for 30-day all-cause readmission from 0.533 (logistic regression) to 0.628, and boosting raised it for HF readmission from 0.543 to 0.678. Chicco and Jurman \cite{chicco2020hf} predicted survival from serum creatinine and ejection fraction alone. None of these models simulates the physiology that produces the risk.
 
@@ -595,7 +595,7 @@ Real patients outside Pulse range & Engine hard-rejects age $>65$, BMI $>30$; re
 Deconditioning looked like cardiac stress & Both used \code{Exercise}; HR 150--164 in both & Removed exertion from deconditioning & Distinct HR/MAP profiles (Table~\ref{tab:phase2}) \\
 Fluid overload always scored LOW & Risk only measured change within a run; fluid overload is a shifted baseline & Added baseline-deficit term with \code{max()} & 30/30 LOW $\rightarrow$ 29/30 MODERATE; scenario later found mis-specified \\
 Live severity error 0.271 vs.\ 0.048 offline (NYHA-era model) & NYHA ordinal used in training but unknown at inference, defaulted to class I & Removed NYHA from features; retrained & Live MAE 0.271 $\rightarrow$ 0.026 \\
-Engine crashes at high severity & Disease modifiers + sustained exertion exceed engine's sustainable load (Table~\ref{tab:crashinv}) & Characterized; failures recorded, never dropped & Deterministic at 154.1--154.3\,s \\
+Engine crashes at high severity & Disease modifiers + sustained exertion exceed engine's sustainable load (Table~\ref{tab:crashinv}) & Characterized; failures recorded, never dropped & Same failure chain in 3 logged crashes (154.1--154.3\,s) \\
 Resumed state drifted & Disease modifiers are not carried by serialized state & Re-issue modifiers on every resume & Drift 6.5\% $\rightarrow$ 0.000\% \\
 Engine segfault in continuous mode & Pulse Python SDK \code{initialize\_engine()} crash (gdb trace); earlier ``thread conflict'' diagnosis disproved & Switched to the CLI scenario driver & Day 1$\rightarrow$3 runs clean \\
 Resumed runs flagged as crashes & Driver's end-time check ignores elapsed state time; schema field renamed (\code{Mode}, not \code{Type}) & Resume-aware crash filter; corrected schema & Exact match vs.\ continuous \\
@@ -610,7 +610,9 @@ In a 150-patient batch (30 per scenario), 117 runs completed (Fig.~\ref{fig:batc
 
 Engine logs for three independent crashes showed an identical chain: fatigue, hypoxia and tachycardia, then renal hypoperfusion and cardiovascular collapse, ending in a fatal negative heart-chamber volume and an irreversible-state event at 154.1--154.3\,s.
 
-We applied single-variable interventions to a reproducible case (Table~\ref{tab:crashinv}). Gaps and ramps only delayed the crash; either stressor alone completed. The failure is therefore a sustained combined-load boundary whose safe exercise intensity varies by patient (about 0.22 for one patient and between 0.125 and 0.25 for another), so no single safe constant exists.
+We applied single-variable interventions to one crash case that repeated identically on rerun (Table~\ref{tab:crashinv}). Gaps and ramps only delayed the crash; either stressor alone completed. The failure is therefore a sustained combined-load boundary whose safe exercise intensity varies by patient (about 0.22 for one patient and between 0.125 and 0.25 for another), so no single safe constant exists.
+
+The crash case's patient body was not recorded. With the code current at submission, the same severity, modifiers and exertion completed all 660\,s on two other patient bodies, so we cannot tell whether the crash depends on that body or on a later change in the engine path.
 
 \begin{figure}[!t]
 \centering
@@ -621,7 +623,7 @@ We applied single-variable interventions to a reproducible case (Table~\ref{tab:
 
 \begin{table}[!t]
 \centering
-\caption{Isolation Experiments on a Reproducible Crash (Severity 0.731)}
+\caption{Isolation Experiments on One Crash Case (Severity 0.731)}
 \label{tab:crashinv}
 \footnotesize
 \begin{tabularx}{\columnwidth}{@{}YP{2.3cm}@{}}
@@ -640,7 +642,7 @@ Exertion intensity halved & Completes (660\,s) \\
 \end{table}
 
 \subsection{Two failure mechanisms with opposite character}
-Failures were not a single phenomenon. Mechanism 1 (engine crash) depends on the patient's own severity and is deterministic, so retrying an identical scenario does not help. Mechanism 2 (timeouts and connection-pool exhaustion) depended on how many other patients were running: at 9 workers, 5/11 patients hit connection timeouts and 6/11 hit the 180\,s engine timeout; at 4 workers 8/11 still timed out; at 2 workers there were no failures. A bare completion rate conflates the two; we report the mechanism with each rate.
+Failures were not a single phenomenon. Mechanism 1 (engine crash) depended on the patient's own severity and repeated identically when we reran the same case, so retrying an identical scenario did not help. Mechanism 2 (timeouts and connection-pool exhaustion) depended on how many other patients were running: at 9 workers, 5/11 patients hit connection timeouts and 6/11 hit the 180\,s engine timeout; at 4 workers 8/11 still timed out; at 2 workers there were no failures. A bare completion rate conflates the two; we report the mechanism with each rate.
 
 \subsection{Continuous state: carrying a patient forward}
 Rebuilding a patient every day discards the physiological state the twin is meant to track. Pulse can serialize its full state (about 2.33\,MB, saved in 0.31--0.44\,s and loaded in 0.43\,s) and resume it, and with an \code{Exercise} action the resumed run's final heart rate, MAP, cardiac output and stroke volume matched an uninterrupted run to every printed digit.
@@ -803,7 +805,7 @@ The cohort (Table~\ref{tab:cohort}) has five stories that should be caught, thre
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{fig_wearable_inputs.png}
+\includegraphics[width=0.94\textwidth]{fig_wearable_inputs.png}
 \caption{Wearable inputs the classifier receives for five of the ten stories (weight, steps, HRV and resting HR; mean and range over seeds 42--47). Dashed line: the story's designed onset.}
 \label{fig:wearables}
 \end{figure*}
@@ -978,7 +980,7 @@ All 60 series completed (3 of 1,260 patient-days failed, as in Experiment 1). Ta
 
 The deployed alert caught 24/30 deteriorating series (21/30 before), alerted on 10.0 per 100 pre-onset days (31.7 before), and its false alerts fell from 8.7 to 4.8 per 100 patient-days, with P01 and P09 now silent in every seed.
 
-The results met six of the eight outcome predictions. Two were not met: strict detection rose to 17/30 instead of falling, because the number of series alerting before onset stayed at 7/30 rather than rising as predicted; and the classifier's false alerts at 0.55 were 10.1 per 100 patient-days, just above the predicted ceiling of 10.
+The results met seven of the ten outcome predictions. Three were not met: strict detection rose to 17/30 instead of falling, because the number of series alerting before onset stayed at 7/30 rather than rising as predicted; P05 (deconditioning) was detected in 2 of 6 series against a predicted 0--1, because those two series received an exertion label (on day 1 and day 5), the mechanism in Section~\ref{sec:mechanism}; and the classifier's false alerts at 0.55 were 10.1 per 100 patient-days, just above the predicted ceiling of 10.
 
 The classifier still never labelled fluid overload (P04) or acute deterioration (P07) correctly: in the training data those classes occur only at EF $\leq$48\%, so at the new EF band acute deterioration was predicted on only 8 days (all P10) and fluid overload on none.
 
@@ -996,10 +998,11 @@ The main finding is unchanged: the classifier at its frozen threshold of 0.55 st
 \textbf{Outcome} & \textbf{Exp.\ 1} & \textbf{Exp.\ 2} & \textbf{Predicted} \\
 \midrule
 Label accuracy & 17.6\% & 37.1\% & 30--45\% \\
+Label accuracy, pre-onset as stable & 19.8\% & 41.5\% & 35--50\% \\
 Sensitivity$^{a}$ & 21/30 & 24/30 & 18--26 \\
-Pre-onset alerts / 100 days$^{a}$ & 31.7 & 10.0 & 10--30 \\
-Series alerting before onset & 7/30 & 7/30 & 6--14 \\
+Pre-onset alerts / 100 days (series)$^{a}$ & 31.7 (7/30) & 10.0 (7/30) & 10--30 (6--14) \\
 Strict detection$^{b}$ & 14/30 & 17/30 & 6--12$^{*}$ \\
+P05 series detected & 1/6 & 2/6 & 0--1$^{*}$ \\
 Stable series with no alert & 10/18 & 12/18 & 11--13 \\
 FA / 100 pd, deployed & 8.7 & 4.8 (1.6--7.9) & $<$8.7 \\
 Classifier $>0.55$, strict & 30/30 & 30/30 & $\geq$26 \\
@@ -1027,7 +1030,7 @@ The exertion label starts Pulse's \code{Exercise} action, which stays active in 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{fig_risk_breakdown.png}
-\caption{(a) Risk bucket by story in Experiment~1 (seeds 42--47; 126 patient-days per story): the baseline-deficit term decided 452 of the 462 HIGH days. (b) Score components on single days (seed 45), where $r=\max(A,\,s_{\text{baseline}})$; dotted lines mark the 0.35 and 0.65 cut-points. P07 day 4 is one of the 10 HIGH days decided by the acute score; P08 day 13 (a healthy heart) is HIGH from the baseline deficit alone, the pattern the C3 guard targets.}
+\caption{(a) Risk bucket by story in Experiment~1 (seeds 42--47; 126 patient-days per story): the baseline-deficit term decided 452 of the 462 HIGH days. (b) Score components on single days (seed 45), where $r=\max(A,\,s_{\text{baseline}})$; dotted lines mark the 0.35 and 0.65 cut-points. P07 day 4, six days before the story's day-10 onset, is one of the 10 HIGH days decided by the acute score (a pre-onset alert); P08 day 13 (a healthy heart) is HIGH from the baseline deficit alone, the pattern the C3 guard targets.}
 \label{fig:riskbreakdown}
 \end{figure*}
 
@@ -1041,7 +1044,7 @@ We tested the pipeline, or the components that can run without a 21-day wearable
 \subsection{Real-patient replay (PerHeart)}\label{sec:perheart}
 The PerHeart pilot dataset \cite{kolakowski2026perheart} contains one month of real home measurements (pulse oximeter, scale, blood-pressure cuff) from 27 HF patients aged 67--94. Sixteen had at least 21 real overlapping days of heart rate, SpO$_2$ and weight; we fabricated no day, and unmeasured fields (sleep, HRV, steps, EF, NT-proBNP) took documented defaults with explicit flags. Every patient required the engine's age proxy.
 
-Before the severity fix, all 16 completed but severities were compressed (0.078--0.148) and no patient reached HIGH, independently reproducing the NYHA skew on real data. After the fix, severities spread (0.093--0.516) and risk buckets were 4 LOW, 4 MODERATE and 5 HIGH (previously 4 LOW, 12 MODERATE, 0 HIGH), while three patients now crashed with the deterministic engine signature.
+Before the severity fix, all 16 completed but severities were compressed (0.078--0.148) and no patient reached HIGH, independently reproducing the NYHA skew on real data. After the fix, severities spread (0.093--0.516) and risk buckets were 4 LOW, 4 MODERATE and 5 HIGH (previously 4 LOW, 12 MODERATE, 0 HIGH), while three patients now crashed with the same engine failure signature.
 
 The system staged all 16 as NYHA~I, an artifact of the identical healthy EF/BNP defaults rather than a clinical finding. The one fluid-overload patient scored LOW because the EF default makes Pulse simulate a structurally normal heart, so the baseline-deficit term cannot fire; the API now names this mechanism in its caveat.
 
@@ -1074,7 +1077,7 @@ Two real cohorts lack the 21-day wearable window and EF needed to run the whole 
 
 On the Zigong cohort \cite{zhang2021zigong} (6-month death or readmission), the same term reached 0.548 (0.525--0.573) on all 2,001 cleaned admissions but 0.533 (0.490--0.575) on the 625 complete cases, and a clinical-only variant of the scenario model 0.517 (0.473--0.562): weak signal at best.
 
-As external context, published LACE-index AUCs \cite{vanwalraven2010lace} lie around 0.56--0.65 in other populations and outcomes (not directly comparable), an 11-of-13-variable MAGGIC score (point table checked against the published integer-score chart \cite{pocock2013maggic}) reached 0.604 on this cohort, and a model using laboratory panels reached 0.667, signal carried by renal and coagulation tests that a wearable-based system cannot obtain.
+As external context, an 11-of-13-variable MAGGIC score (point table checked against the published integer-score chart \cite{pocock2013maggic}) reached 0.604 on this cohort, and a model using laboratory panels reached 0.667, signal carried by renal and coagulation tests that a wearable-based system cannot obtain.
 
 \begin{figure}[!t]
 \centering
@@ -1120,7 +1123,7 @@ Its scenarios produce physiologically distinct responses through mechanism rathe
 
 Because every alert decomposes into simulated hemodynamic components, we could diagnose and guard against a specific false-alarm pattern: the C3 guard cut false alerts by 61--68\% without losing a detection, and it transferred unchanged to held-out seeds.
 
-The evaluation also shows that we understand the system's behavior well enough to predict it: Experiment~2 met six of the eight outcome predictions we committed before its runs, and the exertion mechanism replicated on new seeds and a new EF band.
+The evaluation also shows that we understand the system's behavior well enough to predict it: Experiment~2 met seven of the ten outcome predictions we committed before its runs, and the exertion mechanism replicated on new seeds and a new EF band.
 
 \subsection{Is the mechanistic layer circular?}
 For detection, largely, in its current form. The classifier's label selects the Pulse scenario and its severity scales it, and in the continuous mode every HIGH-risk day followed an exertion label, so the simulated physiology re-expresses the classifier's decision rather than observing new evidence. The ablation agrees: a label-only rule behaves like the Pulse risk bucket, and a classifier threshold tuned on development seeds matched the deployed system's held-out false-alert rate while detecting more deteriorating series.
