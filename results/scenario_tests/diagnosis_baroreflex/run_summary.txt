@@ -1,0 +1,34 @@
+A_stuck_asis
+  +    0s HR   45.9  MAP   67.9  CO  6.74  SV  147.0
+  +  300s HR   45.6  MAP   67.4  CO  6.77  SV  148.4
+  +  600s HR   45.2  MAP   67.4  CO  6.74  SV  149.1
+  + 1200s HR   45.1  MAP   67.3  CO  6.79  SV  150.5
+B_stuck_exercise_off
+  +    0s HR   45.9  MAP   67.9  CO  6.74  SV  147.0
+  +  300s HR   45.6  MAP   67.4  CO  6.77  SV  148.4
+  +  600s HR   45.2  MAP   67.4  CO  6.74  SV  149.1
+  + 1200s HR   45.1  MAP   67.3  CO  6.79  SV  150.5
+C_baseline_restored
+  +    0s HR   45.9  MAP   67.9  CO  6.74  SV  147.0
+  +  300s HR   40.6  MAP   67.0  CO  6.44  SV  158.5
+  +  600s HR   33.9  MAP   64.9  CO  5.95  SV  175.7
+  + 1200s HR   19.5  MAP   53.3  CO  4.42  SV  226.7
+  baseline updates: 420s->84.6, 840s->76.0
+D_baseline_restored_exercise_off
+  +    0s HR   45.9  MAP   67.9  CO  6.74  SV  147.0
+  +  300s HR   40.6  MAP   67.0  CO  6.44  SV  158.5
+  +  600s HR   33.9  MAP   64.9  CO  5.95  SV  175.7
+  + 1200s HR   19.5  MAP   53.3  CO  4.42  SV  226.7
+  baseline updates: 420s->84.6, 840s->76.0
+E_exertion_from_day8
+  +    0s HR   68.7  MAP   95.5  CO  6.30  SV   91.7
+  +  300s HR  160.6  MAP   60.7  CO 11.12  SV   69.2
+  +  600s HR  151.8  MAP   70.0  CO 10.39  SV   68.4
+  + 1200s HR  142.3  MAP   73.2  CO 10.24  SV   72.0
+  + 1800s HR  125.5  MAP   74.7  CO 10.10  SV   80.5
+  baseline updates: 420s->80.6, 840s->72.4, 1260s->68.1, 1680s->65.6
+F_exercise_deleted_from_state
+  +    0s HR   45.9  MAP   67.9  CO  6.74  SV  147.0
+  +  300s HR   39.3  MAP   66.8  CO  6.17  SV  156.8
+  +  600s HR   37.7  MAP   66.5  CO  6.05  SV  160.5
+  + 1200s HR   37.2  MAP   66.6  CO  6.03  SV  162.3

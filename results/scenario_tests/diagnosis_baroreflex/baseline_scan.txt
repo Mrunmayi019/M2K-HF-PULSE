@@ -1,0 +1,6 @@
+exp1 held-out: series 30, series whose MAP baseline fell below 85: 17
+  HIGH days n=231 median start baseline 63.7, share <85: 98.3%
+  other days n=369 median start baseline 95.2, share <85: 7.6%
+exp2: series 60, series whose MAP baseline fell below 85: 30
+  HIGH days n=475 median start baseline 63.6, share <85: 99.4%
+  other days n=782 median start baseline 95.2, share <85: 1.7%

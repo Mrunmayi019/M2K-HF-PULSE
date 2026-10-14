@@ -1,0 +1,12 @@
+[INFO] [5460.02(s)] [Event Fatigue 1] Patient has Fatigue
+[INFO] [5460.16(s)] Baroreceptors Saturated 
+[INFO] [5461.04(s)] [Event Antidiuresis 1]  Patient has Antidiuresis
+[INFO] [5481.18(s)] [Event Hypoxia 1]  Patient has Hypoxia
+[INFO] [5493.74(s)] [Event Tachycardia 1]  Patient has Tachycardia
+[INFO] [5499.28(s)] [Event Hypoglycemia 1]  Patient has Hypoglycemia
+[INFO] [5880.34(s)] Baroreceptor MAP Baseline updated to 80.6204 mmHg
+[INFO] [6300.36(s)] Baroreceptor MAP Baseline updated to 72.4453 mmHg
+[INFO] [6720.38(s)] Baroreceptor MAP Baseline updated to 68.0525 mmHg
+[INFO] [7140.4(s)] Baroreceptor MAP Baseline updated to 65.6296 mmHg
+[INFO] [7260(s)] [Final SimTime] 7260(s)
+[INFO] [7260(s)] [Expected Final SimTime] 1800(s)
