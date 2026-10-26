@@ -1,5 +1,7 @@
 # Experiment 4 pre-registration: weekly re-baseline of the continuous twin
 
+**Amended before any cohort run: see `AMENDMENT_1.md` (refresh now ramps up from severity 0; one secondary outcome added).**
+
 **Committed before any Experiment 4 Pulse run on the cohort.** The commit that adds this file is
 the pre-registration. Experiments 1 and 2 and their results stay as they are. Experiment 3
 (exercise stop) was abandoned before any job finished (local branch `exp3-abandoned`) and is not

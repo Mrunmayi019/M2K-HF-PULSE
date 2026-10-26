@@ -148,15 +148,21 @@ def reset_eligible_check(onsets):
 
 
 def stuck_state(results_dir, patients):
-    """Secondary: Pulse-HIGH days and the share with end-of-encounter HR < 50 bpm."""
-    high = low_hr = 0
+    """Secondary: Pulse-HIGH days and the share with end-of-encounter HR < 50 bpm; and (Amendment 1)
+    collapse days, completed days with end HR < 30 bpm or end MAP < 50 mmHg."""
+    high = low_hr = collapse = 0
+    collapse_series = set()
     for pid in patients:
         for s in SEEDS:
             for r in load_rows(results_dir, pid, s):
                 if r["risk_bucket"] == "HIGH":
                     high += 1
                     low_hr += _f(r["pulse_hr_end"]) < 50
-    return {"high_days": high, "high_days_hr_end_below_50": low_hr}
+                if r["run_status"] == "complete" and (_f(r["pulse_hr_end"]) < 30 or _f(r["pulse_map_end"]) < 50):
+                    collapse += 1
+                    collapse_series.add((pid, s))
+    return {"high_days": high, "high_days_hr_end_below_50": low_hr,
+            "collapse_days": collapse, "collapse_series": len(collapse_series)}
 
 
 def anchor_on_high_days(patients):

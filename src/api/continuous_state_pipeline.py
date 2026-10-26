@@ -67,14 +67,15 @@ baseline every run anyway) adds two things to this pipeline:
     every day records today's end values against that baseline (the fresh-mode meaning of
     hr_rise/map_drop/co_drop_pct) in SimulationRun.baseline_anchor_json. Observational only:
     risk_score still reads the day's own features exactly as above.
-  - Refresh: once a chain holds BASELINE_REFRESH_DAYS states (default 7), the next day also runs
-    an initial run from the patient file with that day's EF and severity, records the drift
-    (resumed end minus fresh end), and saves the fresh state as the start of a new chain, so the
-    day after resumes from it. That day's assessment still comes from the resumed run; the refresh
-    changes what later days resume from, and so later risk scores. The fresh run has no Exercise
-    action (run_initial never applies one), so drift on a day whose resume added Exercise includes
-    that day's Exercise; the record says when. A failed refresh keeps the resumed state and is
-    retried the next day.
+  - Refresh: once a chain holds BASELINE_REFRESH_DAYS states (default 7), the next day also
+    rebuilds the twin from the patient file: an initial run at severity 0 (the patient's EF
+    baseline), then resumed encounters stepping severity up by REFRESH_RAMP_STEP to that day's
+    severity (see refresh_ramp()). It records the drift (resumed end minus the fresh twin's end at
+    the day's severity) and saves the fresh state as the start of a new chain, so the day after
+    resumes from it. That day's assessment still comes from the resumed run; the refresh changes
+    what later days resume from, and so later risk scores. The fresh twin gets no Exercise, so
+    drift on a day whose resume added Exercise includes that day's Exercise; the record says when.
+    A failed refresh keeps the resumed state and is retried the next day.
 """
 from __future__ import annotations
 
@@ -128,6 +129,14 @@ SCENARIOS_DIR = pathlib.Path("/workspace/scenarios/continuous_state")
 # clinically-anchored features are measuring the same kind of window they were calibrated against
 # (see module docstring's CAVEAT for the one respect in which this isn't fully true on resumes).
 DAILY_ENCOUNTER_DURATION_S = 10.0 * 60
+
+# ENABLE_BASELINE_ANCHOR refresh: how far severity rises per encounter while the fresh twin is
+# brought up to the day's severity. Starting a fresh twin directly at a high severity can send
+# Pulse 4.3.1 into a collapse it never recovers from: a P06-like patient (EF 63) initialised at
+# 0.78 fell to HR 8 bpm / MAP 42 mmHg within 4 encounters with no Exercise, while the same patient
+# stepped up 0.2 per encounter (0.2, 0.4, 0.6, 0.78) held HR ~76 / MAP ~95 for 6 encounters at
+# 0.75 (development check before Experiment 4, results/scenario_tests/exp4/AMENDMENT_1.md).
+REFRESH_RAMP_STEP = 0.2
 
 _model_cache: dict[str, object] = {}
 
@@ -188,6 +197,20 @@ def chain_days(db: Session, patient_id: str, state: models.PulseState | None) ->
         )
         .scalar()
     )
+
+
+def refresh_ramp(severity: float) -> list[float]:
+    """Severities of the resumed encounters that follow a refresh's initial run at severity 0:
+    REFRESH_RAMP_STEP, 2 x step, ... and finally `severity` itself. [severity] when it is within
+    one step; [] when it is 0."""
+    steps = []
+    level = REFRESH_RAMP_STEP
+    while level < severity - 1e-9:
+        steps.append(round(level, 6))
+        level += REFRESH_RAMP_STEP
+    if severity > 0:
+        steps.append(severity)
+    return steps
 
 
 def _vitals(sim_features: dict, which: str) -> dict:
@@ -497,7 +520,8 @@ def _run_daily_continuous_pipeline(
     refresh = None
     fresh_run = None
     if refresh_due:
-        refresh = {"performed": False, "exercise_in_resume": exercise_applied}
+        ramp = refresh_ramp(severity)
+        refresh = {"performed": False, "exercise_in_resume": exercise_applied, "ramp": [0.0, *ramp]}
         refresh_hr_baseline = _continuous_personalisation(latest_report, None)[1]
         try:
             patient_path = output_dir / "patient.json"
@@ -507,11 +531,23 @@ def _run_daily_continuous_pipeline(
             fresh_state_json, fresh_snap, fresh_df = run_initial(
                 patient_json_path=str(patient_path),
                 ejection_fraction_pct=ejection_fraction_pct,
-                severity=severity,
+                severity=0.0,
                 stabilization_s=STABILIZATION_S,
                 duration_s=DAILY_ENCOUNTER_DURATION_S,
                 **flag_kwargs,
             )
+            # The new chain's baseline is the initial run's first sample, as for any chain.
+            fresh_baseline = _vitals(analyze_simulation(fresh_df), "start")
+            for step_severity in ramp:
+                fresh_state_json, fresh_snap, fresh_df = resume_and_advance(
+                    state_json=fresh_state_json,
+                    ejection_fraction_pct=ejection_fraction_pct,
+                    severity=step_severity,
+                    duration_s=DAILY_ENCOUNTER_DURATION_S,
+                    prior_offset_s=fresh_snap["simulation_time_s"],
+                    scenario_type=None,
+                    **flag_kwargs,
+                )
             fresh_features = analyze_simulation(fresh_df)
         except Exception as e:
             logger.exception(
@@ -522,7 +558,7 @@ def _run_daily_continuous_pipeline(
         else:
             refresh["performed"] = True
             refresh["fresh_end"] = _vitals(fresh_features, "end")
-            fresh_run = (fresh_state_json, fresh_snap, fresh_features, refresh_hr_baseline)
+            fresh_run = (fresh_state_json, fresh_snap, fresh_features, fresh_baseline, refresh_hr_baseline)
 
     saved_at = datetime.datetime.now(datetime.timezone.utc)
     if last_state is None:
@@ -576,11 +612,10 @@ def _run_daily_continuous_pipeline(
         today_end = _vitals(sim_features, "end")
         if fresh_run is not None:
             refresh["drift"] = {k: round(today_end[k] - refresh["fresh_end"][k], 4) for k in today_end}
-            fresh_state_json, fresh_snap, fresh_features, refresh_hr_baseline = fresh_run
+            fresh_state_json, fresh_snap, _, fresh_baseline, refresh_hr_baseline = fresh_run
             # The new chain's first state. Saved after the resumed one, so it is what the next run
             # resumes from (current_state() takes the newest).
             fresh_saved_at = datetime.datetime.now(datetime.timezone.utc)
-            fresh_baseline = _vitals(fresh_features, "start")
             db.add(
                 models.PulseState(
                     patient_id=patient_id,

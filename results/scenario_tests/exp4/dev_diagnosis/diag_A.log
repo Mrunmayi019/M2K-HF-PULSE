@@ -1,0 +1,8 @@
+A step 0 sev=0.78 HR 72.0->62.2 MAP 95.3->90.4
+A step 1 sev=0.75 HR 62.2->47.7 MAP 90.4->87.7
+A step 2 sev=0.75 HR 47.7->30.4 MAP 87.7->77.8
+A step 3 sev=0.75 HR 30.4->14.2 MAP 77.8->55.8
+A step 4 sev=0.75 HR 14.2->8.0 MAP 55.8->41.6
+A step 5 sev=0.75 HR 8.0->7.7 MAP 41.6->41.3
+A step 6 sev=0.75 HR 7.7->7.8 MAP 41.3->41.8
+A DONE

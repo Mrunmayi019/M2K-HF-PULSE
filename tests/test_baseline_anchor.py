@@ -5,6 +5,9 @@ whose initial and resumed runs return different vitals, so every number below is
 
   initial run: HR 70 -> 75, MAP 95 -> 90, CO 5000 -> 4800   (baseline = the start: 70 / 95 / 5000)
   resumed run: HR 60 -> 55, MAP 85 -> 80, CO 4500 -> 4000
+
+A refresh is an initial run at severity 0 plus one resumed encounter per ramp step, so with the
+fake classifier's severity 0.1 it is [initial, resume] and the fresh twin ends on RESUME_DF.
 """
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ import pytest
 from conftest import FakeContinuousPulse, classifier, create_patient, fake_pulse_df, fill_window, sync
 from src import feature_flags
 from src.api import models
+from src.api.continuous_state_pipeline import refresh_ramp
 
 INITIAL_DF = fake_pulse_df(hr_start=70, hr_end=75, map_start=95, map_end=90, co_start=5000, co_end=4800)
 RESUME_DF = fake_pulse_df(hr_start=60, hr_end=55, map_start=85, map_end=80, co_start=4500, co_end=4000)
@@ -88,6 +92,15 @@ class TestFlagValues:
         flags_off.setenv("BASELINE_REFRESH_DAYS", raw)
         with pytest.raises(ValueError):
             feature_flags.validate_all()
+
+
+class TestRamp:
+    @pytest.mark.parametrize("severity, steps", [
+        (0.0, []), (0.1, [0.1]), (0.2, [0.2]), (0.21, [0.2, 0.21]),
+        (0.78, [0.2, 0.4, 0.6, 0.78]), (1.0, [0.2, 0.4, 0.6, 0.8, 1.0]),
+    ])
+    def test_steps_up_by_0_2_to_the_days_severity(self, severity, steps):
+        assert refresh_ramp(severity) == pytest.approx(steps)
 
 
 class TestFlagOff:
@@ -182,13 +195,16 @@ class TestRefresh:
             sync(client, pid, 28)                                   # resumes from the fresh state
 
         kinds = [k for k, _ in pulse.calls]
-        assert kinds == ["initial"] + ["resume"] * 7 + ["initial", "resume"]
-        fresh_serial = 9
+        assert kinds == ["initial"] + ["resume"] * 7 + ["initial", "resume"] + ["resume"]
+        # refresh: initial at severity 0, then the ramp to the day's severity with no Exercise
+        initial_kw, ramp_kw = pulse.calls[8][1], pulse.calls[9][1]
+        assert initial_kw["severity"] == 0.0
+        assert ramp_kw["severity"] == pulse.calls[7][1]["severity"] == 0.1
+        assert ramp_kw["scenario_type"] is None
+        assert json.loads(ramp_kw["state_json"])["serial"] == 9
+        assert initial_kw["duration_s"] == ramp_kw["duration_s"] == pulse.calls[7][1]["duration_s"]
+        fresh_serial = 10
         assert json.loads(pulse.calls[-1][1]["state_json"])["serial"] == fresh_serial
-        # the refresh uses the day's own EF/severity and the same encounter length
-        refresh_kw = pulse.calls[8][1]
-        assert refresh_kw["severity"] == pulse.calls[7][1]["severity"]
-        assert refresh_kw["duration_s"] == pulse.calls[7][1]["duration_s"]
 
         anchors = _anchors(client, pid)
         assert len(anchors) == 9  # one assessment per day; the refresh adds none
@@ -197,8 +213,9 @@ class TestRefresh:
         assert day8["refresh"] == {
             "performed": True,
             "exercise_in_resume": False,
-            "fresh_end": {"hr_bpm": 75.0, "map_mmhg": 90.0, "co_ml_min": 4800.0},
-            "drift": {"hr_bpm": -20.0, "map_mmhg": -10.0, "co_ml_min": -800.0},
+            "ramp": [0.0, 0.1],
+            "fresh_end": {"hr_bpm": 55.0, "map_mmhg": 80.0, "co_ml_min": 4000.0},
+            "drift": {"hr_bpm": 0.0, "map_mmhg": 0.0, "co_ml_min": 0.0},
         }
         # the day's assessment still comes from the resumed run
         assert day8["today_end"]["hr_bpm"] == 55.0
@@ -219,19 +236,21 @@ class TestRefresh:
         with _Env(pulse):
             _run_days(client, pid, 14)
         initial_calls = [i for i, (k, _) in enumerate(pulse.calls) if k == "initial"]
-        # call 0 = day 1; refresh on day 8 (after its resume, call 8); next on day 15 (call 16)
-        assert initial_calls == [0, 8, 16]
+        # call 0 = day 1; refresh on day 8 (after its resume, call 8, ramp call 9); next on day 15
+        # (days 9-14 are calls 10-15, day 15's resume is call 16, its refresh call 17)
+        assert initial_calls == [0, 8, 17]
         refreshed = [i for i, a in enumerate(_anchors(client, pid)) if "refresh" in a]
         assert refreshed == [7, 14]
 
     def test_failed_refresh_keeps_the_resumed_state_and_retries_next_day(self, anchored):
         client, Session = anchored
         pid = create_patient(client)
-        pulse = TwoDfPulse(fail_calls={9})  # the day-8 refresh
+        pulse = TwoDfPulse(fail_calls={9})  # the day-8 refresh's initial run
         with _Env(pulse):
             _run_days(client, pid, 8)
         kinds = [k for k, _ in pulse.calls]
-        assert kinds == ["initial"] + ["resume"] * 7 + ["initial", "resume", "initial"]
+        # no ramp after the failed initial run; day 9 resumes, then retries the refresh
+        assert kinds == ["initial"] + ["resume"] * 7 + ["initial", "resume", "initial", "resume"]
         # day 9 resumed from day 8's resumed state, not a fresh one
         assert json.loads(pulse.calls[9][1]["state_json"])["serial"] == 8
         anchors = _anchors(client, pid)
@@ -240,6 +259,18 @@ class TestRefresh:
         assert anchors[8]["refresh"]["performed"] is True
         statuses = [a["risk_bucket"] is not None for a in client.get(f"/patients/{pid}/history").json()["assessments"]]
         assert statuses == [True] * 9  # the failed refresh never failed the day
+
+    def test_failed_ramp_step_also_keeps_the_resumed_state(self, anchored):
+        client, _ = anchored
+        pid = create_patient(client)
+        pulse = TwoDfPulse(fail_calls={10})  # the day-8 refresh's ramp encounter
+        with _Env(pulse):
+            _run_days(client, pid, 8)
+        # day 9 resumed from day 8's resumed state (serial 8), not the half-built fresh one (9)
+        assert json.loads(pulse.calls[10][1]["state_json"])["serial"] == 8
+        anchors = _anchors(client, pid)
+        assert anchors[7]["refresh"]["performed"] is False
+        assert "simulated Pulse crash" in anchors[7]["refresh"]["error"]
 
     def test_exercise_day_is_marked_in_the_drift_record(self, anchored, flags_off):
         flags_off.setenv("BASELINE_REFRESH_DAYS", "2")
