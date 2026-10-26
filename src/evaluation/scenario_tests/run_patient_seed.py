@@ -92,6 +92,55 @@ CSV_FIELDS = [
     "simulation_time_s", "engine_lag_days", "wall_time_s",
 ]
 
+# Experiment 4 (ENABLE_BASELINE_ANCHOR): appended only when the flag is on, so every flags-off CSV
+# keeps exactly the columns above. Filled from SimulationRun.baseline_anchor_json and
+# SimulationRun.exercise_applied; blank on failed days and, for refresh_*/drift_*/fresh_*, on days
+# no refresh was due.
+ANCHOR_CSV_FIELDS = [
+    "exercise_applied",
+    "anchor_chain_day", "anchor_hr_rise_bpm", "anchor_map_drop_mmhg", "anchor_co_drop_pct",
+    "refresh_performed", "refresh_error", "refresh_exercise_in_resume",
+    "fresh_hr_end", "fresh_map_end", "fresh_co_end",
+    "drift_hr_bpm", "drift_map_mmhg", "drift_co_ml_min",
+]
+
+
+def check_required_flags():
+    """Experiment 4: a cohort file can name the flag values its pre-registration requires
+    (meta.required_flags). Refuses to start on any mismatch, so a batch can't silently run with
+    the wrong configuration. Cohort files without the key (Experiments 1 and 2) skip the check."""
+    from src import feature_flags
+
+    required = yaml.safe_load(COHORT_PATH.read_text())["meta"].get("required_flags")
+    flags = feature_flags.all_flags()
+    if required:
+        wrong = {k: (flags.get(k), v) for k, v in required.items() if flags.get(k) != v}
+        if wrong:
+            raise SystemExit(f"REFUSING TO START: flags differ from cohort meta.required_flags (actual, required): {wrong}")
+    print(f"Flag check: OK ({flags})", flush=True)
+    return flags
+
+
+def anchor_columns(latest_run):
+    """ANCHOR_CSV_FIELDS for one day, from that day's SimulationRun."""
+    rec = (latest_run.baseline_anchor_json if latest_run is not None else None) or {}
+    vs = rec.get("vs_baseline") or {}
+    ref = rec.get("refresh") or {}
+    fresh = ref.get("fresh_end") or {}
+    drift = ref.get("drift") or {}
+    return {
+        "exercise_applied": latest_run.exercise_applied if latest_run is not None else None,
+        "anchor_chain_day": rec.get("chain_day"),
+        "anchor_hr_rise_bpm": vs.get("hr_rise_bpm"),
+        "anchor_map_drop_mmhg": vs.get("map_drop_mmhg"),
+        "anchor_co_drop_pct": vs.get("co_drop_pct"),
+        "refresh_performed": ref.get("performed"),
+        "refresh_error": ref.get("error"),
+        "refresh_exercise_in_resume": ref.get("exercise_in_resume"),
+        "fresh_hr_end": fresh.get("hr_bpm"), "fresh_map_end": fresh.get("map_mmhg"), "fresh_co_end": fresh.get("co_ml_min"),
+        "drift_hr_bpm": drift.get("hr_bpm"), "drift_map_mmhg": drift.get("map_mmhg"), "drift_co_ml_min": drift.get("co_ml_min"),
+    }
+
 
 def verify_model_hashes():
     for fname in ("scenario_classifier.joblib", "severity_regressor.joblib"):
@@ -214,6 +263,7 @@ def _derive_rng_seed(patient_id, seed):
 
 def run(patient_id, seed):
     verify_model_hashes()
+    anchor_on = check_required_flags()["ENABLE_BASELINE_ANCHOR"]
     cfg = load_patient_cohort(patient_id)
     rng = np.random.default_rng(_derive_rng_seed(patient_id, seed))
 
@@ -282,6 +332,7 @@ def run(patient_id, seed):
             risk_score = risk_bucket = nyha_class = None
             simulation_time_s = None
             sf = {}
+            latest_run = None
         else:
             run_status = "complete"
             error_message = None
@@ -348,6 +399,7 @@ def run(patient_id, seed):
             "run_status": run_status, "error_message": error_message,
             "simulation_time_s": simulation_time_s, "engine_lag_days": engine_lag_days,
             "wall_time_s": round(wall_time_s, 1),
+            **(anchor_columns(latest_run) if anchor_on else {}),
         })
         print(f"[{patient_id} seed={seed}] day {day:2d}: {run_status:8s} wall={wall_time_s:6.1f}s "
               f"scenario={predicted_scenario} severity={predicted_severity} "
@@ -358,7 +410,7 @@ def run(patient_id, seed):
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"daily_results_{patient_id}_seed{seed}.csv"
     with open(out_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS + (ANCHOR_CSV_FIELDS if anchor_on else []))
         writer.writeheader()
         writer.writerows(rows)
     print(f"[{patient_id} seed={seed}] wrote {out_path} ({len(rows)} rows, {engine_lag_days} failed days)", flush=True)
