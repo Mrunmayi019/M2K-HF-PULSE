@@ -117,6 +117,10 @@ class SimulationRun(Base):
     personalisation_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     # Continuous mode only: whether this run's Pulse scenario included an Exercise action.
     exercise_applied: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    # ENABLE_BASELINE_ANCHOR, continuous mode only: today's end-of-encounter values against the
+    # state's baseline, and the weekly re-baseline's drift on days it ran -- see
+    # continuous_state_pipeline.baseline_anchor_record(). None when the flag was off.
+    baseline_anchor_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="simulation_runs")
     risk_assessment: Mapped[Optional["RiskAssessment"]] = relationship(back_populates="simulation_run")
@@ -215,6 +219,10 @@ class RiskAssessment(Base):
         return self.simulation_run.personalisation_json if self.simulation_run else None
 
     @property
+    def baseline_anchor(self) -> Optional[dict]:
+        return self.simulation_run.baseline_anchor_json if self.simulation_run else None
+
+    @property
     def signals_disagree(self) -> Optional[bool]:
         """True when exactly one of `alert` (twin, fires at ALERT/WATCH) and
         `ml_severity_alert` (fires at ALERT) fires."""
@@ -283,6 +291,13 @@ class PulseState(Base):
     # HeartRateBaseline the chain was initialised with (ENABLE_HR_BASELINE), if any. The patient
     # file is only read on an initial run, so this is fixed for the life of the chain.
     hr_baseline_bpm: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # ENABLE_BASELINE_ANCHOR: HR, MAP and CO at the first sample of the run that started this
+    # chain (before that day's modification), the same reference a fresh-mode run measures from.
+    # Carried unchanged to every later state of the chain. None when the chain started with the
+    # flag off.
+    baseline_hr_bpm: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    baseline_map_mmhg: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    baseline_co_ml_min: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     patient: Mapped["Patient"] = relationship(back_populates="pulse_states")
 

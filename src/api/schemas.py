@@ -215,7 +215,7 @@ class ProjectionHorizon(BaseModel):
 
 class RiskAssessmentPayload(_OmitNewFieldsWhenNone):
     model_config = ConfigDict(from_attributes=True)
-    _omit_when_none: ClassVar[tuple[str, ...]] = ("personalisation",)
+    _omit_when_none: ClassVar[tuple[str, ...]] = ("personalisation", "baseline_anchor")
 
     risk_score: float
     risk_bucket: str
@@ -321,6 +321,16 @@ class RiskAssessmentPayload(_OmitNewFieldsWhenNone):
             "{'bcg': {...inputs, 'modifiers', 'applied', 'note'?}, 'hr_baseline': {'requested_bpm', "
             "'simulated_bpm', 'applied', 'note'?}}. When anything was applied, risk_caveats also "
             "carries the experimental caveat."
+        ),
+    )
+    baseline_anchor: Optional[dict] = Field(
+        default=None,
+        description=(
+            "Present only on continuous-mode runs with ENABLE_BASELINE_ANCHOR on: {'chain_day', "
+            "'baseline': {hr_bpm, map_mmhg, co_ml_min} or null, 'today_end': {...}, 'vs_baseline': "
+            "{hr_rise_bpm, map_drop_mmhg, co_drop_pct} or null, 'refresh_every_days', "
+            "'refresh'?: {'performed', 'fresh_end', 'drift': {hr_bpm, map_mmhg, co_ml_min}, "
+            "'exercise_in_resume', 'error'?}, 'note'?}. Observational: risk_score does not read it."
         ),
     )
 
@@ -431,6 +441,11 @@ class TwinStateResponse(BaseModel):
         description="True when the latest EF is on the other side of the 40% HFrEF cutoff from the EF "
         "the current state started with. The chronic-dysfunction condition can only be set when a state "
         "starts, so the twin cannot follow this change until it is reset.",
+    )
+    baseline_refresh_in_days: Optional[int] = Field(
+        default=None,
+        description="ENABLE_BASELINE_ANCHOR with BASELINE_REFRESH_DAYS > 0: daily runs until the next one "
+        "re-baselines the state from the patient file (0 = the next run). None when the flag is off.",
     )
     last_reset_at: Optional[datetime.datetime] = None
     reset_pending: bool = Field(

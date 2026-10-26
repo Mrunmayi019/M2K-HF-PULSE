@@ -12,6 +12,10 @@ with monkeypatch and a deployment can change one with a restart and no code chan
 | ENABLE_HR_BASELINE           | 1/true/yes/on, else off  | off     |
 | ENABLE_ALERT_HYSTERESIS      | 1/true/yes/on, else off  | off     |
 | ENABLE_SCENARIO_PERSISTENCE  | 1/true/yes/on, else off  | off     |
+| ENABLE_BASELINE_ANCHOR       | 1/true/yes/on, else off  | off     |
+| BASELINE_REFRESH_DAYS        | integer >= 0             | 7       |
+
+BASELINE_REFRESH_DAYS only takes effect when ENABLE_BASELINE_ANCHOR is on (0 = anchor only, no refresh).
 
 The README's feature-flag table says what each one does and how much evidence is behind it.
 """
@@ -59,15 +63,45 @@ def scenario_persistence_enabled() -> bool:
     return _bool_flag("ENABLE_SCENARIO_PERSISTENCE")
 
 
+def baseline_anchor_enabled() -> bool:
+    return _bool_flag("ENABLE_BASELINE_ANCHOR")
+
+
+DEFAULT_BASELINE_REFRESH_DAYS = 7
+
+
+def baseline_refresh_days() -> int:
+    """How many saved states a continuous chain holds before ENABLE_BASELINE_ANCHOR re-baselines
+    it from the patient file. 0 turns the refresh off and keeps only the anchor."""
+    raw = os.environ.get("BASELINE_REFRESH_DAYS", "").strip()
+    if raw == "":
+        return DEFAULT_BASELINE_REFRESH_DAYS
+    try:
+        days = int(raw)
+    except ValueError:
+        days = -1
+    if days < 0:
+        raise ValueError(f"BASELINE_REFRESH_DAYS={raw!r} must be a whole number >= 0")
+    return days
+
+
 def all_flags() -> dict:
-    """Current value of every flag, for the dashboard and logs."""
-    return {
+    """Current value of every flag, for the dashboard and logs. BASELINE_REFRESH_DAYS is listed
+    only while ENABLE_BASELINE_ANCHOR is on: the dashboard hides its twin-state panel when every
+    listed value is at its off default (frontend/src/utils/twinState.js), and a refresh period
+    with the anchor off changes nothing. It is still validated either way."""
+    refresh_days = baseline_refresh_days()
+    flags = {
         "PIPELINE_MODE": pipeline_mode(),
         "ENABLE_BCG_MODIFIERS": bcg_modifiers_enabled(),
         "ENABLE_HR_BASELINE": hr_baseline_enabled(),
         "ENABLE_ALERT_HYSTERESIS": alert_hysteresis_enabled(),
         "ENABLE_SCENARIO_PERSISTENCE": scenario_persistence_enabled(),
+        "ENABLE_BASELINE_ANCHOR": baseline_anchor_enabled(),
     }
+    if flags["ENABLE_BASELINE_ANCHOR"]:
+        flags["BASELINE_REFRESH_DAYS"] = refresh_days
+    return flags
 
 
 def validate_all() -> None:

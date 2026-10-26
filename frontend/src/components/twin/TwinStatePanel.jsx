@@ -94,6 +94,12 @@ export default function TwinStatePanel({ patientId, assessment, refreshKey, onRe
               />
               <Stat label="Days in this state" value={twin.state_days} />
               <Stat label="engine_lag_days" value={twin.engine_lag_days} warn={twin.engine_lag_days > 0} />
+              {twin.baseline_refresh_in_days != null && (
+                <Stat
+                  label="Next baseline refresh"
+                  value={twin.baseline_refresh_in_days === 0 ? 'next run' : `in ${twin.baseline_refresh_in_days} runs`}
+                />
+              )}
               <Stat
                 label="Days since Exercise-triggering label"
                 value={

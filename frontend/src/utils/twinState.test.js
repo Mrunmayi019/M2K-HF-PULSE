@@ -8,6 +8,7 @@ const DEFAULTS = {
   ENABLE_HR_BASELINE: false,
   ENABLE_ALERT_HYSTERESIS: false,
   ENABLE_SCENARIO_PERSISTENCE: false,
+  ENABLE_BASELINE_ANCHOR: false,
 }
 
 test('all defaults (or no flags at all) hide the twin-state panel', () => {

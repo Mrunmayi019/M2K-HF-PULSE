@@ -60,6 +60,21 @@ arguably more natural notion for a continuous-monitoring feature (how much did t
 move the patient), but it is NOT numerically the same quantity the from-scratch pipeline computes,
 and risk_score.py/staging.py were calibrated against the from-scratch semantics. Flagged for
 review before this feature is used for anything beyond a demo; not resolved here.
+
+ENABLE_BASELINE_ANCHOR (off by default; does nothing in fresh mode, which rebuilds from the
+baseline every run anyway) adds two things to this pipeline:
+  - Anchor: a state chain stores HR/MAP/CO from the first sample of the run that started it, and
+    every day records today's end values against that baseline (the fresh-mode meaning of
+    hr_rise/map_drop/co_drop_pct) in SimulationRun.baseline_anchor_json. Observational only:
+    risk_score still reads the day's own features exactly as above.
+  - Refresh: once a chain holds BASELINE_REFRESH_DAYS states (default 7), the next day also runs
+    an initial run from the patient file with that day's EF and severity, records the drift
+    (resumed end minus fresh end), and saves the fresh state as the start of a new chain, so the
+    day after resumes from it. That day's assessment still comes from the resumed run; the refresh
+    changes what later days resume from, and so later risk scores. The fresh run has no Exercise
+    action (run_initial never applies one), so drift on a day whose resume added Exercise includes
+    that day's Exercise; the record says when. A failed refresh keeps the resumed state and is
+    retried the next day.
 """
 from __future__ import annotations
 
@@ -70,6 +85,7 @@ import pathlib
 import threading
 
 import joblib
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.analytics.deterioration_rate import (
@@ -159,6 +175,64 @@ def current_state(db: Session, patient_id: str) -> models.PulseState | None:
     return query.order_by(models.PulseState.saved_at.desc(), models.PulseState.id.desc()).first()
 
 
+def chain_days(db: Session, patient_id: str, state: models.PulseState | None) -> int | None:
+    """Saved states in `state`'s chain, counting the one its initial run saved. None for no state,
+    or a state saved before state_started_at existed."""
+    if state is None or state.state_started_at is None:
+        return None
+    return (
+        db.query(func.count(models.PulseState.id))
+        .filter(
+            models.PulseState.patient_id == patient_id,
+            models.PulseState.state_started_at == state.state_started_at,
+        )
+        .scalar()
+    )
+
+
+def _vitals(sim_features: dict, which: str) -> dict:
+    """{hr_bpm, map_mmhg, co_ml_min} at the start or end of one run, from analyze_simulation()."""
+    return {
+        "hr_bpm": sim_features[f"hr_{which}"],
+        "map_mmhg": sim_features[f"map_{which}"],
+        "co_ml_min": sim_features[f"co_{which}"],
+    }
+
+
+def baseline_anchor_record(
+    chain_day: int | None,
+    baseline: dict | None,
+    today_end: dict,
+    refresh_every_days: int,
+    refresh: dict | None = None,
+) -> dict:
+    """SimulationRun.baseline_anchor_json (ENABLE_BASELINE_ANCHOR). `vs_baseline` uses the same
+    signs as analyze_simulation(): hr_rise = end - baseline, map_drop = baseline - end, co_drop_pct
+    = (baseline - end) / baseline * 100. `refresh` is only present on a day a refresh was due."""
+    record: dict = {
+        "chain_day": chain_day,
+        "baseline": baseline,
+        "today_end": today_end,
+        "vs_baseline": None,
+        "refresh_every_days": refresh_every_days,
+    }
+    if baseline is None:
+        record["note"] = (
+            "this state started with ENABLE_BASELINE_ANCHOR off, so it has no baseline; "
+            "the next refresh or a reset gives it one"
+        )
+    else:
+        co = baseline["co_ml_min"]
+        record["vs_baseline"] = {
+            "hr_rise_bpm": round(today_end["hr_bpm"] - baseline["hr_bpm"], 4),
+            "map_drop_mmhg": round(baseline["map_mmhg"] - today_end["map_mmhg"], 4),
+            "co_drop_pct": round((co - today_end["co_ml_min"]) / co * 100, 4) if co else 0.0,
+        }
+    if refresh is not None:
+        record["refresh"] = refresh
+    return record
+
+
 def _resolve_clinical_values(
     db: Session, patient_id: str, last_state: models.PulseState | None
 ) -> tuple[float, float, bool, bool, bool]:
@@ -223,6 +297,10 @@ def run_daily_continuous_pipeline(
     assessment (docs/integration_pre_results.md) -- risk_score, nyha_class, the alert decision, and
     what the next day's PulseState reads back are all computed before this call and never read
     projection output back. Production/demo code paths never pass False.
+
+    With ENABLE_BASELINE_ANCHOR on, a refresh day saves a second PulseState (the new chain's
+    first) after the returned one; the returned row is still the state this day's assessment came
+    from, and the next run resumes from the refreshed one.
 
     On a Pulse failure (run_initial()/resume_and_advance() raising), returns None instead of
     raising -- a SimulationRun(status="failed") row is recorded first via services.mark_
@@ -340,6 +418,14 @@ def _run_daily_continuous_pipeline(
     bcg_extra, hr_baseline_bpm, personalisation_record = _continuous_personalisation(latest_report, last_state)
     exercise_applied = last_state is not None and build_exercise_action(scenario_type, severity) is not None
 
+    anchor_on = feature_flags.baseline_anchor_enabled()
+    refresh_every_days = feature_flags.baseline_refresh_days() if anchor_on else 0
+    days_in_chain = chain_days(db, patient_id, last_state) if anchor_on else None
+    refresh_due = (
+        last_state is not None and refresh_every_days > 0
+        and days_in_chain is not None and days_in_chain >= refresh_every_days
+    )
+
     output_dir = SCENARIOS_DIR / patient_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -406,6 +492,38 @@ def _run_daily_continuous_pipeline(
         mark_simulation_run_failed(db, run, f"{type(e).__name__}: {e}")
         return None
 
+    # --- ENABLE_BASELINE_ANCHOR refresh (see module docstring): a second, initial run on the same
+    # day. Its features are taken here, before this day's own analyze_simulation() call below. ---
+    refresh = None
+    fresh_run = None
+    if refresh_due:
+        refresh = {"performed": False, "exercise_in_resume": exercise_applied}
+        refresh_hr_baseline = _continuous_personalisation(latest_report, None)[1]
+        try:
+            patient_path = output_dir / "patient.json"
+            patient_path.write_text(
+                json.dumps(build_patient_file(demo_row, hr_baseline_bpm=refresh_hr_baseline), indent=2)
+            )
+            fresh_state_json, fresh_snap, fresh_df = run_initial(
+                patient_json_path=str(patient_path),
+                ejection_fraction_pct=ejection_fraction_pct,
+                severity=severity,
+                stabilization_s=STABILIZATION_S,
+                duration_s=DAILY_ENCOUNTER_DURATION_S,
+                **flag_kwargs,
+            )
+            fresh_features = analyze_simulation(fresh_df)
+        except Exception as e:
+            logger.exception(
+                "baseline refresh failed for patient_id=%s (run_id=%s); keeping the resumed state",
+                patient_id, run.id,
+            )
+            refresh["error"] = f"{type(e).__name__}: {e}"
+        else:
+            refresh["performed"] = True
+            refresh["fresh_end"] = _vitals(fresh_features, "end")
+            fresh_run = (fresh_state_json, fresh_snap, fresh_features, refresh_hr_baseline)
+
     saved_at = datetime.datetime.now(datetime.timezone.utc)
     if last_state is None:
         state_started_at = saved_at
@@ -417,6 +535,28 @@ def _run_daily_continuous_pipeline(
         state_started_at = last_state.state_started_at
         hfref_condition_applied = last_state.hfref_condition_applied
         state_hr_baseline = last_state.hr_baseline_bpm
+
+    sim_features = analyze_simulation(df)
+    if not anchor_on:
+        baseline = None
+    elif last_state is None:
+        baseline = _vitals(sim_features, "start")
+    elif last_state.baseline_hr_bpm is not None:
+        baseline = {
+            "hr_bpm": last_state.baseline_hr_bpm,
+            "map_mmhg": last_state.baseline_map_mmhg,
+            "co_ml_min": last_state.baseline_co_ml_min,
+        }
+    else:
+        baseline = None
+    baseline_columns = (
+        {
+            "baseline_hr_bpm": baseline["hr_bpm"],
+            "baseline_map_mmhg": baseline["map_mmhg"],
+            "baseline_co_ml_min": baseline["co_ml_min"],
+        }
+        if baseline is not None else {}
+    )
     new_state = models.PulseState(
         patient_id=patient_id,
         state_json=new_state_json,
@@ -428,13 +568,49 @@ def _run_daily_continuous_pipeline(
         clinical_report_id=latest_report.id if latest_report is not None else None,
         hfref_condition_applied=hfref_condition_applied,
         hr_baseline_bpm=state_hr_baseline,
+        **baseline_columns,
     )
     db.add(new_state)
+
+    if anchor_on:
+        today_end = _vitals(sim_features, "end")
+        if fresh_run is not None:
+            refresh["drift"] = {k: round(today_end[k] - refresh["fresh_end"][k], 4) for k in today_end}
+            fresh_state_json, fresh_snap, fresh_features, refresh_hr_baseline = fresh_run
+            # The new chain's first state. Saved after the resumed one, so it is what the next run
+            # resumes from (current_state() takes the newest).
+            fresh_saved_at = datetime.datetime.now(datetime.timezone.utc)
+            fresh_baseline = _vitals(fresh_features, "start")
+            db.add(
+                models.PulseState(
+                    patient_id=patient_id,
+                    state_json=fresh_state_json,
+                    last_ejection_fraction_pct=ejection_fraction_pct,
+                    last_severity=severity,
+                    simulation_time_s=fresh_snap["simulation_time_s"],
+                    saved_at=fresh_saved_at,
+                    state_started_at=fresh_saved_at,
+                    clinical_report_id=latest_report.id if latest_report is not None else None,
+                    hfref_condition_applied=ef_to_cardiovascular_modifiers(ejection_fraction_pct, severity)[
+                        "apply_systolic_dysfunction_condition"
+                    ],
+                    hr_baseline_bpm=refresh_hr_baseline,
+                    baseline_hr_bpm=fresh_baseline["hr_bpm"],
+                    baseline_map_mmhg=fresh_baseline["map_mmhg"],
+                    baseline_co_ml_min=fresh_baseline["co_ml_min"],
+                )
+            )
+        run.baseline_anchor_json = baseline_anchor_record(
+            chain_day=1 if last_state is None else (days_in_chain + 1 if days_in_chain is not None else None),
+            baseline=baseline,
+            today_end=today_end,
+            refresh_every_days=refresh_every_days,
+            refresh=refresh,
+        )
 
     # --- RiskAssessment, via the same analytics code services.py uses (Step 3) ---
     run.waveform_data = extract_waveform_data(df)
 
-    sim_features = analyze_simulation(df)
     risk = compute_risk_score(
         hr_rise=sim_features["hr_rise"],
         map_drop=sim_features["map_drop"],
