@@ -8,7 +8,6 @@ const DEFAULTS = {
   ENABLE_HR_BASELINE: false,
   ENABLE_ALERT_HYSTERESIS: false,
   ENABLE_SCENARIO_PERSISTENCE: false,
-  ENABLE_BASELINE_ANCHOR: false,
 }
 
 test('all defaults (or no flags at all) hide the twin-state panel', () => {
@@ -21,4 +20,5 @@ test('continuous mode or any feature on shows it', () => {
   for (const k of Object.keys(DEFAULTS).filter((k) => k !== 'PIPELINE_MODE')) {
     assert.equal(isDefaultFlags({ ...DEFAULTS, [k]: true }), false, k)
   }
+  assert.equal(isDefaultFlags({ ...DEFAULTS, BASELINE_REFRESH_DAYS: 7 }), false)
 })

@@ -326,7 +326,7 @@ class RiskAssessmentPayload(_OmitNewFieldsWhenNone):
     baseline_anchor: Optional[dict] = Field(
         default=None,
         description=(
-            "Present only on continuous-mode runs with ENABLE_BASELINE_ANCHOR on: {'chain_day', "
+            "Present on continuous-mode runs (absent in fresh mode): {'chain_day', "
             "'baseline': {hr_bpm, map_mmhg, co_ml_min} or null, 'today_end': {...}, 'vs_baseline': "
             "{hr_rise_bpm, map_drop_mmhg, co_drop_pct} or null, 'refresh_every_days', "
             "'refresh'?: {'performed', 'fresh_end', 'drift': {hr_bpm, map_mmhg, co_ml_min}, "
@@ -444,8 +444,8 @@ class TwinStateResponse(BaseModel):
     )
     baseline_refresh_in_days: Optional[int] = Field(
         default=None,
-        description="ENABLE_BASELINE_ANCHOR with BASELINE_REFRESH_DAYS > 0: daily runs until the next one "
-        "re-baselines the state from the patient file (0 = the next run). None when the flag is off.",
+        description="BASELINE_REFRESH_DAYS > 0: daily runs until the next one re-baselines the state "
+        "from the patient file (0 = the next run). None when the refresh is off (the default).",
     )
     last_reset_at: Optional[datetime.datetime] = None
     reset_pending: bool = Field(

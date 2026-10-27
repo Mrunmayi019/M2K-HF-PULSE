@@ -1,6 +1,6 @@
-"""ENABLE_BASELINE_ANCHOR (feature/baseline-anchor): the anchor (today's end values against the
-state's baseline) and the weekly refresh (an initial run from the patient file, drift = resumed end
-minus fresh end, the fresh state starts a new chain). Pulse is replaced by a FakeContinuousPulse
+"""Baseline anchor (always recorded in continuous mode: today's end values against the state's
+baseline) and the opt-in refresh (BASELINE_REFRESH_DAYS > 0: an initial run from the patient file,
+drift = resumed end minus fresh end, the fresh state starts a new chain). Pulse is replaced by a FakeContinuousPulse
 whose initial and resumed runs return different vitals, so every number below is checkable by hand.
 
   initial run: HR 70 -> 75, MAP 95 -> 90, CO 5000 -> 4800   (baseline = the start: 70 / 95 / 5000)
@@ -12,6 +12,7 @@ fake classifier's severity 0.1 it is [initial, resume] and the fresh twin ends o
 from __future__ import annotations
 
 import json
+from contextlib import nullcontext
 from unittest.mock import patch
 
 import pytest
@@ -58,8 +59,21 @@ class _Env:
 @pytest.fixture()
 def anchored(research_api, flags_off):
     flags_off.setenv("PIPELINE_MODE", "continuous")
-    flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1")
     return research_api
+
+
+@pytest.fixture()
+def weekly(anchored, flags_off):
+    flags_off.setenv("BASELINE_REFRESH_DAYS", "7")
+    return anchored
+
+
+def _clear_baselines(Session):
+    """Makes the saved states look like ones saved before the anchor existed."""
+    with Session() as db:
+        for s in db.query(models.PulseState):
+            s.baseline_hr_bpm = s.baseline_map_mmhg = s.baseline_co_ml_min = None
+        db.commit()
 
 
 def _anchors(client, pid):
@@ -74,17 +88,16 @@ def _run_days(client, pid, resumes):
 
 
 class TestFlagValues:
-    def test_defaults(self, flags_off):
-        assert feature_flags.baseline_anchor_enabled() is False
-        assert feature_flags.baseline_refresh_days() == 7
+    def test_refresh_is_off_by_default(self, flags_off):
+        assert feature_flags.baseline_refresh_days() == 0
 
     def test_defaults_keep_the_dashboard_panel_hidden(self, flags_off):
         """frontend/src/utils/twinState.js hides the twin-state panel only when every listed
-        value is 'fresh' or False, so the refresh period is listed only with the anchor on."""
+        value is 'fresh' or False, so the refresh period is listed only while it is on."""
         flags = feature_flags.all_flags()
-        assert "BASELINE_REFRESH_DAYS" not in flags
+        assert "BASELINE_REFRESH_DAYS" not in flags and "ENABLE_BASELINE_ANCHOR" not in flags
         assert all(v is False for k, v in flags.items() if k != "PIPELINE_MODE")
-        flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1")
+        flags_off.setenv("BASELINE_REFRESH_DAYS", "7")
         assert feature_flags.all_flags()["BASELINE_REFRESH_DAYS"] == 7
 
     @pytest.mark.parametrize("raw", ["-1", "seven", "1.5"])
@@ -103,23 +116,23 @@ class TestRamp:
         assert refresh_ramp(severity) == pytest.approx(steps)
 
 
-class TestFlagOff:
-    def test_continuous_mode_without_the_flag_records_nothing(self, research_api, flags_off):
-        flags_off.setenv("PIPELINE_MODE", "continuous")
-        client, Session = research_api
+class TestModes:
+    def test_continuous_mode_records_the_anchor_and_does_not_refresh_by_default(self, anchored):
+        client, Session = anchored
         pid = create_patient(client)
         pulse = TwoDfPulse()
         with _Env(pulse):
             _run_days(client, pid, 8)
         assert [k for k, _ in pulse.calls] == ["initial"] + ["resume"] * 8  # no refresh
-        assert _anchors(client, pid) == [None] * 9
-        assert all("baseline_anchor" not in a for a in client.get(f"/patients/{pid}/history").json()["assessments"])
+        anchors = _anchors(client, pid)
+        assert [a["chain_day"] for a in anchors] == list(range(1, 10))
+        assert all("refresh" not in a and a["refresh_every_days"] == 0 for a in anchors)
         with Session() as db:
-            assert {s.baseline_hr_bpm for s in db.query(models.PulseState)} == {None}
+            assert {s.baseline_hr_bpm for s in db.query(models.PulseState)} == {70.0}
         assert client.get(f"/patients/{pid}/twin-state").json()["baseline_refresh_in_days"] is None
 
-    def test_fresh_mode_ignores_the_flag(self, research_api, flags_off):
-        flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1")
+    def test_fresh_mode_records_nothing(self, research_api, flags_off):
+        flags_off.setenv("BASELINE_REFRESH_DAYS", "7")
         client, Session = research_api
         pid = create_patient(client)
         pulse = TwoDfPulse()
@@ -132,8 +145,7 @@ class TestFlagOff:
 
 
 class TestAnchor:
-    def test_baseline_is_the_initial_runs_first_sample_and_is_carried(self, anchored, flags_off):
-        flags_off.setenv("BASELINE_REFRESH_DAYS", "0")
+    def test_baseline_is_the_initial_runs_first_sample_and_is_carried(self, anchored):
         client, Session = anchored
         pid = create_patient(client)
         with _Env(TwoDfPulse()):
@@ -152,29 +164,26 @@ class TestAnchor:
         with Session() as db:
             assert {(s.baseline_hr_bpm, s.baseline_map_mmhg, s.baseline_co_ml_min) for s in db.query(models.PulseState)} == {(70, 95, 5000)}
 
-    def test_anchor_does_not_change_risk_scores(self, research_api, flags_off):
-        flags_off.setenv("PIPELINE_MODE", "continuous")
-        client, _ = research_api
+    def test_anchor_does_not_change_risk_scores(self, anchored):
+        client, _ = anchored
 
         def history(anchor):
-            flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1" if anchor else "0")
-            flags_off.setenv("BASELINE_REFRESH_DAYS", "0")
             pid = create_patient(client)
-            with _Env(TwoDfPulse()):
+            # without the anchor = the record never written
+            no_record = patch("src.api.continuous_state_pipeline.baseline_anchor_record", return_value=None)
+            with _Env(TwoDfPulse()), (nullcontext() if anchor else no_record):
                 _run_days(client, pid, 3)
             keep = ("risk_score", "risk_bucket", "component_scores", "baseline_deficit_score", "nyha_class", "alert")
             return [{k: a.get(k) for k in keep} for a in client.get(f"/patients/{pid}/history").json()["assessments"]]
 
         assert history(anchor=True) == history(anchor=False)
 
-    def test_turned_on_mid_chain_says_there_is_no_baseline(self, research_api, flags_off):
-        flags_off.setenv("PIPELINE_MODE", "continuous")
-        client, _ = research_api
+    def test_chain_saved_before_the_anchor_says_there_is_no_baseline(self, anchored):
+        client, Session = anchored
         pid = create_patient(client)
         with _Env(TwoDfPulse()):
-            fill_window(client, pid, 21)   # initial run, flag off
-            flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1")
-            flags_off.setenv("BASELINE_REFRESH_DAYS", "0")
+            fill_window(client, pid, 21)   # initial run
+            _clear_baselines(Session)
             sync(client, pid, 21)
         _, day2 = _anchors(client, pid)
         assert day2["baseline"] is None and day2["vs_baseline"] is None
@@ -183,8 +192,8 @@ class TestAnchor:
 
 
 class TestRefresh:
-    def test_weekly_refresh_runs_once_the_chain_holds_seven_states(self, anchored):
-        client, Session = anchored
+    def test_weekly_refresh_runs_once_the_chain_holds_seven_states(self, weekly):
+        client, Session = weekly
         pid = create_patient(client)
         pulse = TwoDfPulse()
         with _Env(pulse):
@@ -229,8 +238,8 @@ class TestRefresh:
             assert states[9].state_started_at == states[8].state_started_at
             assert states[7].state_started_at == states[0].state_started_at
 
-    def test_refresh_period_is_seven_days_each_time(self, anchored):
-        client, _ = anchored
+    def test_refresh_period_is_seven_days_each_time(self, weekly):
+        client, _ = weekly
         pid = create_patient(client)
         pulse = TwoDfPulse()
         with _Env(pulse):
@@ -242,8 +251,8 @@ class TestRefresh:
         refreshed = [i for i, a in enumerate(_anchors(client, pid)) if "refresh" in a]
         assert refreshed == [7, 14]
 
-    def test_failed_refresh_keeps_the_resumed_state_and_retries_next_day(self, anchored):
-        client, Session = anchored
+    def test_failed_refresh_keeps_the_resumed_state_and_retries_next_day(self, weekly):
+        client, Session = weekly
         pid = create_patient(client)
         pulse = TwoDfPulse(fail_calls={9})  # the day-8 refresh's initial run
         with _Env(pulse):
@@ -260,8 +269,8 @@ class TestRefresh:
         statuses = [a["risk_bucket"] is not None for a in client.get(f"/patients/{pid}/history").json()["assessments"]]
         assert statuses == [True] * 9  # the failed refresh never failed the day
 
-    def test_failed_ramp_step_also_keeps_the_resumed_state(self, anchored):
-        client, _ = anchored
+    def test_failed_ramp_step_also_keeps_the_resumed_state(self, weekly):
+        client, _ = weekly
         pid = create_patient(client)
         pulse = TwoDfPulse(fail_calls={10})  # the day-8 refresh's ramp encounter
         with _Env(pulse):
@@ -291,14 +300,13 @@ class TestRefresh:
         assert [k for k, _ in pulse.calls].count("initial") == 1
         assert client.get(f"/patients/{pid}/twin-state").json()["baseline_refresh_in_days"] is None
 
-    def test_refresh_gives_a_mid_chain_state_its_baseline(self, research_api, flags_off):
-        flags_off.setenv("PIPELINE_MODE", "continuous")
+    def test_refresh_gives_a_pre_anchor_chain_its_baseline(self, anchored, flags_off):
         flags_off.setenv("BASELINE_REFRESH_DAYS", "2")
-        client, _ = research_api
+        client, Session = anchored
         pid = create_patient(client)
         with _Env(TwoDfPulse()):
-            fill_window(client, pid, 21)   # flag off
-            flags_off.setenv("ENABLE_BASELINE_ANCHOR", "1")
+            fill_window(client, pid, 21)
+            _clear_baselines(Session)
             sync(client, pid, 21)          # chain day 2, no baseline
             sync(client, pid, 22)          # chain day 3: refresh
             sync(client, pid, 23)

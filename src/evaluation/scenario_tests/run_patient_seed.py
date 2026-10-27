@@ -92,8 +92,8 @@ CSV_FIELDS = [
     "simulation_time_s", "engine_lag_days", "wall_time_s",
 ]
 
-# Experiment 4 (ENABLE_BASELINE_ANCHOR): appended only when the flag is on, so every flags-off CSV
-# keeps exactly the columns above. Filled from SimulationRun.baseline_anchor_json and
+# Baseline anchor (Experiment 4 onward): always appended, since continuous mode always records the
+# anchor; Experiment 1 and 2 CSVs predate it and have only the columns above. Filled from SimulationRun.baseline_anchor_json and
 # SimulationRun.exercise_applied; blank on failed days and, for refresh_*/drift_*/fresh_*, on days
 # no refresh was due.
 ANCHOR_CSV_FIELDS = [
@@ -105,14 +105,23 @@ ANCHOR_CSV_FIELDS = [
 ]
 
 
+# ENABLE_BASELINE_ANCHOR was a flag when Experiment 4 was pre-registered; the anchor is now always
+# recorded in continuous mode.
+BUILT_IN_FLAGS = {"ENABLE_BASELINE_ANCHOR": True}
+
+
 def check_required_flags():
     """Experiment 4: a cohort file can name the flag values its pre-registration requires
     (meta.required_flags). Refuses to start on any mismatch, so a batch can't silently run with
-    the wrong configuration. Cohort files without the key (Experiments 1 and 2) skip the check."""
+    the wrong configuration. Cohort files without the key (Experiments 1 and 2) skip the check.
+    BUILT_IN_FLAGS covers flags that later became fixed behaviour, so Experiment 4's cohort file
+    still checks out unchanged."""
     from src import feature_flags
 
     required = yaml.safe_load(COHORT_PATH.read_text())["meta"].get("required_flags")
-    flags = feature_flags.all_flags()
+    flags = {**feature_flags.all_flags(), **BUILT_IN_FLAGS}
+    if required and "BASELINE_REFRESH_DAYS" in required:
+        flags["BASELINE_REFRESH_DAYS"] = feature_flags.baseline_refresh_days()
     if required:
         wrong = {k: (flags.get(k), v) for k, v in required.items() if flags.get(k) != v}
         if wrong:
@@ -263,7 +272,7 @@ def _derive_rng_seed(patient_id, seed):
 
 def run(patient_id, seed):
     verify_model_hashes()
-    anchor_on = check_required_flags()["ENABLE_BASELINE_ANCHOR"]
+    check_required_flags()
     cfg = load_patient_cohort(patient_id)
     rng = np.random.default_rng(_derive_rng_seed(patient_id, seed))
 
@@ -399,7 +408,7 @@ def run(patient_id, seed):
             "run_status": run_status, "error_message": error_message,
             "simulation_time_s": simulation_time_s, "engine_lag_days": engine_lag_days,
             "wall_time_s": round(wall_time_s, 1),
-            **(anchor_columns(latest_run) if anchor_on else {}),
+            **anchor_columns(latest_run),
         })
         print(f"[{patient_id} seed={seed}] day {day:2d}: {run_status:8s} wall={wall_time_s:6.1f}s "
               f"scenario={predicted_scenario} severity={predicted_severity} "
@@ -410,7 +419,7 @@ def run(patient_id, seed):
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_path = OUTPUT_DIR / f"daily_results_{patient_id}_seed{seed}.csv"
     with open(out_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS + (ANCHOR_CSV_FIELDS if anchor_on else []))
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS + ANCHOR_CSV_FIELDS)
         writer.writeheader()
         writer.writerows(rows)
     print(f"[{patient_id} seed={seed}] wrote {out_path} ({len(rows)} rows, {engine_lag_days} failed days)", flush=True)
