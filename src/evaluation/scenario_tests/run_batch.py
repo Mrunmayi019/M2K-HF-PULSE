@@ -31,6 +31,10 @@ if os.environ.get("SCENARIO_TEST_OUTPUT_DIR"):
 if os.environ.get("SCENARIO_TEST_COHORT"):
     COHORT_PATH = pathlib.Path(os.environ["SCENARIO_TEST_COHORT"])
 MAX_PARALLEL = 6
+# Experiment 3 runs at most 2 at a time (results/scenario_tests/exp3/PREREGISTRATION.md §7).
+# Unset keeps 6.
+if os.environ.get("SCENARIO_TEST_MAX_PARALLEL"):
+    MAX_PARALLEL = int(os.environ["SCENARIO_TEST_MAX_PARALLEL"])
 
 
 def main():
