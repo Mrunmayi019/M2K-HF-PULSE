@@ -1,6 +1,6 @@
 # Reproducibility Package (draft index)
 
-**Status: pointer/index doc, not new content.** `HANDOFF.md` P4 notes this project's own
+**Status: pointer/index doc, not new content.** `HANDOFF_session_log.md` P4 notes this project's own
 documentation culture is already a genuine strength for a journal's reproducibility checklist —
 this doc's job is to make that easy to find and cite, not to rebuild anything.
 
@@ -17,7 +17,7 @@ this doc's job is to make that easy to find and cite, not to rebuild anything.
 | Step-by-step environment setup, troubleshooting | `docs/running_the_stack.md` |
 | Benchmark comparison against an external clinical score | `docs/benchmark_comparison.md` (this session) |
 | Medication-modeling feasibility investigation | `docs/medication_modeling_feasibility.md` (this session) |
-| Related-work positioning | `docs/related_work.md` (this session, first-pass) |
+| Related-work positioning | `docs/project-log/related_work.md` (this session, first-pass) |
 | Ethics / data-availability statement | `docs/ethics_statement.md` (this session, first-pass) |
 
 ## Reproduction steps (already-documented commands, gathered in one place)
@@ -71,8 +71,8 @@ Being explicit about this rather than letting a reviewer discover it independent
 
 ## Still open (not this doc's job to close)
 
-- AI-tool-usage disclosure for the paper text itself — target-journal-dependent, `HANDOFF.md` P4
-  flags this as a separate decision from the git-commit-authorship policy (`HANDOFF.md` §1),
+- AI-tool-usage disclosure for the paper text itself — target-journal-dependent, `HANDOFF_session_log.md` P4
+  flags this as a separate decision from the git-commit-authorship policy (`HANDOFF_session_log.md` §1),
   which is already settled (solely Kaveri Sharma, no AI co-author trailer).
 - A DOI/archival snapshot (e.g. Zenodo-archiving a tagged release of this repo) if the target
   journal wants one — not set up yet.

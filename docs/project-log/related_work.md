@@ -69,7 +69,7 @@ cited risk score (`src/analytics/risk_score.py`) with an explicit, documented fa
 analysis (`docs/methodology.md`'s missingness/failure-mechanism section) → forward projection.
 Most cited work above does one or two of these stages, not the full chain. The honest limitation
 to state alongside that claim: **novelty of pipeline design is not the same as validated clinical
-accuracy** — see `HANDOFF.md` P1's still-open "real clinical outcome validation" item, and the
+accuracy** — see `docs/project-log/HANDOFF_session_log.md` P1's still-open "real clinical outcome validation" item, and the
 `docs/benchmark_comparison.md` MAGGIC comparison (modest positive correlation, r≈0.48, on the
 Phase 4 synthetic batch — a sanity check, not proof of clinical validity).
 

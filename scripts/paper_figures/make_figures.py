@@ -1,8 +1,8 @@
 """
-Figures for paper/main.tex. Every number is copied from the project's own documented results
+Figures for the paper (written next to this script). Every number is copied from the project's own documented results
 (source file noted next to each block) -- nothing is recomputed or estimated here.
 
-Run from the repo root:  python3 paper/figures/make_figures.py
+Run from the repo root:  python3 scripts/paper_figures/make_figures.py
 """
 import os
 
