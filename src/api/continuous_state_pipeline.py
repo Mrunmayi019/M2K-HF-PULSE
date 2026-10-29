@@ -75,8 +75,8 @@ Baseline anchor and refresh (not in fresh mode, which rebuilds from the baseline
     resumes from it. That day's assessment still comes from the resumed run; the refresh changes
     what later days resume from, and so later risk scores. The fresh twin gets no Exercise, so
     drift on a day whose resume added Exercise includes that day's Exercise; the record says when.
-    A failed refresh keeps the resumed state and is retried the next day. Experiment 4
-    (results/scenario_tests/exp4/RESULTS.md, refresh every 7 days) found it clears the stuck
+    A failed refresh keeps the resumed state and is retried the next day. Experiment 3
+    (results/scenario_tests/exp3/RESULTS.md, refresh every 7 days) found it clears the stuck
     baroreflex state but doubles false alerts and adds Pulse failures, which is why it is off.
 """
 from __future__ import annotations
@@ -137,7 +137,7 @@ DAILY_ENCOUNTER_DURATION_S = 10.0 * 60
 # Pulse 4.3.1 into a collapse it never recovers from: a P06-like patient (EF 63) initialised at
 # 0.78 fell to HR 8 bpm / MAP 42 mmHg within 4 encounters with no Exercise, while the same patient
 # stepped up 0.2 per encounter (0.2, 0.4, 0.6, 0.78) held HR ~76 / MAP ~95 for 6 encounters at
-# 0.75 (development check before Experiment 4, results/scenario_tests/exp4/AMENDMENT_1.md).
+# 0.75 (development check before Experiment 3, results/scenario_tests/exp3/AMENDMENT_1.md).
 REFRESH_RAMP_STEP = 0.2
 
 _model_cache: dict[str, object] = {}

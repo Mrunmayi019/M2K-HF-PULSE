@@ -1,8 +1,8 @@
-"""Experiment 4 analysis against results/scenario_tests/exp4/PREREGISTRATION.md. Experiment 2 (same
+"""Experiment 3 analysis against results/scenario_tests/exp3/PREREGISTRATION.md. Experiment 2 (same
 cohort and seeds, flag off) is the control arm. No Pulse runs; reads the saved daily_results CSVs.
 
 Usage:
-    PYTHONPATH=. python3 -m src.evaluation.scenario_tests.exp4_analyze
+    PYTHONPATH=. python3 -m src.evaluation.scenario_tests.exp3_analyze
 """
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ from src.evaluation.scenario_tests.exp2_analyze import (
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 EXP2_DIR = REPO_ROOT / "results/scenario_tests/exp2"
-EXP4_DIR = REPO_ROOT / "results/scenario_tests/exp4"
-COHORT_PATH = REPO_ROOT / "config/scenario_tests/cohort_exp4.yaml"
-OUT = EXP4_DIR / "exp4_analysis.json"
+EXP3_DIR = REPO_ROOT / "results/scenario_tests/exp3"
+COHORT_PATH = REPO_ROOT / "config/scenario_tests/cohort_exp3.yaml"
+OUT = EXP3_DIR / "exp3_analysis.json"
 SEEDS = range(48, 54)
 FIRST_REFRESH_DAY = 7  # nominal; a failed day shifts later refreshes (the CSV records the real ones)
 PULSE_COLS = ("pulse_hr_end", "pulse_map_end", "pulse_co_end", "risk_score")
@@ -45,7 +45,7 @@ def integrity(patients):
     errors = []
     for pid in patients:
         for s in SEEDS:
-            a, b = load_rows(EXP2_DIR, pid, s), load_rows(EXP4_DIR, pid, s)
+            a, b = load_rows(EXP2_DIR, pid, s), load_rows(EXP3_DIR, pid, s)
             assert [r["day"] for r in a] == [r["day"] for r in b], (pid, s)
             for ra, rb in zip(a, b):
                 d = int(rb["day"])
@@ -77,7 +77,7 @@ def drift_groups(patients):
     groups = {"A": [], "B": [], "C": []}
     for pid in patients:
         for s in SEEDS:
-            rows = load_rows(EXP4_DIR, pid, s)
+            rows = load_rows(EXP3_DIR, pid, s)
             chain_ex = False
             for r in rows:
                 ex_today = r["run_status"] == "complete" and _true(r["exercise_applied"])
@@ -129,21 +129,21 @@ def alert_days(results_dir, onsets):
 def reset_eligible_check(onsets):
     """Secondary: of the Exp 2 deployed alert days on days 8-21 that fall after a refresh with no
     exertion label since it (the days the hypothesis says a refresh clears), how many are still
-    alerts in Exp 4; and the same count for the non-eligible days."""
-    res = {"eligible_exp2_alert_days": 0, "eligible_still_alert_exp4": 0,
-           "other_exp2_alert_days": 0, "other_still_alert_exp4": 0}
+    alerts in Exp 3; and the same count for the non-eligible days."""
+    res = {"eligible_exp2_alert_days": 0, "eligible_still_alert_exp3": 0,
+           "other_exp2_alert_days": 0, "other_still_alert_exp3": 0}
     for pid in CATCH + QUIET:
         for s in SEEDS:
             days, a2 = alerts_by_system(EXP2_DIR, pid, s, False)
-            _, a4 = alerts_by_system(EXP4_DIR, pid, s, False)
-            ex = {int(r["day"]): r["predicted_scenario"] in EXERTION for r in load_rows(EXP4_DIR, pid, s)}
+            _, a4 = alerts_by_system(EXP3_DIR, pid, s, False)
+            ex = {int(r["day"]): r["predicted_scenario"] in EXERTION for r in load_rows(EXP3_DIR, pid, s)}
             for d, x2, x4 in zip(days, a2["deployed"], a4["deployed"]):
                 if d < 8 or not x2:
                     continue
                 r = 7 if d < 15 else 14
                 key = "eligible" if not any(ex[k] for k in range(r + 1, d + 1)) else "other"
                 res[f"{key}_exp2_alert_days"] += 1
-                res[f"{key}_still_alert_exp4"] += bool(x4)
+                res[f"{key}_still_alert_exp3"] += bool(x4)
     return res
 
 
@@ -168,7 +168,7 @@ def stuck_state(results_dir, patients):
 def anchor_on_high_days(patients):
     """Secondary: MAP drop against the chain baseline on Pulse-HIGH days."""
     v = [_f(r["anchor_map_drop_mmhg"]) for pid in patients for s in SEEDS
-         for r in load_rows(EXP4_DIR, pid, s) if r["risk_bucket"] == "HIGH" and r["anchor_map_drop_mmhg"] != ""]
+         for r in load_rows(EXP3_DIR, pid, s) if r["risk_bucket"] == "HIGH" and r["anchor_map_drop_mmhg"] != ""]
     return {"n": len(v), "median_map_drop_vs_baseline": round(float(np.median(v)), 2) if v else None,
             "share_ge_20": round(float(np.mean([x >= 20 for x in v])), 3) if v else None}
 
@@ -178,7 +178,7 @@ def main():
     patients = list(cohort["patients"])
     onsets = {pid: onset_day(cfg) for pid, cfg in cohort["patients"].items()}
     result = {"integrity": integrity(patients), "P1_drift": drift_groups(patients)}
-    for name, d in (("exp2", EXP2_DIR), ("exp4", EXP4_DIR)):
+    for name, d in (("exp2", EXP2_DIR), ("exp3", EXP3_DIR)):
         acc, acc_onset, total = label_accuracy(d, cohort, SEEDS, onsets)
         r = {"label_accuracy": acc, "label_accuracy_pre_onset_stable": acc_onset, "patient_days": total,
              "failed_pulse_days": sum(row["run_status"] != "complete" for pid in patients for s in SEEDS
@@ -194,7 +194,7 @@ def main():
 
     print(json.dumps(result["integrity"], indent=1))
     print("P1 drift:", json.dumps(result["P1_drift"], indent=1))
-    for name in ("exp2", "exp4"):
+    for name in ("exp2", "exp3"):
         r = result[name]; m = r["failed_as_no_alert"]["deployed"]
         print(f"== {name}: label acc {r['label_accuracy']}, failed days {r['failed_pulse_days']}, "
               f"sens {m['sensitivity'][0]}/30, pre-onset {m['pre_onset_alerts_per_100']}/100 ({m['pre_onset_series'][0]}/30), "

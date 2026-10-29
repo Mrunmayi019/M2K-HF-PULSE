@@ -1,4 +1,4 @@
-"""Dev diagnosis (not Experiment 4 data): does starting a fresh P06-like twin directly at severity
+"""Dev diagnosis (not Experiment 3 data): does starting a fresh P06-like twin directly at severity
 0.78 collapse it, and does a ramp avoid that? Usage: python jump_vs_ramp.py A|B|C"""
 import json, sys, tempfile, pathlib
 from src.patient_builder.patient_file import build_patient_file

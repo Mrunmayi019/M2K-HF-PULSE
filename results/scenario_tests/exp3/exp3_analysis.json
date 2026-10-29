@@ -609,7 +609,7 @@
    }
   }
  },
- "exp4": {
+ "exp3": {
   "label_accuracy": 0.3714,
   "label_accuracy_pre_onset_stable": 0.4151,
   "patient_days": 1260,
@@ -1126,9 +1126,9 @@
  },
  "reset_eligible_check": {
   "eligible_exp2_alert_days": 132,
-  "eligible_still_alert_exp4": 0,
+  "eligible_still_alert_exp3": 0,
   "other_exp2_alert_days": 90,
-  "other_still_alert_exp4": 55
+  "other_still_alert_exp3": 55
  },
  "anchor_on_high_days": {
   "n": 221,

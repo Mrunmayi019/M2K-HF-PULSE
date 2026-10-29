@@ -68,7 +68,7 @@ DEFAULT_BASELINE_REFRESH_DAYS = 0
 
 def baseline_refresh_days() -> int:
     """How many saved states a continuous chain holds before it is re-baselined from the patient
-    file. 0 (the default) turns the refresh off; the anchor is recorded either way. Experiment 4
+    file. 0 (the default) turns the refresh off; the anchor is recorded either way. Experiment 3
     ran with 7."""
     raw = os.environ.get("BASELINE_REFRESH_DAYS", "").strip()
     if raw == "":

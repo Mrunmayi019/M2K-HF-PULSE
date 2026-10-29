@@ -1,11 +1,14 @@
-# Experiment 4 pre-registration: weekly re-baseline of the continuous twin
+# Experiment 3 pre-registration: weekly re-baseline of the continuous twin
 
 **Amended before any cohort run: see `AMENDMENT_1.md` (refresh now ramps up from severity 0; one secondary outcome added).**
 
-**Committed before any Experiment 4 Pulse run on the cohort.** The commit that adds this file is
-the pre-registration. Experiments 1 and 2 and their results stay as they are. Experiment 3
-(exercise stop) was abandoned before any job finished (local branch `exp3-abandoned`) and is not
-reported. Experiment 4 is the next number so the abandoned one stays traceable.
+**Committed before any Experiment 3 Pulse run on the cohort.** The commit that adds this file is
+the pre-registration. Experiments 1 and 2 and their results stay as they are.
+
+**Renamed 2026-10-30.** Committed as "Experiment 4" (`9a6b290`, amendment `1db94de`, results
+`47c6947`) and renamed Experiment 3 afterwards, with its files moved from `exp4` to `exp3` paths.
+Only the name and paths changed: design, outcomes, predictions, scoring and results are as
+committed. Raw logs keep the old paths.
 
 Framing is the same as Experiments 1 and 2: this checks how the pipeline responds to controlled
 synthetic patient stories. It is not clinical validation.
@@ -22,7 +25,7 @@ so the twin stays at MAP ~65 mmHg / HR ~45 bpm after exertion ends (paper §V-H;
 `ENABLE_BASELINE_ANCHOR` (commit `0a1a1d5`) restarts the twin from the patient file once a state
 chain holds 7 saved states. That day it also records the drift: resumed end minus fresh end.
 
-**Experiment 4 asks two things.**
+**Experiment 3 asks two things.**
 1. How large is the drift the continuous twin builds up in a week, and does it come only from
    exertion?
 2. When the stuck state is cleared every week, how many of the twin's alert days go away, and do
@@ -30,11 +33,11 @@ chain holds 7 saved states. That day it also records the drift: resumed end minu
 
 ## 2. What changes (and nothing else)
 
-| | Experiment 2 (control arm) | Experiment 4 |
+| | Experiment 2 (control arm) | Experiment 3 |
 |---|---|---|
 | `ENABLE_BASELINE_ANCHOR` | unset (off) | **1** |
 | `BASELINE_REFRESH_DAYS` | n/a | **7** |
-| Cohort | `cohort_exp2.yaml` | `cohort_exp4.yaml`: same `patients` block (identical, checked by the builder), `meta` adds `required_flags` |
+| Cohort | `cohort_exp2.yaml` | `cohort_exp3.yaml`: same `patients` block (identical, checked by the builder), `meta` adds `required_flags` |
 | Seeds | 48–53 | **48–53** (same, so the wearable readings are identical day by day) |
 | Max parallel jobs | 6 | 2 |
 
@@ -53,7 +56,7 @@ delays that series' later refreshes by one day. The CSV records the real refresh
 **Harness-only changes** (no system code): `run_patient_seed.py` refuses to start unless the flags
 match `meta.required_flags`, and with the flag on it appends 14 columns (`ANCHOR_CSV_FIELDS`)
 taken from `SimulationRun.baseline_anchor_json`/`exercise_applied`. `run_batch.py` reads
-`SCENARIO_TEST_MAX_PARALLEL`. The scoring script, `exp4_analyze.py`, is committed with this file
+`SCENARIO_TEST_MAX_PARALLEL`. The scoring script, `exp3_analyze.py`, is committed with this file
 and reuses `exp2_analyze.py`'s definitions unchanged.
 
 ## 3. Unchanged system (hard rule)
@@ -96,7 +99,7 @@ Pulse days count as no alert (primary), and are also reported counted as alerts.
   when the series had no exertion label from the day after the last refresh (day 7 or 14) through
   that day. That is a day the stuck state should no longer reach. Experiment 2 has 132 such days
   (all should_catch: P04 35, P05 15, P06 9, P07 46, P10 27) and 90 others. Report how many of each
-  are still alerts in Experiment 4.
+  are still alerts in Experiment 3.
 - **Stuck-state share.** Pulse-HIGH days with end HR < 50 bpm (Experiment 2: 358/475).
 - **Anchor.** On Pulse-HIGH days, MAP drop against the chain baseline; share ≥ 20 mmHg.
 - Per-patient alert days; refresh-day drift per patient.
@@ -104,7 +107,7 @@ Pulse days count as no alert (primary), and are also reported counted as alerts.
 ## 6. Predictions (committed before the Pulse runs)
 
 **How the numbers were derived (disclosed).** All predictions come from Experiment 2's saved
-CSVs, the control arm, which were already public. Days 1–7 of Experiment 4 should equal
+CSVs, the control arm, which were already public. Days 1–7 of Experiment 3 should equal
 Experiment 2 (I2), so day 7's resumed values are already known. The fresh side is estimated from
 each series' post-warm-up state (day-1 `pulse_*_start`: HR 71.2–72.3, MAP 94.5–95.4). Group sizes
 from Experiment 2's labels (chain definition): A ≈ 123, B ≈ 38, C ≈ 19 of 180 refresh days.
@@ -119,7 +122,7 @@ baseline term no longer fires. The state comes back only when a new exertion lab
 Exercise (Experiment 2: first HIGH 0–1 days after the first exertion label in most series). Every
 first alert in Experiment 2 falls on or before day 7, and P08 keeps getting exertion labels.
 
-| Outcome | Experiment 2 | **Predicted, Experiment 4** |
+| Outcome | Experiment 2 | **Predicted, Experiment 3** |
 |---|---|---|
 | I1 label/severity days differing | — | **0** |
 | I2 Pulse days 1–7 differing | — | **0** |
@@ -159,24 +162,24 @@ the commit that adds this file. All flags except the two below are unset.
 
 ```bash
 cp artifacts/results-v1/models/*.joblib models/ && shasum -a 256 -c docs/results-v1-models.sha256
-ENV="-e ENABLE_BASELINE_ANCHOR=1 -e BASELINE_REFRESH_DAYS=7 -e SCENARIO_TEST_COHORT=/workspace/config/scenario_tests/cohort_exp4.yaml"
+ENV="-e ENABLE_BASELINE_ANCHOR=1 -e BASELINE_REFRESH_DAYS=7 -e SCENARIO_TEST_COHORT=/workspace/config/scenario_tests/cohort_exp3.yaml"
 # smoke test first: one dev-seed job (P06, seed 42) into a separate directory, never scored
 docker run --rm --platform linux/amd64 -v "$PWD:/workspace" -w /workspace $ENV \
-  -e SCENARIO_TEST_OUTPUT_DIR=/workspace/results/scenario_tests/exp4_smoke \
+  -e SCENARIO_TEST_OUTPUT_DIR=/workspace/results/scenario_tests/exp3_smoke \
   m2k-hf-pulse-backend python -m src.evaluation.scenario_tests.run_patient_seed P06 42
 # then the full batch
 docker run --rm --platform linux/amd64 -v "$PWD:/workspace" -w /workspace $ENV \
-  -e SCENARIO_TEST_OUTPUT_DIR=/workspace/results/scenario_tests/exp4 -e SCENARIO_TEST_MAX_PARALLEL=2 \
+  -e SCENARIO_TEST_OUTPUT_DIR=/workspace/results/scenario_tests/exp3 -e SCENARIO_TEST_MAX_PARALLEL=2 \
   m2k-hf-pulse-backend python -m src.evaluation.scenario_tests.run_batch
-PYTHONPATH=. python3 -m src.evaluation.scenario_tests.exp4_analyze
+PYTHONPATH=. python3 -m src.evaluation.scenario_tests.exp3_analyze
 ```
 
 The smoke test must print `Flag check: OK` with the anchor on, show a refresh on days 7, 14 and 21
 (the `refresh_performed` column), and write its CSV before the batch starts. Its output is not
-part of Experiment 4.
+part of Experiment 3.
 
 60 jobs (10 patients × seeds 48–53), at most 2 at a time. Each job is about 25 Pulse runs (1
 warm-up, 21 days, 3 refreshes), and the batch is estimated at about 10 hours. Outputs:
-`results/scenario_tests/exp4/daily_results_P??_seed??.csv`; logs in `exp4/logs/`; per-run SQLite
-DBs in `exp4/dbs/` (gitignored). A job interrupted by sleep or overheating is rerun from day 1,
+`results/scenario_tests/exp3/daily_results_P??_seed??.csv`; logs in `exp3/logs/`; per-run SQLite
+DBs in `exp3/dbs/` (gitignored). A job interrupted by sleep or overheating is rerun from day 1,
 and the interruption is noted in the results file.

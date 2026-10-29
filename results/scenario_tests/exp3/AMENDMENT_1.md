@@ -1,6 +1,6 @@
-# Experiment 4, amendment 1 (2026-10-26): ramped refresh
+# Experiment 3, amendment 1 (2026-10-26): ramped refresh
 
-**Made after the development smoke test and before any Experiment 4 cohort run.** No evaluation
+**Made after the development smoke test and before any Experiment 3 cohort run.** No evaluation
 seed (48–53) had been run with the flag when this amendment was committed. The pre-registration
 (commit `9a6b290`) is unchanged except for a pointer to this file.
 
@@ -8,7 +8,7 @@ seed (48–53) had been run with the flag when this amendment was committed. The
 
 The pre-registered smoke test ran one development job (P06, seed 42, never an evaluation seed)
 with the flag as committed in `0a1a1d5`. That version's refresh started the fresh twin with one
-initial run directly at the day's severity. Output: `results/scenario_tests/exp4_smoke_v1_jump/`.
+initial run directly at the day's severity. Output: `results/scenario_tests/exp3_smoke_v1_jump/`.
 
 After the day-14 refresh (severity 0.78), the fresh twin collapsed with no Exercise: end HR
 48 → 30 → 14 → 8 bpm and MAP 87 → 78 → 56 → 42 mmHg over days 15–18, and it stayed there to day
@@ -45,7 +45,7 @@ scoring definitions.
 
 ## Smoke test again, with the change
 
-Same job (P06, seed 42). Output: `results/scenario_tests/exp4_smoke/`.
+Same job (P06, seed 42). Output: `results/scenario_tests/exp3_smoke/`.
 
 - Days 1–7 are bit-for-bit identical to the first smoke run: HR, MAP and risk score on every day.
 - After each refresh the twin stays at HR 71–76 and MAP 94–96 until a new exertion label. There
@@ -60,7 +60,7 @@ the ramp now gives.
 ## Added secondary outcome
 
 - **Collapse days:** completed days with end HR < 30 bpm or end MAP < 50 mmHg, and the number of
-  series with any. Experiment 2: 16 days in 1 series (P10). **Predicted, Experiment 4: ≤ 16 days.**
+  series with any. Experiment 2: 16 days in 1 series (P10). **Predicted, Experiment 3: ≤ 16 days.**
   The refresh should not add collapses, and it may clear Experiment 2's.
 
 ## Run time

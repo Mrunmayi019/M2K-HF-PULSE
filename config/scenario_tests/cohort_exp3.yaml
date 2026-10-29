@@ -1,7 +1,7 @@
 meta:
   generated_at: '2026-10-09T08:58:33.585275+00:00'
   results_tag: v1.2
-  note: Experiment 4 (results/scenario_tests/exp4/PREREGISTRATION.md). The Experiment
+  note: Experiment 3 (results/scenario_tests/exp3/PREREGISTRATION.md). The Experiment
     2 cohort unchanged, run with ENABLE_BASELINE_ANCHOR=1 and BASELINE_REFRESH_DAYS=7.
   seeds:
   - 48
@@ -22,7 +22,7 @@ meta:
     weight_kg: generator male mean=86.43 sd=21.3, female mean=75.99 sd=21.78
     ejection_fraction_pct: 'generator profiles: healthy mean=62 range=[55,70], hfpef
       mean=56.9 range=[50,80], hfref mean=32.3 range=[14,40]'
-  experiment: 4
+  experiment: 3
   warmup_days: 1
   source_cohort: config/scenario_tests/cohort_exp2.yaml
   required_flags:

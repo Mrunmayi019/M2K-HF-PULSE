@@ -1,7 +1,7 @@
-# Experiment 4 results (seeds 48–53, 60/60 runs complete)
+# Experiment 3 results (seeds 48–53, 60/60 runs complete)
 
 Scored against `PREREGISTRATION.md` (commit `9a6b290`) and `AMENDMENT_1.md` (commit `1db94de`) by
-`exp4_analyze.py`. Experiment 2's saved results are the control arm. Full numbers: `exp4_analysis.json`.
+`exp3_analyze.py`. Experiment 2's saved results are the control arm. Full numbers: `exp3_analysis.json`.
 Failed Pulse days count as no alert (primary). Counting them as alerts is reported where it changes a number.
 
 ## Run notes
@@ -23,7 +23,7 @@ Failed Pulse days count as no alert (primary). Counting them as alerts is report
 | I3 refreshes due vs performed | 174 due, 174 performed, 0 errors | hold |
 
 **I1 severity.** The differences are floating-point noise at the level of 1–2 units in the last place. They are run to
-run, not caused by the flag: the two P05 reruns show the same kind of difference against the first Exp 4 runs. The
+run, not caused by the flag: the two P05 reruns show the same kind of difference against the first Exp 3 runs. The
 cause was not investigated. They had no effect on Pulse: days 1–7 include such differences (e.g. 17 on day 1) and
 their Pulse output is still identical to Exp 2 (I2).
 
@@ -33,7 +33,7 @@ refresh of P07 seeds 50 and 52). Six series had 2 refreshes, not 3. All six are 
 
 ## Primary and secondary outcomes
 
-| Outcome | Exp 2 | **Exp 4** | Predicted | Verdict |
+| Outcome | Exp 2 | **Exp 3** | Predicted | Verdict |
 |---|---|---|---|---|
 | P1 A (n = 123): median MAP drift [IQR] | — | **+0.2** [+0.1, +0.2] mmHg | within ±3 | hit |
 | P1 A: median HR drift [IQR] | — | **−3.0** [−3.7, −2.0] bpm | −10 to +3 | hit |
@@ -71,7 +71,7 @@ results are 123 / 35 / 16, because six refreshes were delayed or missing.
   series on days 8–21, and every extra day is P08 (+3 to +5 per seed; P01 and P09 stay silent). In Exp 2, P08's
   twin turns HIGH on day 9–12 and stays HIGH to day 21 in every seed. The deployed alert fires for 3 days, and then the C3 guard
   (`C3_STREAK_THRESHOLD_DAYS = 3`, baseline-dominated HIGH streak without instability) downgrades it to WATCH. In
-  Exp 4, the day-14 refresh clears the stuck state. P08's next exertion days push it back to HIGH, a new streak
+  Exp 3, the day-14 refresh clears the stuck state. P08's next exertion days push it back to HIGH, a new streak
   starts, and the alert fires again (days 16–18 in all 6 seeds; seed 50 also on days 13–14). The same thing adds alert days in some P06 series,
   which is why P06's post-onset alert days rise from 28 to 35 while P04, P05, P07 and P10 fall.
 - **Drift outliers.** On four refresh days the resumed twin ended at HR 112–160 bpm (P05 seed 52 day 7, P06 seed 52

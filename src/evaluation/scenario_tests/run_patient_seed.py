@@ -92,7 +92,7 @@ CSV_FIELDS = [
     "simulation_time_s", "engine_lag_days", "wall_time_s",
 ]
 
-# Baseline anchor (Experiment 4 onward): always appended, since continuous mode always records the
+# Baseline anchor (Experiment 3 onward): always appended, since continuous mode always records the
 # anchor; Experiment 1 and 2 CSVs predate it and have only the columns above. Filled from SimulationRun.baseline_anchor_json and
 # SimulationRun.exercise_applied; blank on failed days and, for refresh_*/drift_*/fresh_*, on days
 # no refresh was due.
@@ -105,16 +105,16 @@ ANCHOR_CSV_FIELDS = [
 ]
 
 
-# ENABLE_BASELINE_ANCHOR was a flag when Experiment 4 was pre-registered; the anchor is now always
+# ENABLE_BASELINE_ANCHOR was a flag when Experiment 3 was pre-registered; the anchor is now always
 # recorded in continuous mode.
 BUILT_IN_FLAGS = {"ENABLE_BASELINE_ANCHOR": True}
 
 
 def check_required_flags():
-    """Experiment 4: a cohort file can name the flag values its pre-registration requires
+    """Experiment 3: a cohort file can name the flag values its pre-registration requires
     (meta.required_flags). Refuses to start on any mismatch, so a batch can't silently run with
     the wrong configuration. Cohort files without the key (Experiments 1 and 2) skip the check.
-    BUILT_IN_FLAGS covers flags that later became fixed behaviour, so Experiment 4's cohort file
+    BUILT_IN_FLAGS covers flags that later became fixed behaviour, so Experiment 3's cohort file
     still checks out unchanged."""
     from src import feature_flags
 
