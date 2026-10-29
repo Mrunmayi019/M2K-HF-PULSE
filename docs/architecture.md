@@ -1,5 +1,10 @@
 # Architecture
 
+> **Status.** "Current state" below is the original Streamlit/Flask prototype, now kept on the
+> [`archive/full-research-snapshot`](https://github.com/Mrunmayi019/M2K-HF-PULSE/tree/archive/full-research-snapshot)
+> branch. "Target state" is the architecture this repository implements; the top-level
+> `README.md` has the current pipeline summary.
+
 ## Current state (prototype, working)
 
 ```

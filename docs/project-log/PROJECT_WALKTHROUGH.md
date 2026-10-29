@@ -457,7 +457,7 @@ Known Engine Constraints subsection.)
 
 ## 6. What's left to do
 
-Pulled directly from `HANDOFF.md`'s current to-do list (2026-08-17).
+Pulled directly from `HANDOFF_session_log.md`'s current to-do list (2026-08-17).
 
 ### P1 — biggest blockers to a credible submission
 
@@ -487,7 +487,7 @@ Pulled directly from `HANDOFF.md`'s current to-do list (2026-08-17).
 
 ### P3 — strengthens the paper's positioning
 
-- **Related-work/positioning section** — *first draft done* (`docs/related_work.md`), needs a
+- **Related-work/positioning section** — *first draft done* (`docs/project-log/related_work.md`), needs a
   read-through before treating as final — explicitly a non-exhaustive first pass.
 - **Formal ethics & data-availability statement** — *first draft done*
   (`docs/ethics_statement.md`), flags open items (IRB determination, target-journal format) that

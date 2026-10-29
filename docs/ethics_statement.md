@@ -43,7 +43,7 @@ participant identifier.
 
 ## Real clinical outcome validation — the open item this statement can't paper over
 
-`HANDOFF.md` P1 flags this as the single biggest gap between "systems demo" and "clinical research
+`docs/project-log/HANDOFF_session_log.md` P1 flags this as the single biggest gap between "systems demo" and "clinical research
 paper": every validation performed so far (synthetic data, and PerHeart's real physiological
 inputs) shows the pipeline runs correctly on real inputs, not that its risk predictions correlate
 with real clinical outcomes. That gap is a substantive limitation to state plainly in the paper's

@@ -1,6 +1,6 @@
 # Medication-Effect Modeling — Feasibility Check
 
-**Status: research only, no implementation.** Per `HANDOFF.md` P2's own framing ("do a quick
+**Status: research only, no implementation.** Per `docs/project-log/HANDOFF_session_log.md` P2's own framing ("do a quick
 feasibility check ... before committing engineering time — this might be out of reach without
 engine-level work"), this is a scoped answer to "can Pulse do this at all, and how far," not a
 build. `docs/methodology.md` §8/§9 already flags the absence of medication modeling as a real
