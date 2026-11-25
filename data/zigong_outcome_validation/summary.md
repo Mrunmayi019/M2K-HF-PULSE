@@ -1,6 +1,6 @@
 # Zigong heart-failure cohort real-outcome test: baseline_deficit_score mechanism only
 
-**Scope**: second independent real-world test of the SAME single mechanism as `scripts/mimic_outcome_validation.py` -- `baseline_deficit_score = f(map_start)` -- this time against a broader composite outcome (death-or-readmission within 6 months). Does NOT validate the full risk scorer, the wearable-trend ML classifier, or the Pulse simulation layer. LVEF/NYHA/BNP are present in this dataset but are NOT fed into this test -- no existing function in this codebase maps them to risk_score or severity (see `docs/methodology.md` for the full explanation and the repo owner's explicit decision not to build one for this pass).
+**Scope**: second independent real-world test of the SAME single mechanism as `scripts/research/mimic_outcome_validation.py` -- `baseline_deficit_score = f(map_start)` -- this time against a broader composite outcome (death-or-readmission within 6 months). Does NOT validate the full risk scorer, the wearable-trend ML classifier, or the Pulse simulation layer. LVEF/NYHA/BNP are present in this dataset but are NOT fed into this test -- no existing function in this codebase maps them to risk_score or severity (see `docs/methodology.md` for the full explanation and the repo owner's explicit decision not to build one for this pass).
 
 ## Cleaning
 

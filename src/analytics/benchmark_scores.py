@@ -25,7 +25,7 @@ patients. Provenance of the point table used below:
         ago. This module follows the fitted model: +2 when hf_duration_18mo_plus is True.
         Because ASSUMED_HF_DURATION_18MO_PLUS is a fixed constant, this choice shifts every
         synthetic patient's score by the same 2 points -- rank correlation is unaffected, absolute
-        tier assignment is not. scripts/zigong_maggic11_validation.py excludes this item entirely.
+        tier assignment is not. scripts/research/zigong_maggic11_validation.py excludes this item entirely.
       * Age 55: the chart's age bands read "<55" then "56-59", leaving 55 unassigned. Here age 55
         falls in the 56-59 band (bands are "value < upper bound").
 
@@ -42,7 +42,7 @@ same constant offset to every patient's MAGGIC score. That shifts the absolute p
 since MAGGIC's risk tiers are absolute thresholds rather than percentiles, could shift which tier
 a borderline patient falls in) -- but it does NOT affect rank-based agreement between MAGGIC and
 risk_score.py across a cohort (Spearman correlation is invariant to a constant offset).
-scripts/benchmark_comparison.py reports both a bucket-agreement view and a rank-correlation view
+scripts/research/benchmark_comparison.py reports both a bucket-agreement view and a rank-correlation view
 for exactly this reason.
 """
 from __future__ import annotations

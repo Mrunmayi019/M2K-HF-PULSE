@@ -2,7 +2,7 @@
 
 Only sample_patients() is tested here -- pure pandas, no Docker/Pulse required. _run_one()/
 run_batch() actually invoke Pulse and can only be exercised inside the Docker container (see
-scripts/validate_phase2.py's equivalent manual-validation convention for Phase 2).
+scripts/research/validate_phase2.py's equivalent manual-validation convention for Phase 2).
 
 Run from repo root: pytest tests/test_batch_runner.py -v
 """

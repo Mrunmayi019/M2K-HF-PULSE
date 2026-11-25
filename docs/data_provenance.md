@@ -54,7 +54,7 @@ cover every wearable field (see `docs/real_world_data_integration.md` §4).
 Used for pipeline validation, not for training/synthesis inputs — see
 `docs/real_world_data_integration.md` for the full field-by-field real-vs-imputed mapping, the
 Pulse age/BMI-capping caveat (this cohort's real ages fall entirely outside Pulse's native 18–65
-range), and results. `scripts/perheart_real_data_replay.py` reuses this file's own existing
+range), and results. `scripts/research/perheart_real_data_replay.py` reuses this file's own existing
 `wearable_baseline`/height/EF/BNP `assumed_default` values (below and in `reference_stats.yaml`)
 for the fields this dataset doesn't measure — no new imputed numbers were introduced for this
 integration.

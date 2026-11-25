@@ -324,7 +324,7 @@ the run above redone cleanly from scratch before trusting any number in this sec
 The raw `kitware/pulse:4.3.1` image should no longer be used for verifying `continuous_state_
 pipeline.py` (or anything else that loads the trained models) -- it cannot satisfy the project's
 dependency pins at all, so it will always reintroduce this exact drift. `scripts/verify_
-continuous_state_pipeline.py` and `scripts/verify_continuous_state_live_14day.py`'s own docstrings
+continuous_state_pipeline.py` and `scripts/research/verify_continuous_state_live_14day.py`'s own docstrings
 now say this explicitly. The raw image remains fine for anything that doesn't load the `.joblib`
 models (e.g. the original Pulse-state-serialization feasibility probes in `docs/pulse_state_
 serialization_investigation.md`).
@@ -427,7 +427,7 @@ single biggest lever on this estimate.
 
 ## 14. Live 14-day continuous-state-sync run against a flat/non-perturbed patient
 
-`scripts/verify_continuous_state_live_14day.py` (new, committed): seeds 21 baseline + 14
+`scripts/research/verify_continuous_state_live_14day.py` (new, committed): seeds 21 baseline + 14
 incrementally-added wearable readings (35 total, all identical values -- no day-to-day drift at
 all), EF/BNP held constant (no new `ClinicalReport`), run once against the real Pulse engine. Goal:
 isolate whether a genuinely stable patient's risk score/NYHA class/alert status drifts over 14 days

@@ -395,7 +395,7 @@ class TestFluidOverloadCaveat:
 
     def test_ef_fallback_masking_gets_specific_caveat(self, client):
         """A clinical report IS submitted, with ejection_fraction_pct explicitly null -- matching
-        scripts/perheart_real_data_replay.py's real submission shape, not just an absent report
+        scripts/research/perheart_real_data_replay.py's real submission shape, not just an absent report
         (a real bug: create_clinical_report() resolves and stores the fallback value at submission
         time, so a naive second apply_tier1_fallback() call downstream always sees a concrete
         number; must reuse the already-stored ef_is_fallback column instead -- see

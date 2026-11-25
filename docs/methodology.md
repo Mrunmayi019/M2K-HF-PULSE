@@ -402,7 +402,7 @@ how many *other* patients were concurrently in flight — an observed system-sta
 on that patient's own severity or scenario type. This is MAR (conditional on concurrency level),
 arguably closer to MCAR once concurrency is held fixed at a safe level, and it is why 2-worker
 concurrency was adopted as the standing default for every subsequent real-data run in this project
-(`scripts/perheart_real_data_replay.py`, `scripts/nyha_fix_live_revalidation.py`).
+(`scripts/research/perheart_real_data_replay.py`, `scripts/research/nyha_fix_live_revalidation.py`).
 
 **Why the distinction matters for any paper claim drawn from a completion rate:**
 
@@ -614,7 +614,7 @@ held-out-set results in §5 above.
 column-matching robustness, every feature/flag's both states, `OxygenSaturation` never used) and
 `tests/test_batch_runner.py` (5 checks: stratified sampling correctness, determinism, no
 duplicates). The actual Docker execution itself — `_run_one()`/`run_batch()` — can only be
-exercised inside the Pulse container, same as Phase 2's `scripts/validate_phase2.py`; it was
+exercised inside the Pulse container, same as Phase 2's `scripts/research/validate_phase2.py`; it was
 validated in two stages: a 10-patient pilot (10/10 succeeded, ~110s/run individual latency,
 confirming the pipeline end-to-end before committing to the full run), then the full 150-patient
 batch (117/150 succeeded — see §5 for the failure breakdown and why it's scenario/severity-specific
@@ -689,7 +689,7 @@ within its own container, as designed), sections stack in a sensible single colu
 
 **Phase 2** (Pulse integration): all 5 locked scenario types were run once each at severity ~0.5,
 using real patients from `data/synthetic/patients.csv`, inside the actual Pulse Docker container
-(`scripts/validate_phase2.py`). Results were physiologically sensible and clearly differentiated:
+(`scripts/research/validate_phase2.py`). Results were physiologically sensible and clearly differentiated:
 
 | Scenario | HR (start→end) | MAP (start→end) | Notes |
 |---|---|---|---|
@@ -714,7 +714,7 @@ Every scenario's log was scanned by `run_pulse()`'s crash detection; no run curr
 fatal marker, though `acute_deterioration` did during earlier tuning (see §4) — confirming the
 detection path actually works, not just that it was written.
 
-**Phase 8** (full-pipeline batch validation, `scripts/validate_phase8.py`): 25 synthetic patients
+**Phase 8** (full-pipeline batch validation, `scripts/research/validate_phase8.py`): 25 synthetic patients
 (5 stratified per scenario type, `data/synthetic/patients.csv` rows `patient_id`s in
 `data/validation_runs/20260709_063540/results.csv`) were run through the **live API** — not a
 direct `run_pulse()` call like Phases 2/4 above — via `POST /patients` → `/clinical-report` → 21×
@@ -815,7 +815,7 @@ single real, directly measured vital, available for essentially any ICU-admitted
 required. That's the entire reason this specific mechanism, and only this one, was chosen for a
 real-outcome test in this pass.
 
-**Cohort** (`scripts/mimic_outcome_extraction.sql`, full query and inclusion criteria there):
+**Cohort** (`scripts/research/mimic_outcome_extraction.sql`, full query and inclusion criteria there):
 HF admissions (ICD-9 `428.x` / ICD-10 `I50.x`) with ≥1 real MAP reading strictly within the first
 24h of admission (the `map_start` guardrail — no later-stay vitals, to avoid predicting an
 admission's outcome from data recorded after the fact). NT-proBNP was deliberately excluded
@@ -824,7 +824,7 @@ single-mechanism test) and `discharge_location` was never selected as a feature 
 Not filtered by outcome. Because `mimiciv_3_1_derived.vitalsign` is an ICU-derived table, this
 cohort is implicitly ICU-admitted HF patients, not every HF admission hospital-wide.
 
-**Result** (`scripts/mimic_outcome_validation.py`, full output in
+**Result** (`scripts/research/mimic_outcome_validation.py`, full output in
 `data/mimic_outcome_validation/summary.md`):
 
 - **n = 17,129 admissions, 13,047 unique patients** — exact count, no extrapolation. In-hospital
@@ -873,7 +873,7 @@ pressure, 0% missing) is the only field with an existing, unmodified, non-fabric
 of this project's real-valued outputs — the same one §7.X already used, which is exactly why this
 is a genuine second test of that one mechanism, not a new one.
 
-**Cleaning** (`scripts/zigong_outcome_validation.py`), rules agreed before computing anything,
+**Cleaning** (`scripts/research/zigong_outcome_validation.py`), rules agreed before computing anything,
 individually and combined, on n=2008 raw admissions: `pulse`==0 (1 row), `respiration`==0 (1),
 `systolic.blood.pressure`==0 (3), `height`<1.0m (4), `BMI`>60 (4) — union of all five, 7 rows
 dropped (some overlap across rules) → **n=2001 after cleaning**.
@@ -968,7 +968,7 @@ usefulness. See §7.AA for a properly-isolated test that removes this confound.
 ### 7.AA Zigong cohort — clinical-only Model 1 variant, newly trained (not frozen), 2026-09-11
 
 **Scope: a genuine, unconfounded test of whether the clinical-feature component predicts real
-outcomes — unlike §7.Z, there is nothing frozen here.** `scripts/train_clinical_only_variant.py`
+outcomes — unlike §7.Z, there is nothing frozen here.** `scripts/research/train_clinical_only_variant.py`
 trains a NEW model from scratch, using the exact same synthetic training data, `split_patients()`
 logic, and `seed=42` as production Model 1, restricted to `CLINICAL_FEATURE_COLUMNS` only (no
 wearable-trend features at all). Same RandomForest hyperparameters as the production model
@@ -1082,7 +1082,7 @@ HF duration)."** Reasons follow directly from Steps 0–1 below.
 
 **Step 0 — formula correctness, verified before touching any real patient data.** An existing
 implementation, `src/analytics/benchmark_scores.py::compute_maggic_score()`, already existed from
-earlier `scripts/benchmark_comparison.py` work — audited rather than rewritten. Its own docstring
+earlier `scripts/research/benchmark_comparison.py` work — audited rather than rewritten. Its own docstring
 had already flagged that only the age×EF interaction bands were independently confirmed against
 the original paper; every other band (EF, BMI, creatinine, SBP-by-EF, NYHA, and the binary risk
 factors) came from one unverified secondary source. Re-verified here (2026-09-24) against
@@ -1122,12 +1122,12 @@ contribution exactly zero (not a guess that patients are non-smokers or recently
 keys are stripped from the reported component breakdown so a 0 is never misread as measured). The
 resulting **MAGGIC-11** score is a genuine 11-of-13-variable score, not the validated 13-variable
 one. All 11 remaining components use **real per-patient Zigong values** — a stronger real-world
-test than the original `scripts/benchmark_comparison.py` (which used 6 fixed constants on
+test than the original `scripts/research/benchmark_comparison.py` (which used 6 fixed constants on
 synthetic data). Complete-case cohort (all 11 fields + a drug record present, no imputation,
 cleaned `n=2001` base per the same 5 rules as §7.Y): **n=622** — closely matching §7.Y/§7.AA's
 ~625.
 
-**Step 3 — result** (`scripts/zigong_maggic11_validation.py`, n=622, same 6-month
+**Step 3 — result** (`scripts/research/zigong_maggic11_validation.py`, n=622, same 6-month
 death-or-readmission composite outcome as §7.Y/§7.AA/§7.BB, event rate 41.8%):
 
 - **AUC = 0.604 (95% CI 0.559–0.649)**, **PR-AUC = 0.496 (95% CI 0.443–0.558)** vs. 0.418 baseline.
@@ -1209,7 +1209,7 @@ degradation finding required):
 | P1043 | `fluid_overload` | 0.637 | **failed**, wall_clock_s=183.2 | **complete**, wall_clock_s=180.3 |
 
 (Timestamps: this session's re-attempts ran 2026-08-17 ~13:41:50–13:45:00 IST (P0247) and
-~13:45:26–13:48:26 IST (P1043); `scripts/reattempt_single_patient.py`'s per-10s status-poll log is
+~13:45:26–13:48:26 IST (P1043); `scripts/research/reattempt_single_patient.py`'s per-10s status-poll log is
 the source for the exact `wall_clock_s` figures above, and both runs' `error_message` was `None`.)
 
 **Interpretation.** Neither original hypothesis fits cleanly:
@@ -1375,7 +1375,7 @@ safe threshold in light of this session's finding that both test patients crashe
 catches `PulseExecutionError` per-run, records `status="failed"` with the error string, and
 continues the batch (`failed_runs.csv`) — no retry, no intensity adjustment. The live API path
 (`src/api/services.py`) does the same per-patient (`SimulationRun.status="failed"`). Validation
-scripts that do retry once (e.g. `scripts/perheart_real_data_replay.py`'s `attempt=2` pattern)
+scripts that do retry once (e.g. `scripts/research/perheart_real_data_replay.py`'s `attempt=2` pattern)
 retry the *identical* scenario — given this session's finding that the failure is deterministic
 (three independent crashes landing within a 0.22s window), **that retry is not expected to help for
 this specific failure mode**, and empirically hasn't: every crash observed this session that fits
@@ -1688,14 +1688,14 @@ individually — only one needed a code fix (`project_severity()`, above):**
   already-tested, already-caveated-in-its-own-module design ("an engineering choice... not a
   clinical citation," §6.1) — not the bug, and not touched by this fix. Dismantling
   `risk_bucket`'s own tertile system was never in scope here.
-- `scripts/model1_extended_eval.py`'s `risk_score`-vs-`true_severity` scatter/correlation already
+- `scripts/research/model1_extended_eval.py`'s `risk_score`-vs-`true_severity` scatter/correlation already
   computes correlation **per scenario type**, not pooled, and is labeled "PROXY — not real
   outcomes" — the methodologically correct way to compare the two, consistent with (not
   contradicted by) the 0.685 acute_deterioration correlation found above. No change needed.
-- `scripts/benchmark_comparison.py`'s MAGGIC-tertile comment references `risk_score.py`'s framing
+- `scripts/research/benchmark_comparison.py`'s MAGGIC-tertile comment references `risk_score.py`'s framing
   stylistically; no numeric use of 0.65. No change needed.
 - `src/api/services.py`'s/`schemas.py`'s `fluid_overload` caveat strings and
-  `scripts/perheart_real_data_replay.py`'s side-by-side `describe()` printout mention `severity`
+  `scripts/research/perheart_real_data_replay.py`'s side-by-side `describe()` printout mention `severity`
   and `risk_score` together but never combine or threshold them numerically — informational text
   only. No change needed.
 - `frontend/src/components/lab/SimulationLabPage.jsx` displays `severity` and `risk_score` next to
@@ -1988,7 +1988,7 @@ research paper once the pipeline is validated end-to-end (§7/§8).
   satisfying the hold noted in the previous revision of this section.
 - **DONE — expanded the batch validation from n=5/scenario to n=10/scenario (n=50 attempted),
   across three sessions (2026-08-12, 2026-08-17, 2026-08-18), using
-  `scripts/nyha_fix_live_revalidation.py`'s `--resume-from` to top up incrementally rather than
+  `scripts/research/nyha_fix_live_revalidation.py`'s `--resume-from` to top up incrementally rather than
   re-running from scratch each time (n=5→n=20→n=27→n=45 completed).** Final, current numbers —
   recomputed fresh at the actual achieved n each time, never reused from a smaller prior run:
   **n=45/50 completed (90%)**, live severity MAE **0.0264** [95% bootstrap CI 0.0194, 0.0352,

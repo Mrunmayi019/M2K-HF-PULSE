@@ -35,7 +35,7 @@ macro-average 0.990, weighted-average 0.990, per-class range 0.982–0.994 — c
 classifier discriminates well across all 5 classes, not just the majority ones. The older
 `models/phase3_extended_eval_report.txt` / `models/roc_curves.png` hold the same analysis for the
 earlier 90.7% training run
-(`scripts/model1_extended_eval.py`).
+(`scripts/research/model1_extended_eval.py`).
 
 **Known limitation:** trained and evaluated entirely on synthetic data whose generative process
 makes `scenario_type`/`severity` close to deterministic functions of the input features (see the
@@ -45,7 +45,7 @@ more than validated real-world diagnostic performance. No real clinical outcome 
 pipeline runs correctly on real inputs — not that its output correlates with real outcomes).
 
 **Fixed: the live-pipeline severity gap.** A 25-patient batch validation run through the actual
-API (`scripts/validate_phase8.py`, full writeup in `docs/methodology.md` §7/§8) had measured
+API (`scripts/research/validate_phase8.py`, full writeup in `docs/methodology.md` §7/§8) had measured
 severity MAE 0.271 in the live pipeline vs. 0.048 offline — `scenario_type` classification was
 unaffected (100% live agreement). Root cause: `build_inference_features()` always defaulted the
 `nyha_ordinal` feature to the most-benign class (`"I"`) at live-inference time, since a genuinely
@@ -63,7 +63,7 @@ live API exactly as a real deployment would see them): **live severity MAE 0.008
 entirely, landing in the same range as the offline benchmark. Full data:
 `data/validation_runs/nyha_fix_live_revalidation.csv`.
 
-**Expanded to n=20 with bootstrap CIs (`scripts/nyha_fix_live_revalidation.py`, 6 per scenario
+**Expanded to n=20 with bootstrap CIs (`scripts/research/nyha_fix_live_revalidation.py`, 6 per scenario
 type sampled, 30 attempted):** **live severity MAE 0.0275 [95% bootstrap CI 0.0188, 0.0394]**,
 scenario accuracy **1.0000 [95% CI 1.0000, 1.0000]**, n=20 completed. Consistent with the original
 n=5 result at 4x the sample size — both comfortably below the pre-fix 0.271 and in the same range
@@ -126,7 +126,7 @@ term); the final `risk_score` is `max(acute_score, baseline_deficit_score)`, not
 of 0.580), and `risk_bucket` shifted from 30/30 `LOW` to 29/30 `MODERATE`. See
 `src/analytics/risk_score.py`'s module docstring for the design rationale.
 
-**Per-scenario reliability, post-fix (`scripts/model1_extended_eval.py`; Pearson r, matching
+**Per-scenario reliability, post-fix (`scripts/research/model1_extended_eval.py`; Pearson r, matching
 `docs/methodology.md` §6.1's original statistic):** the *pooled* correlation between `risk_score`
 and synthetic ground-truth severity across all 117 rows is near-zero and non-significant (r=−0.06,
 p=0.52) — a Simpson's-paradox-style confound across scenario types, not evidence the score is

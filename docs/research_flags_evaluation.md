@@ -200,7 +200,7 @@ Persistence held back a classifier label on 47 patient-days. Of the 30 patient-s
 
 ## 6. Live check: continuous mode with real Pulse
 
-`scripts/verify_continuous_mode_live.py`, run in the backend image with `PIPELINE_MODE=continuous`, the frozen models, the real API routes, and the real `PulseScenarioDriver`.
+`scripts/research/verify_continuous_mode_live.py`, run in the backend image with `PIPELINE_MODE=continuous`, the frozen models, the real API routes, and the real `PulseScenarioDriver`.
 
 Run on 2026-10-07 on this PC, in the image `m2k-hf-pulse-release-pulse-backend` with this branch mounted. Raw output: `results/live_checks/continuous_mode_live.json`. **Verdict: PASS, all 10 checks.**
 

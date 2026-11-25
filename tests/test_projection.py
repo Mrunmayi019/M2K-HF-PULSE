@@ -2,7 +2,7 @@
 
 Only project_severity() is tested here -- pure math, no Docker/Pulse required.
 project_physiology() actually invokes Pulse and can only be exercised inside the Docker container
-(same convention as scripts/validate_phase2.py and Phase 4's batch runner).
+(same convention as scripts/research/validate_phase2.py and Phase 4's batch runner).
 
 Run from repo root: pytest tests/test_projection.py -v
 """

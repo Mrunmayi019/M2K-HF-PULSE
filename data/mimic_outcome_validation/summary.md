@@ -1,6 +1,6 @@
 # MIMIC-IV real-outcome test: baseline_deficit_score mechanism only
 
-**Scope**: this tests ONE mechanism in `src/analytics/risk_score.py` -- `baseline_deficit_score = f(map_start)` -- against real in-hospital mortality. It does NOT validate the full risk scorer, the wearable-trend ML classifier, or the Pulse simulation layer; none of those have a non-fabricated input in MIMIC-IV. See `scripts/mimic_outcome_extraction.sql` for the exact cohort query and `docs/methodology.md` for the full writeup.
+**Scope**: this tests ONE mechanism in `src/analytics/risk_score.py` -- `baseline_deficit_score = f(map_start)` -- against real in-hospital mortality. It does NOT validate the full risk scorer, the wearable-trend ML classifier, or the Pulse simulation layer; none of those have a non-fabricated input in MIMIC-IV. See `scripts/research/mimic_outcome_extraction.sql` for the exact cohort query and `docs/methodology.md` for the full writeup.
 
 ## Cohort
 

@@ -1,6 +1,6 @@
 # Zigong cohort: NEW clinical-only Model 1 variant -- genuine, unconfounded test
 
-Unlike Sec 7.Z (froze wearable inputs on the already-trained full model, got a collapsed/near-constant output), this model was trained from scratch on CLINICAL_FEATURE_COLUMNS only -- there is nothing to freeze. See scripts/train_clinical_only_variant.py for training details and the synthetic held-out evaluation.
+Unlike Sec 7.Z (froze wearable inputs on the already-trained full model, got a collapsed/near-constant output), this model was trained from scratch on CLINICAL_FEATURE_COLUMNS only -- there is nothing to freeze. See scripts/research/train_clinical_only_variant.py for training details and the synthetic held-out evaluation.
 
 ## Caveats (restated, not silently reused)
 

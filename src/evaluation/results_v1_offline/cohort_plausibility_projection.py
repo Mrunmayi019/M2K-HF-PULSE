@@ -41,7 +41,7 @@ LIVE_PROJECTIONS = OUT_DIR / "live_projection_inputs.json"
 
 PERHEART_N = 27
 # docs/real_world_data_integration.md §5 -- the recorded eligible set (>= 21 overlapping real
-# HR+SpO2+weight days, computed by scripts/perheart_real_data_replay.py eligible_patients()).
+# HR+SpO2+weight days, computed by scripts/research/perheart_real_data_replay.py eligible_patients()).
 PERHEART_ELIGIBLE = [1, 2, 4, 5, 6, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 27]
 EXCLUSION_RULE = (
     "fewer than 21 overlapping real HR+SpO2+weight days (the sole eligibility rule, "

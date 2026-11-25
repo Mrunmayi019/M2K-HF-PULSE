@@ -68,7 +68,7 @@ class TestValidation:
 
     def test_ranges_are_the_two_subjects_values(self):
         # subject 14 (233.0, 1.172, 1.496) and subject 102 (175.0, 1.061, 1.162), per
-        # scripts/bcg_hr_baseline_experiment.py -- not widened, not rounded.
+        # scripts/research/bcg_hr_baseline_experiment.py -- not widened, not rounded.
         assert RJ_INTERVAL_MS_RANGE == (175.0, 233.0)
         assert IJ_AMPLITUDE_RANGE == (1.061, 1.172)
         assert JK_AMPLITUDE_RANGE == (1.162, 1.496)

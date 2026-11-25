@@ -36,7 +36,7 @@ subject's real weight, the same precedent the original function already sets. Tr
 forced to `"deteriorating"` (not drawn via the original function's probabilistic
 `_assign_trend_mode`, which could produce `"recovering"`) — this is a deliberate worsening stress
 test, not a random draw. Assumed synthetic ground-truth severity: 0.85 for both subjects (this
-test's own assumption, not a measured value). Code: `scripts/synthetic_deterioration_stress_test.py`.
+test's own assumption, not a measured value). Code: `scripts/research/synthetic_deterioration_stress_test.py`.
 
 **Reproducibility note, fixed after an initial bug:** the first run used
 `seed = hash(label) % 2**32` — Python's built-in `hash()` on strings is randomized per process
@@ -156,7 +156,7 @@ per subject (6, 11, 16, 20) through `PulseScenarioDriver`, using each day's own 
 output, `scenario_type="acute_deterioration"` throughout (the correct final classification — used
 even for subject 14's misclassified early days, since this check isolates the severity signal
 itself, not scenario-type-switching behavior), and each subject's already-established BCG-derived
-compliance multipliers unchanged. Code: `scripts/synthetic_deterioration_pulse_check.py`.
+compliance multipliers unchanged. Code: `scripts/research/synthetic_deterioration_pulse_check.py`.
 
 **Crash-boundary check, done before running:** day 16 (severity 0.635/0.676 for the two subjects)
 was flagged in advance as inside this project's own documented `acute_deterioration` crash range
@@ -228,12 +228,12 @@ genuine deterioration trajectory it removes from observability.
 
 ## Files
 
-- `scripts/synthetic_deterioration_stress_test.py` — builds both subjects' real-HR-anchored 21-day
+- `scripts/research/synthetic_deterioration_stress_test.py` — builds both subjects' real-HR-anchored 21-day
   trends (reusing `generate_wearable_trends()`'s internals) and runs the expanding-window
   classifier/severity sweep.
 - `data/synthetic_deterioration_stress_test/{subject14,subject102}_trend.csv` — the full 21-day
   trend data for both subjects.
-- `scripts/synthetic_deterioration_pulse_check.py` — builds and runs the 8 representative-day
+- `scripts/research/synthetic_deterioration_pulse_check.py` — builds and runs the 8 representative-day
   Pulse scenarios.
 - `data/synthetic_deterioration_stress_test/pulse/{subject14,subject102}_day{6,11,16,20}/` —
   patient.json, scenario.json, scenario.log (and scenarioResults.csv for the 4 that succeeded) per
