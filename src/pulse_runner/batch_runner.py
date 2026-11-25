@@ -8,7 +8,7 @@ type (verified: min~0/max~1 in every type except `stable`, which is capped low b
 random per-scenario sample naturally covers it.
 
 Must run inside the kitware/pulse Docker container (run_pulse() requires PulseScenarioDriver,
-only present there) -- same requirement as scripts/validate_phase2.py.
+only present there) -- same requirement as scripts/research/validate_phase2.py.
 """
 from __future__ import annotations
 

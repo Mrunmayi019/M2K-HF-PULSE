@@ -1,0 +1,3 @@
+[INFO] [9602.42(s)] [Event Hypernatremia 1]  Patient has Hypernatremia
+[INFO] [9660(s)] [Final SimTime] 9660(s)
+[INFO] [9660(s)] [Expected Final SimTime] 1200(s)

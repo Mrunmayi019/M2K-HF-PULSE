@@ -119,7 +119,7 @@ whole *days*). Computed by inner-joining `oxidation.csv` and `body_mass.csv` on
 
 **16 of 27 real patients** (`user_id` 1, 2, 4, 5, 6, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 27)
 have ≥21 real overlapping days of HR+SpO2+weight coverage. This count is computed programmatically
-by `scripts/perheart_real_data_replay.py` every run, not hardcoded — reproducible directly from
+by `scripts/research/perheart_real_data_replay.py` every run, not hardcoded — reproducible directly from
 the source files.
 
 ## 6. Explicitly out of scope for this pass
@@ -136,7 +136,7 @@ the source files.
 
 ## 7. Implementation
 
-`scripts/perheart_real_data_replay.py` (same family as `scripts/validate_phase8.py`, but against
+`scripts/research/perheart_real_data_replay.py` (same family as `scripts/research/validate_phase8.py`, but against
 a real external dataset instead of this project's own synthetic one):
 
 1. Downloads `medical.zip` + `personal_questionnaires.csv` from Zenodo into `data/raw/perheart/`
@@ -249,7 +249,7 @@ calls, not HTTP calls against a single-process FastAPI server) reliably predicts
 for *this* execution path. 2 concurrent patients is the empirically-validated ceiling for the
 current architecture (single `uvicorn` process, no `--workers`, default SQLAlchemy pool). Raising
 either of those two shared-config limits was deliberately **not** done as part of this one-off
-script — see `scripts/perheart_real_data_replay.py`'s module docstring and `MAX_SAFE_WORKERS`
+script — see `scripts/research/perheart_real_data_replay.py`'s module docstring and `MAX_SAFE_WORKERS`
 comment for the full reasoning — but both are now concretely scoped, evidenced future-work items
 for the project (not just "make it faster somehow").
 
@@ -403,7 +403,7 @@ and unit tests passing. The unit test that should have caught this didn't, becau
 submitted a clinical report at all (a valid but different path — no `ClinicalReport` row means the
 pipeline's own `apply_tier1_fallback()` fallback path runs, which was never broken); fixed by
 reusing `latest_report.ef_is_fallback` directly and updating the test to submit a report with a
-null EF, matching `scripts/perheart_real_data_replay.py`'s actual request shape. Re-verified
+null EF, matching `scripts/research/perheart_real_data_replay.py`'s actual request shape. Re-verified
 against a fresh live run of user_27 after the fix — confirmed firing correctly (this section's own
 evidence trail includes the corrected `risk_caveats` text).
 

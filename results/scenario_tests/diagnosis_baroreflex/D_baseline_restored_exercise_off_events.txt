@@ -1,0 +1,6 @@
+[INFO] [8460(s)] Baroreceptors Saturated 
+[INFO] [8880.02(s)] Baroreceptor MAP Baseline updated to 84.5998 mmHg
+[INFO] [9300.04(s)] Baroreceptor MAP Baseline updated to 75.9759 mmHg
+[INFO] [9650.34(s)] [Event RenalHypoperfusion 1]  Patient has Renal Hypoperfusion
+[INFO] [9660(s)] [Final SimTime] 9660(s)
+[INFO] [9660(s)] [Expected Final SimTime] 1200(s)

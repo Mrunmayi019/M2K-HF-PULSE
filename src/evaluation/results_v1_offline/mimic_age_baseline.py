@@ -3,7 +3,7 @@ against the existing baseline_deficit_score AUC (data/mimic_outcome_validation/s
 the SAME MIMIC-IV cohort (data/raw/mimic/hf_admission_outcomes.csv -- gitignored, row-level real
 patient data, read but never written back; only aggregate numbers below leave this script).
 
-Reuses scripts/mimic_outcome_validation.py's own bootstrap_auc_ci() (copied verbatim, not
+Reuses scripts/research/mimic_outcome_validation.py's own bootstrap_auc_ci() (copied verbatim, not
 reimplemented differently) for an apples-to-apples CI methodology. Does not modify that script.
 
 Usage:
@@ -28,7 +28,7 @@ BOOTSTRAP_SEED = 42
 
 def bootstrap_auc_ci(y_true: np.ndarray, y_score: np.ndarray, n_resamples: int = N_BOOTSTRAP,
                       seed: int = BOOTSTRAP_SEED) -> tuple[float, float, float]:
-    """Verbatim copy of scripts/mimic_outcome_validation.py::bootstrap_auc_ci() -- same
+    """Verbatim copy of scripts/research/mimic_outcome_validation.py::bootstrap_auc_ci() -- same
     percentile-bootstrap methodology, so the age-baseline CI is directly comparable to the
     existing baseline_deficit_score CI."""
     rng = np.random.default_rng(seed)

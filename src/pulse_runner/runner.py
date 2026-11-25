@@ -106,7 +106,7 @@ def run_pulse(scenario_path: str, expected_duration_s: float, timeout_sec: int =
 # ---------------------------------------------------------------------------------------------
 # Crash-zone pre-flight guardrail, added 2026-09-10 (Sprint 2, docs/methodology.md Sec 8).
 # Reuses the exact documented range from the BCG validation work
-# (scripts/synthetic_deterioration_pulse_check.py's KNOWN_CRASH_RANGE) rather than
+# (scripts/research/synthetic_deterioration_pulse_check.py's KNOWN_CRASH_RANGE) rather than
 # reimplementing it -- promoted here so production code (src/api/services.py,
 # src/analytics/projection.py) can share the same check instead of each guessing independently.
 #

@@ -1,0 +1,4 @@
+[INFO] [8772.16(s)] [Event Hypoglycemia 0]  Patient no longer has Hypoglycemia
+[INFO] [9624.58(s)] [Event Hypernatremia 1]  Patient has Hypernatremia
+[INFO] [9660(s)] [Final SimTime] 9660(s)
+[INFO] [9660(s)] [Expected Final SimTime] 1200(s)

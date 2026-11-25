@@ -162,12 +162,15 @@ src/
 frontend/                React (Vite) dashboard
 tests/                   pytest suite (Pulse mocked)
 config/scenario_tests/   cohort files: stories, seeds and required flags per experiment
-results/scenario_tests/  pre-registrations, amendments, per-day results and analyses (Exp 1 at top level, exp2/, exp3/)
+results/scenario_tests/  pre-registrations, amendments, per-day results and analyses (Exp 1 at top level, exp2/, exp3/),
+                         and the baroreflex diagnosis (diagnosis_baroreflex/)
+results/paper_figures/   Pulse traces behind the state-resume figure
 data/                    synthetic data and real-data validation outputs (no raw restricted data)
 artifacts/results-v1/    frozen models used for all reported results
 models/                  model card and evaluation reports (the .joblib files are copied in, see Quick start)
 docs/                    methodology, architecture, data provenance and evaluation notes (index: docs/README.md)
-scripts/                 demo seeding, smoke test, paper figures, one-off engine diagnostics
+scripts/                 demo seeding and smoke test; paper_figures/ (paper figures), research/ (the scripts
+                         behind the real-data validation results, with an index), diagnostics/ (engine checks)
 backend/Dockerfile       backend + Pulse image (linux/amd64)
 docker-compose.yml       Postgres, backend and frontend
 ```
@@ -185,7 +188,8 @@ agreements. `docs/data_provenance.md` traces every clinical number to its source
 
 - Evaluation is on synthetic stories and retrospective data, with no prospective or clinical test.
 - In continuous mode, Pulse's baroreflex keeps the twin at a low MAP after simulated exertion, and
-  this state drives most high-risk days (`results/scenario_tests/exp3/RESULTS.md`).
+  this state drives most high-risk days (`results/scenario_tests/diagnosis_baroreflex/`,
+  `results/scenario_tests/exp3/RESULTS.md`).
 - Pulse is unstable when disease modifiers combine with sustained exertion at high severity.
 - The API has no authentication and is suitable only for research use.
 
@@ -202,6 +206,8 @@ The paper's Limitations section has the full list.
   year   = {2026}
 }
 ```
+
+The earlier Streamlit/Flask prototype is kept on the `archive/full-research-snapshot` branch.
 
 ## License
 

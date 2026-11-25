@@ -15,8 +15,8 @@ from a summary.
 - `src/patient_builder/patient_file.py:200-277` — `bcg_to_cardiovascular_modifiers()` (converts real BCG waveform features to Pulse's `VenousComplianceMultiplier`/`SystemicComplianceMultiplier`)
 - `src/patient_builder/patient_file.py:122` — `ef_to_cardiovascular_modifiers()` (the EF-driven base multipliers, unchanged, layered underneath)
 - `src/patient_builder/patient_file.py:83` — `build_patient_file()` (assembles the Pulse patient file; takes an optional `hr_baseline_bpm`, default `None`)
-- `scripts/bcg_extract_subject14_features.py`, `scripts/bcg_extract_subject102_features.py` — R-J interval / I-J-K amplitude extraction from raw BCG signal
-- `scripts/bcg_real_patient_validation.py`, `bcg_subject102_validation.py`, `bcg_real_patient_run.py`, `bcg_step1_diagnostic.py`, `bcg_hr_baseline_experiment.py` — build/run/counterfactual scripts
+- `scripts/research/bcg_extract_subject14_features.py`, `scripts/research/bcg_extract_subject102_features.py` — R-J interval / I-J-K amplitude extraction from raw BCG signal
+- `scripts/research/bcg_real_patient_validation.py`, `bcg_subject102_validation.py`, `bcg_real_patient_run.py`, `bcg_step1_diagnostic.py`, `bcg_hr_baseline_experiment.py` — build/run/counterfactual scripts
 - Full write-up with every number: `docs/bcg_validation_note.md`
 
 **Inputs, exact source:**
@@ -54,8 +54,8 @@ from a summary.
 ## Claim 2: The system detects a deteriorating trend (21-day synthetic stress test)
 
 **Scripts/functions, file:line:**
-- `scripts/synthetic_deterioration_stress_test.py:94-132` — `build_trend()` (constructs the synthetic 21-day trend)
-- `scripts/synthetic_deterioration_stress_test.py:135-190` — `main()` (the expanding-window classification sweep)
+- `scripts/research/synthetic_deterioration_stress_test.py:94-132` — `build_trend()` (constructs the synthetic 21-day trend)
+- `scripts/research/synthetic_deterioration_stress_test.py:135-190` — `main()` (the expanding-window classification sweep)
 - Reused, not reimplemented: `src/data_synthesis/generate_wearable_trends.py`'s `_trend_curve()`, `SCENARIO_SIGNAL_DELTAS` (imported directly, line 43-49 of the stress-test script); `src/scenario_classifier/features.py`'s `build_inference_features()`/`feature_columns()`
 - Models loaded: `models/scenario_classifier.joblib`, `models/severity_regressor.joblib` — the actual production models, unmodified
 
@@ -93,12 +93,12 @@ Both subjects converge to the correct `acute_deterioration` label by the end of 
 
 **Scripts/functions, file:line:**
 - `src/analytics/risk_score.py:95-102` — `_baseline_deficit_component()`; `:105-148` — `compute_risk_score()` (the actual production function, called unmodified everywhere below)
-- `scripts/mimic_outcome_validation.py:52` `bootstrap_auc_ci()`, `:72` `compute_baseline_deficit_only()`, `:81` `main()`
-- `scripts/zigong_outcome_validation.py:60` `compute_baseline_deficit_only()`, `:69` `bootstrap_metric_ci()`, `:88` `main()`
-- `scripts/train_clinical_only_variant.py:35` `main()` (trains a new clinical-features-only variant of Model 1)
-- `scripts/zigong_clinical_only_model_validation.py:51` `main()` (runs that variant on Zigong)
+- `scripts/research/mimic_outcome_validation.py:52` `bootstrap_auc_ci()`, `:72` `compute_baseline_deficit_only()`, `:81` `main()`
+- `scripts/research/zigong_outcome_validation.py:60` `compute_baseline_deficit_only()`, `:69` `bootstrap_metric_ci()`, `:88` `main()`
+- `scripts/research/train_clinical_only_variant.py:35` `main()` (trains a new clinical-features-only variant of Model 1)
+- `scripts/research/zigong_clinical_only_model_validation.py:51` `main()` (runs that variant on Zigong)
 - `src/analytics/benchmark_scores.py:133` `compute_maggic_score()`
-- `scripts/zigong_maggic11_validation.py:75` `compute_maggic11()`, `:100` `main()`
+- `scripts/research/zigong_maggic11_validation.py:75` `compute_maggic11()`, `:100` `main()`
 
 **Inputs, exact source and approximations:**
 - **MIMIC-IV**: real ICU admission-level MAP readings (first 24h), real `hospital_expire_flag` (in-hospital death) — from BigQuery, `physionet-data.mimiciv_3_1_*`. I could **not** re-run this myself: the extract file (`data/raw/mimic/hf_admission_outcomes.csv`) is real, DUA-protected patient data and is not present in this environment/repo (gitignored by design). Verified instead by reading the already-produced `data/mimic_outcome_validation/summary.md` directly.
@@ -140,7 +140,7 @@ Both subjects converge to the correct `acute_deterioration` label by the end of 
 ## Claim 4: The problem is solvable in principle (Zigong-native model, AUC 0.667)
 
 **Scripts/functions, file:line:**
-- `scripts/zigong_native_risk_model.py:86` `clean()`, `:94` `main()` (the entire pipeline: field selection, split, model, evaluation, feature importances)
+- `scripts/research/zigong_native_risk_model.py:86` `clean()`, `:94` `main()` (the entire pipeline: field selection, split, model, evaluation, feature importances)
 
 **Explicitly, this is a separate, standalone exploratory analysis — it is not part of HeartGuard AI's production pipeline, does not use `risk_score.py` or Model 1, and does not feed back into either.**
 

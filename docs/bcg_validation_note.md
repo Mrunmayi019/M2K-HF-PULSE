@@ -226,7 +226,7 @@ This reflects current production behavior: `build_patient_file()` is called with
 `hr_baseline_bpm` argument (its default), exactly as every existing synthetic-patient call site in
 this codebase already does — confirmed by grepping every call site (`src/pulse_runner/batch_runner.py`,
 `src/analytics/projection.py`, `src/api/services.py`, `src/api/continuous_state_pipeline.py`,
-`scripts/validate_phase2.py`, all 5 `tests/test_patient_builder.py` call sites): none pass
+`scripts/research/validate_phase2.py`, all 5 `tests/test_patient_builder.py` call sites): none pass
 `hr_baseline_bpm`. This is the number set this validation should be cited as, unless the
 HR-baseline experiment below is specifically what's being discussed.
 
@@ -380,7 +380,7 @@ Every comparison in this note so far is an **absolute-value** comparison: does t
 
 ## Files
 
-- `scripts/bcg_extract_subject14_features.py` / `bcg_extract_subject102_features.py` — the actual
+- `scripts/research/bcg_extract_subject14_features.py` / `bcg_extract_subject102_features.py` — the actual
   R-J/I-J-K extraction code (peak pairing, PVC check, I/K localization) described above. Pure
   pandas/numpy, no Docker required; needs the raw dataset on disk (path set at the top of each
   script). Writes `rj_ijk_features.csv` into each subject's `data/bcg_validation/` folder below.
@@ -390,17 +390,17 @@ Every comparison in this note so far is an **absolute-value** comparison: does t
 - `data/bcg_validation/subject102/patient.json`, `scenario.json`, `scenarioResults.csv`,
   `scenario.log`, `full_results.csv`, `rj_ijk_features.csv` — build/run/extraction artifacts for
   subject 102.
-- `scripts/bcg_subject102_validation.py` / `scripts/bcg_subject102_run.py` — subject 102's
+- `scripts/research/bcg_subject102_validation.py` / `scripts/research/bcg_subject102_run.py` — subject 102's
   build/crash-check and run scripts, mirroring the subject-14 pair below.
-- `scripts/bcg_real_patient_validation.py` — builds patient/scenario files, prints the
+- `scripts/research/bcg_real_patient_validation.py` — builds patient/scenario files, prints the
   crash-boundary check.
-- `scripts/bcg_real_patient_run.py` — runs the built scenario through `run_pulse()`, prints the
+- `scripts/research/bcg_real_patient_run.py` — runs the built scenario through `run_pulse()`, prints the
   full engine log and first/last result rows (must run inside `kitware/pulse:4.3.1`).
 - `data/bcg_validation/step1_diagnostic/{A_160cm,B_175cm}/` — the height-isolation counterfactual
   run's artifacts (patient.json, scenario.json, scenario.log).
-- `scripts/bcg_step1_diagnostic.py` — builds/runs the two EF-condition-free, modifier-free height
+- `scripts/research/bcg_step1_diagnostic.py` — builds/runs the two EF-condition-free, modifier-free height
   counterfactuals used in the SV/CO decomposition above.
-- `scripts/bcg_hr_baseline_experiment.py` / `scripts/bcg_hr_baseline_run.py` — build and run
+- `scripts/research/bcg_hr_baseline_experiment.py` / `scripts/research/bcg_hr_baseline_run.py` — build and run
   scripts for the HR-baseline personalization experiment above.
 - `data/bcg_validation/subject14_hr_baseline/`, `subject102_hr_baseline/` — patient.json,
   scenario.json, scenario.log, full_results.csv for that experiment (kept separate from the

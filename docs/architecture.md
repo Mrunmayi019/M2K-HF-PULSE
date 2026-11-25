@@ -106,7 +106,7 @@ The target architecture reuses names already taken by prototype files at the top
 
 | Target | Existing (prototype, kept as-is) | Status |
 |---|---|---|
-| `src/pulse_runner/runner.py` | `src/run.py` | **Resolved (Phase 2):** both exist side by side. `run.py` still backs the working Streamlit/Flask prototype unchanged; `runner.py` is the target-path version with timeout + crash/log/completeness detection, used by `scripts/validate_phase2.py` and going forward. |
+| `src/pulse_runner/runner.py` | `src/run.py` | **Resolved (Phase 2):** both exist side by side. `run.py` still backs the working Streamlit/Flask prototype unchanged; `runner.py` is the target-path version with timeout + crash/log/completeness detection, used by `scripts/research/validate_phase2.py` and going forward. |
 | `src/patient_builder/patient_file.py` + `scenario_file.py` | `src/generator.py` | **Resolved (Phase 2):** same pattern — `generator.py` untouched, new modules target the locked 5-scenario taxonomy instead of the prototype's ad hoc condition names. |
 | `src/analytics/` (package: `staging.py`, `deterioration_rate.py`, `projection.py`, `simulation_features.py`, `risk_score.py`) | `src/analytics.py` (single file) | **Resolved (Phase 5):** the prototype file was renamed to `src/legacy_analytics.py` (no logic changes — `app.py`/`streamlit_app.py` each updated one import line: `from src.legacy_analytics import analyze`). `src/analytics/` is now the real target-path package; `simulation_features.py` moved in from its temporary Phase 4 location. |
 

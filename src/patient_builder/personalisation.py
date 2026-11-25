@@ -13,7 +13,7 @@ subject's clinical-sheet HR). It is NOT derived from wearable data -- no derivat
 and none is invented here.
 
 Accepted ranges are exactly what the two calibration subjects cover (Zhan et al. 2025 BCG
-dataset; values from scripts/bcg_hr_baseline_experiment.py / docs/bcg_validation_note.md):
+dataset; values from scripts/research/bcg_hr_baseline_experiment.py / docs/bcg_validation_note.md):
 
     subject 14:  R-J 233.0 ms, I-J 1.172, J-K 1.496, clinical-sheet HR 77 bpm
     subject 102: R-J 175.0 ms, I-J 1.061, J-K 1.162, clinical-sheet HR 115 bpm
