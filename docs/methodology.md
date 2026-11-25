@@ -1059,7 +1059,7 @@ AI's actual target.**
 | §7.Z frozen Model 1 (collapsed-output confound) | 0.478 (0.433–0.523) | 0.396 |
 | §7.AA clinical-only variant (properly trained) | 0.517 (0.473–0.562) | 0.419 |
 | **§7.BB Zigong-native risk model** | **0.667 (0.611–0.721)** | **0.605** |
-| Literature: LACE index (no source traced; removed from the paper on 2026-11-26) | ~0.56–0.65 | — |
+| Literature: LACE index (no source traced; the paper instead cites the original LACE paper, van Walraven et al. 2010, PMID 20194559: C statistic 0.684 for 30-day death or unplanned readmission) | ~0.56–0.65 | — |
 | Literature: richer ML models | ~0.72–0.76 | — |
 
 §7.BB lands at/slightly above the LACE-index range and below the richer-ML-model range — real
@@ -1158,7 +1158,7 @@ clearly different, never averaged into one number:**
 | §7.AA clinical-only variant (properly trained) | 0.517 (0.473–0.562) | 0.419 |
 | §7.BB Zigong-native risk model | 0.667 (0.611–0.721) | 0.605 |
 | **§7.CC MAGGIC-11 (Zigong, complete-case n=622)** | **0.604 (0.559–0.649)** | **0.496** |
-| Literature: LACE index (different populations/outcomes) (no source traced; removed from the paper on 2026-11-26) | ~0.56–0.65 | — |
+| Literature: LACE index (different populations/outcomes) (no source traced; the paper instead cites the original LACE paper, van Walraven et al. 2010, PMID 20194559: C statistic 0.684 for 30-day death or unplanned readmission) | ~0.56–0.65 | — |
 | Literature: full 13-variable MAGGIC (different populations/outcomes) | ~0.70–0.80 | — |
 | Literature: SHFM / BCN-Bio-HF (different populations/outcomes) | published, not re-derived here | — |
 | Literature: richer ML models (different populations/outcomes) | ~0.72–0.76 | — |
