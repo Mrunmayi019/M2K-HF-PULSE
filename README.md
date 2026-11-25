@@ -113,6 +113,17 @@ docker compose run --rm --no-deps -v "$PWD:/workspace" \
   pulse-backend python -m src.evaluation.scenario_tests.run_batch
 ```
 
+**Paper figures** (no Pulse runs; reads the committed CSVs and engine traces):
+
+```bash
+python3 scripts/paper_figures/make_journal_figures.py --out /tmp/figs \
+  --engine-dir results/paper_figures/engine_traces
+```
+
+The state-resume traces in `results/paper_figures/engine_traces/` come from real Pulse runs. To
+regenerate them: `docker compose run --rm --no-deps -v "$PWD:/workspace" pulse-backend python
+scripts/paper_figures/make_resume_traces.py --out /workspace/results/paper_figures/engine_traces`.
+
 The harness checks the model hashes and the flags required by the cohort file before it starts.
 Each experiment's pre-registration records how it was run (Experiment 1: `expected_outcomes.md` and
 `protocol_amendments.md`; Experiments 2 and 3: `PREREGISTRATION.md`, run from the commit that added
