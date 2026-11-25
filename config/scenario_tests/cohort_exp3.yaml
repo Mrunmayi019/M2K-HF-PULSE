@@ -26,6 +26,9 @@ meta:
   warmup_days: 1
   source_cohort: config/scenario_tests/cohort_exp2.yaml
   required_flags:
+    # PIPELINE_MODE only sets the API's mode and is checked before a batch starts. The harness
+    # (run_patient_seed.py) always calls run_daily_continuous_pipeline directly, so every
+    # Experiment 1-3 run used continuous mode, as the paper says.
     PIPELINE_MODE: fresh
     ENABLE_BCG_MODIFIERS: false
     ENABLE_HR_BASELINE: false
