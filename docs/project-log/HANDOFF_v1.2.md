@@ -1,6 +1,6 @@
 # Handoff: running M2K HF-PULSE v1.2 from a fresh clone
 
-This is the short, current path from `git clone` to the five-patient demo. The older root `HANDOFF.md` is a long session log written for earlier phases. Where the two disagree, **this file wins**: in particular, **do not retrain the models**. Restore the frozen results-v1 models instead (step 3).
+This is the short, current path from `git clone` to the five-patient demo. The older `HANDOFF_session_log.md` (in this folder) is a long session log written for earlier phases. Where the two disagree, **this file wins**: in particular, **do not retrain the models**. Restore the frozen results-v1 models instead (step 3).
 
 Repo: https://github.com/Mrunmayi019/M2K-HF-PULSE (`main`; release tag `v1.2`).
 

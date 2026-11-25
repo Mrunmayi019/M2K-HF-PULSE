@@ -2,8 +2,9 @@
 
 **Personalised Digital Twin for Early Heart Failure Deterioration Detection**
 
-Status: skeleton — filled in incrementally as each roadmap phase completes, not written
-retroactively before submission. The decisions already locked (personalization tiers, scenario
+Status: written incrementally as each roadmap phase was built, not retroactively; it covers the
+system behind results-v1. Experiments 2 and 3 are documented in `results/scenario_tests/exp2/` and
+`results/scenario_tests/exp3/`. The decisions already locked (personalization tiers, scenario
 taxonomy, dataset strategy, primary risk scorer choice) are stated where each is used below (§3,
 §6) and in `docs/data_provenance.md` — this document explains *why* those decisions were made and
 how each phase was executed, not just what the decisions are.

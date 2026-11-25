@@ -1,9 +1,9 @@
 """Post-handoff: secondary benchmark comparator against a published clinical risk score
-(MAGGIC), for HANDOFF.md P2 "benchmark against an established clinical risk score."
+(MAGGIC), for docs/project-log/HANDOFF_session_log.md P2 "benchmark against an established clinical risk score."
 
 This is NOT a replacement for src/analytics/risk_score.py (still primary -- see its own module
 docstring). It exists purely to show how this project's risk_score.py output compares to an
-externally validated score computed on the same patients, per HANDOFF.md's explicit ask.
+externally validated score computed on the same patients, per that handoff note's explicit ask.
 
 MAGGIC (Pocock SJ, et al. "Predicting survival in heart failure: a risk score based on 39,372
 patients from 30 studies worldwide." Eur Heart J. 2013;34(19):1404-1413) is an integer point

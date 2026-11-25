@@ -1,4 +1,4 @@
-"""Scenario-test figures for paper/main.tex, drawn from the saved pre-registered runs.
+"""Scenario-test figures for the paper (written next to this script), drawn from the saved pre-registered runs.
 
 Inputs:
   --results-dir  daily_results_P??_seed??.csv (from feature/scenario-testing)
@@ -6,7 +6,7 @@ Inputs:
   results/scenario_tests/posthoc/ablation_eval.json and ablation_baselines.json (committed)
 
 Run from the repo root:
-  python3 paper/figures/make_scenario_figures.py --results-dir <dir> --dbs results/scenario_tests/dbs
+  python3 scripts/paper_figures/make_scenario_figures.py --results-dir <dir> --dbs results/scenario_tests/dbs
 """
 import argparse
 import csv
