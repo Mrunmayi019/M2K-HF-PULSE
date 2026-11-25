@@ -47,7 +47,7 @@ before its runs. In the table, "deployed" means the alert the system actually ra
 | Experiment | Setup | Main result | Files |
 |---|---|---|---|
 | 1: scenario test | Seeds 42–44 (development), 45–47 (held out) | Label accuracy 17.6%; deployed alert caught 21/30 deteriorating series at 8.7 false alerts per 100 patient-days. The C3 guard cut false alerts by 67.6% on development seeds and 61.4% on held-out seeds. | `results/scenario_tests/` (`expected_outcomes.md`, `protocol_amendments.md`, `RESULTS.md`, `alert_fix_results*.md`) |
-| 2: EF in the training range | Same stories, EF 58–67%, seeds 48–53 | Label accuracy 37.1%; 24/30 caught; 4.8 false alerts per 100 patient-days. 6 of 8 predictions met. | `results/scenario_tests/exp2/` |
+| 2: EF in the training range | Same stories, EF 58–67%, seeds 48–53 | Label accuracy 37.1%; 24/30 caught; 4.8 false alerts per 100 patient-days. 7 of 10 predictions met. | `results/scenario_tests/exp2/` |
 | 3: weekly baseline refresh | Exp 2 cohort, twin rebuilt every 7 days | The refresh clears the stuck post-exertion state (post-onset alert days 268 → 140; detection unchanged), but false alerts rise to 10.1 and failed engine days from 3 to 24. 16 of 18 pre-registered predictions held; the amendment's one also held. | `results/scenario_tests/exp3/` |
 
 Other evaluations:
