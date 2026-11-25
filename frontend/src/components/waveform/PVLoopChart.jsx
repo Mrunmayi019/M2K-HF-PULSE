@@ -63,7 +63,7 @@ export default function PVLoopChart({ points, color = '#14B8A6', height = 200 })
             {Math.round(t.v)}
           </text>
         ))}
-        <path d={path} fill={color} opacity={0.12} stroke={color} strokeWidth={2} strokeLinejoin="round" />
+        <path d={path} fill={color} fillOpacity={0.12} stroke={color} strokeWidth={2} strokeLinejoin="round" />
       </svg>
       <div className="pvloopchart-axislabels">
         <span>Volume (mL) &rarr;</span>
