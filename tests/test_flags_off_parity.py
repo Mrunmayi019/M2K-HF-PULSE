@@ -45,6 +45,7 @@ FLAG_ENV_VARS = (
     "ENABLE_HR_BASELINE",
     "ENABLE_ALERT_HYSTERESIS",
     "ENABLE_SCENARIO_PERSISTENCE",
+    "BASELINE_REFRESH_DAYS",
 )
 
 _TS_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")

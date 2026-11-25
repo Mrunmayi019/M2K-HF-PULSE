@@ -370,4 +370,8 @@ def get_twin_state(patient: models.Patient = Depends(get_patient_or_404), db: Se
         response.days_since_exercise_label = len(completed) - 1 - last
         response.last_exercise_scenario_type = completed[last].scenario_type
     response.hfref_condition_mismatch = mismatch
+    refresh_every_days = feature_flags.baseline_refresh_days()
+    days_in_chain = continuous_state_pipeline.chain_days(db, patient.id, state)
+    if refresh_every_days > 0 and days_in_chain is not None:
+        response.baseline_refresh_in_days = max(refresh_every_days - days_in_chain, 0)
     return response

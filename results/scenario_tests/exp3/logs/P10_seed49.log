@@ -1,0 +1,39 @@
+Model hash check: OK (models/*.joblib matches artifacts/results-v1/models/)
+Flag check: OK ({'PIPELINE_MODE': 'fresh', 'ENABLE_BCG_MODIFIERS': False, 'ENABLE_HR_BASELINE': False, 'ENABLE_ALERT_HYSTERESIS': False, 'ENABLE_SCENARIO_PERSISTENCE': False, 'ENABLE_BASELINE_ANCHOR': True, 'BASELINE_REFRESH_DAYS': 7})
+[P10 seed=49] DB: /workspace/results/scenario_tests/exp4/dbs/P10_seed49.db
+[P10 seed=49] warm-up day 1/1: complete (not scored)
+[P10 seed=49] day  1: complete wall=  30.5s scenario=stable severity=0.06093666666666664 risk=0.0049 alert=False(none) lag=0
+[P10 seed=49] day  2: complete wall=  33.3s scenario=cardiac_stress severity=0.07664333333333335 risk=0.3444 alert=False(none) lag=0
+[P10 seed=49] day  3: complete wall=  34.5s scenario=cardiac_stress severity=0.1893466666666666 risk=0.3925 alert=True(scorer) lag=0
+[P10 seed=49] day  4: complete wall=  34.4s scenario=cardiac_stress severity=0.18696000000000002 risk=0.7298 alert=True(scorer) lag=0
+[P10 seed=49] day  5: complete wall=  33.8s scenario=deconditioning severity=0.36838999999999983 risk=0.6586 alert=True(scorer) lag=0
+[P10 seed=49] day  6: complete wall=  30.5s scenario=deconditioning severity=0.673486666666667 risk=0.8732 alert=True(scorer) lag=0
+[P10 seed=49] day  7: complete wall= 232.8s scenario=deconditioning severity=0.8326533333333327 risk=1.0 alert=True(scorer) lag=0
+[P10 seed=49] day  8: complete wall=  31.1s scenario=deconditioning severity=0.904706666666667 risk=0.0006 alert=True(scorer) lag=0
+[P10 seed=49] day  9: complete wall=  30.9s scenario=deconditioning severity=0.9085333333333337 risk=0.0001 alert=True(scorer) lag=0
+[P10 seed=49] day 10: complete wall=  31.2s scenario=deconditioning severity=0.870243333333333 risk=0.0 alert=True(scorer) lag=0
+[P10 seed=49] day 11: complete wall=  31.6s scenario=deconditioning severity=0.846836666666666 risk=0.0055 alert=True(scorer) lag=0
+run_daily_continuous_pipeline: Pulse execution failed for patient_id=P10 (run_id=13)
+Traceback (most recent call last):
+  File "/workspace/src/api/continuous_state_pipeline.py", line 493, in _run_daily_continuous_pipeline
+    new_state_json, snap, df = resume_and_advance(
+                               ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 197, in resume_and_advance
+    df = _run_state_scenario(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/src/pulse_runner/cli_state_runner.py", line 99, in _run_state_scenario
+    raise PulseExecutionError(
+src.pulse_runner.runner.PulseExecutionError: PulseScenarioDriver exited 1 on /tmp/tmpus25_361/scenario.json
+stderr: 
+unfiltered fatal markers: ["[FATAL] [6156.14(s)] Can't transport with a negative volume included. Node = LeftHeart. Volume = -1323.83 mL", '[INFO] [6156.14(s)] [Event IrreversibleState 1]  Patient has entered irreversible state']
+[P10 seed=49] day 12: failed   wall=   5.6s scenario=cardiac_stress severity=0.8586799999999988 risk=None alert=True(failed_fallback) lag=1
+[P10 seed=49] day 13: complete wall=  31.5s scenario=deconditioning severity=0.8611466666666657 risk=0.0001 alert=True(scorer) lag=1
+[P10 seed=49] day 14: complete wall=  31.1s scenario=deconditioning severity=0.8611566666666657 risk=0.0 alert=True(scorer) lag=1
+[P10 seed=49] day 15: complete wall= 235.9s scenario=deconditioning severity=0.8554233333333326 risk=0.0024 alert=True(scorer) lag=1
+[P10 seed=49] day 16: complete wall=  31.0s scenario=deconditioning severity=0.8366333333333338 risk=0.004 alert=True(scorer) lag=1
+[P10 seed=49] day 17: complete wall=  30.8s scenario=deconditioning severity=0.836193333333334 risk=0.0 alert=True(scorer) lag=1
+[P10 seed=49] day 18: complete wall=  31.4s scenario=deconditioning severity=0.8286366666666674 risk=0.0015 alert=True(scorer) lag=1
+[P10 seed=49] day 19: complete wall=  31.0s scenario=deconditioning severity=0.8245800000000009 risk=0.0001 alert=True(scorer) lag=1
+[P10 seed=49] day 20: complete wall=  30.9s scenario=deconditioning severity=0.8023366666666669 risk=0.0041 alert=True(scorer) lag=1
+[P10 seed=49] day 21: complete wall=  30.7s scenario=deconditioning severity=0.7573866666666672 risk=0.0079 alert=True(scorer) lag=1
+[P10 seed=49] wrote /workspace/results/scenario_tests/exp4/daily_results_P10_seed49.csv (21 rows, 1 failed days)

@@ -20,4 +20,5 @@ test('continuous mode or any feature on shows it', () => {
   for (const k of Object.keys(DEFAULTS).filter((k) => k !== 'PIPELINE_MODE')) {
     assert.equal(isDefaultFlags({ ...DEFAULTS, [k]: true }), false, k)
   }
+  assert.equal(isDefaultFlags({ ...DEFAULTS, BASELINE_REFRESH_DAYS: 7 }), false)
 })
